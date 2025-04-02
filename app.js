@@ -1,15 +1,10 @@
 /**
- * Route Optimizer Application with Google Maps API Integration
+ * Route Optimizer Application
+ * 
+ * This script handles the functionality for the Route Optimizer web application.
+ * It manages form inputs, API communication, and UI updates.
+ * Enhanced with Google Maps integration and business name search capabilities.
  */
-
-// Global variables
-let map;
-let directionsService;
-let directionsRenderer;
-let geocoder;
-let autocompletes = [];
-let currentRoute = null;
-let stopCounter = 0;
 
 // DOM Elements
 const routeForm = document.getElementById('route-form');
@@ -26,16 +21,25 @@ const alertBox = document.getElementById('alert-box');
 const totalDistance = document.getElementById('total-distance');
 const estimatedTime = document.getElementById('estimated-time');
 const routeList = document.getElementById('route-list');
-const mapContainer = document.getElementById('map-container');
+
+// Store current route data
+let currentRoute = null;
+let stopCounter = 0;
+
+// Google Maps API objects
+let map;
+let directionsService;
+let directionsRenderer;
+let placesService;
+let autocompleteInstances = [];
+let mapInitialized = false;
 
 /**
- * Main initialization function - called after Google Maps loads
+ * Initialize the application
+ * This is the main entry point when the page loads
  */
-function initializeApp() {
-    console.log("Initializing Route Optimizer App");
-    
-    // Set up Google Maps components
-    initializeGoogleMaps();
+function initApp() {
+    console.log('Initializing Route Optimizer App');
     
     // Add first stop input
     addStopInput();
@@ -45,95 +49,139 @@ function initializeApp() {
     routeForm.addEventListener('submit', handleFormSubmit);
     backBtn.addEventListener('click', showInputSection);
     saveBtn.addEventListener('click', saveRoute);
+    
+    // Initialize Google Maps if the API is loaded
+    if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+        initializeGoogleMaps();
+    } else {
+        // If Google Maps isn't loaded yet, set up a callback
+        window.initMap = initializeGoogleMaps;
+        
+        // Try to load Google Maps if it hasn't been loaded
+        if (!document.querySelector('script[src*="maps.googleapis.com"]')) {
+            loadGoogleMapsScript();
+        }
+    }
+}
+
+/**
+ * Load the Google Maps API script
+ */
+function loadGoogleMapsScript() {
+    // Only load if not already loaded
+    if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+        return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initMap`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+    
+    console.log('Google Maps API script loading...');
 }
 
 /**
  * Initialize Google Maps components
+ * Called when the Google Maps API is loaded
  */
 function initializeGoogleMaps() {
-    console.log("Setting up Google Maps components");
+    console.log('Setting up Google Maps components');
     
-    try {
-        // Create directions service for route calculation
-        directionsService = new google.maps.DirectionsService();
+    if (mapInitialized) return;
+    mapInitialized = true;
+    
+    // Make sure there's a map container
+    let mapContainer = document.getElementById('map-container');
+    if (!mapContainer) {
+        // Create a map container if it doesn't exist
+        mapContainer = document.createElement('div');
+        mapContainer.id = 'map-container';
+        mapContainer.className = 'w-full h-64 md:h-96 rounded-md mb-6 border border-gray-300 overflow-hidden';
+        mapContainer.style.height = '400px';
         
-        // Create geocoder for converting addresses to coordinates
-        geocoder = new google.maps.Geocoder();
-        
-        // Initialize map
-        if (mapContainer) {
-            console.log("Initializing map in container:", mapContainer);
-            
-            // Force a height if not set in CSS
-            if (mapContainer.offsetHeight === 0) {
-                mapContainer.style.height = '400px';
-            }
-            
-            // Initialize the map
-            map = new google.maps.Map(mapContainer, {
-                center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
-                zoom: 12,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
-            });
-            
-            // Create directions renderer for displaying routes
-            directionsRenderer = new google.maps.DirectionsRenderer({
-                map: map,
-                suppressMarkers: false,
-                draggable: false,
-                polylineOptions: {
-                    strokeColor: '#3b82f6',
-                    strokeWeight: 5,
-                    strokeOpacity: 0.7
-                }
-            });
-            
-            console.log("Map initialized successfully");
-        } else {
-            console.error("Map container not found");
+        // Insert before the route list in results section
+        const resultsHeader = document.querySelector('#results-section h3');
+        if (resultsHeader) {
+            resultsHeader.parentNode.insertBefore(mapContainer, resultsHeader);
         }
-        
-        // Setup autocomplete for start/end fields
-        setupAutocomplete('start-location');
-        setupAutocomplete('end-location');
-        
-    } catch (error) {
-        console.error("Error setting up Google Maps components:", error);
     }
-}
-
-function setupPlacesAutocomplete(inputId) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  
-  // Create the autocomplete with expanded options
-  const autocomplete = new google.maps.places.Autocomplete(input, {
-    // No types restriction to allow all place types including businesses
-    fields: ['place_id', 'formatted_address', 'geometry', 'name', 'types'],
-  });
-  
-  // Debug listener to see what's being selected
-  autocomplete.addListener('place_changed', function() {
-    const place = autocomplete.getPlace();
-    console.log('Place selected:', place);
-  });
-  
-  console.log(`Place autocomplete set up for ${inputId}`);
-}
-
-function setupInputAutocomplete(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
     
-    // Create a basic autocomplete with minimal restrictions
-    const autocomplete = new google.maps.places.Autocomplete(input);
+    console.log('Initializing map in container:', mapContainer);
     
-    // Add a textchange handler to manually search for places
-    input.addEventListener('input', function() {
-        const searchText = input.value;
-        if (searchText.length > 2) { // Only search if more than 2 characters
-            console.log("Searching for:", searchText);
+    // Initialize the map
+    map = new google.maps.Map(mapContainer, {
+        center: { lat: 37.7749, lng: -122.4194 }, // Default to San Francisco
+        zoom: 12,
+        mapTypeControl: false,
+        fullscreenControl: true,
+        streetViewControl: false
+    });
+    
+    // Initialize the Directions Service and Renderer
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: false,
+        polylineOptions: {
+            strokeColor: '#3b82f6',
+            strokeWeight: 5
         }
+    });
+    
+    // Initialize Places Service for additional place details
+    placesService = new google.maps.places.PlacesService(map);
+    
+    // Set up autocomplete for all input fields
+    initializeAutocomplete();
+    
+    console.log('Map initialized successfully');
+}
+
+/**
+ * Set up Places Autocomplete for all location inputs
+ */
+function initializeAutocomplete() {
+    // Set up for start location
+    setupPlacesAutocomplete('start-location');
+    
+    // Set up for end location
+    setupPlacesAutocomplete('end-location');
+    
+    // Set up for any existing stops
+    const stopInputs = document.querySelectorAll('#stops-container input');
+    stopInputs.forEach(input => {
+        if (input.id) {
+            setupPlacesAutocomplete(input.id);
+        }
+    });
+    
+    console.log('Places Autocomplete initialized for all inputs');
+}
+
+/**
+ * Set up enhanced Places Autocomplete for a specific input
+ * This allows searching for business names and points of interest
+ * @param {string} inputId - The ID of the input field
+ */
+function setupPlacesAutocomplete(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) {
+        console.warn(`Input element with ID ${inputId} not found`);
+        return;
+    }
+    
+    // Create autocomplete with broad search capabilities
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+        // No type restrictions to allow all place types (businesses, addresses, etc.)
+        fields: ['place_id', 'formatted_address', 'geometry', 'name', 'types'],
+    });
+    
+    // Debug listener to see the selected place details
+    autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        console.log(`Place selected for ${inputId}:`, place);
     });
     
     // Store the autocomplete instance
@@ -148,10 +196,12 @@ function setupInputAutocomplete(inputId) {
             e.preventDefault();
         }
     });
+    
+    console.log(`Enhanced autocomplete set up for ${inputId}`);
 }
 
 /**
- * Adds a new stop input field to the form with Google Places autocomplete
+ * Adds a new stop input field to the form
  */
 function addStopInput() {
     stopCounter++;
@@ -168,7 +218,7 @@ function addStopInput() {
                 type="text" 
                 id="${stopId}" 
                 class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                placeholder="Enter stop address"
+                placeholder="Enter stop location (address, business, etc.)"
                 required
             >
             ${stopCounter > 1 ? `<button 
@@ -184,8 +234,10 @@ function addStopInput() {
     
     stopsContainer.appendChild(stopDiv);
     
-    // Add Google Places autocomplete
-    setupAutocomplete(stopId);
+    // Set up autocomplete for the new input
+    if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+        setupPlacesAutocomplete(stopId);
+    }
 }
 
 /**
@@ -194,13 +246,9 @@ function addStopInput() {
  */
 function removeStop(button) {
     const stopItem = button.closest('.stop-item');
-    const inputId = stopItem.querySelector('input').id;
-    
-    // Remove autocomplete from tracking array
-    autocompletes = autocompletes.filter(item => item.id !== inputId);
-    
-    // Animate removal
     stopItem.style.opacity = 0;
+    
+    // Remove after fade out animation
     setTimeout(() => {
         stopsContainer.removeChild(stopItem);
     }, 300);
@@ -223,7 +271,7 @@ function showAlert(message, type = 'error') {
 }
 
 /**
- * Handles the form submission
+ * Handles the form submission and calculates the route
  * @param {Event} event - The form submission event
  */
 async function handleFormSubmit(event) {
@@ -235,7 +283,7 @@ async function handleFormSubmit(event) {
     
     // Collect all stops
     const stops = [];
-    const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
+    const stopInputs = document.querySelectorAll('#stops-container input[type="text"]');
     
     for (const input of stopInputs) {
         if (input.value.trim()) {
@@ -243,7 +291,7 @@ async function handleFormSubmit(event) {
         }
     }
     
-    // Basic validation
+    // Validate inputs
     if (!startLocation) {
         showAlert('Please enter a starting location');
         return;
@@ -263,191 +311,119 @@ async function handleFormSubmit(event) {
     toggleLoadingState(true);
     
     try {
-        console.log("Calculating route with:", {
-            start: startLocation,
-            stops: stops,
-            end: endLocation
-        });
-        
-        // Step 1: Validate and geocode all addresses
-        const locations = await validateAddresses({
-            start: startLocation,
-            end: endLocation,
-            stops: stops
-        });
-        
-        console.log("Geocoded locations:", locations);
-        
-        // Step 2: Calculate the optimized route
-        const routeResult = await calculateOptimizedRoute(locations);
-        
-        console.log("Route calculation result:", routeResult);
-        
-        // Update UI with results
-        displayRouteResults(routeResult);
+        // Use Google Maps API to calculate route if available
+        if (directionsService && map) {
+            const response = await calculateOptimizedRoute(startLocation, endLocation, stops);
+            handleRouteResponse(response);
+        } else {
+            // Fall back to mock data if Google Maps isn't available
+            setTimeout(() => {
+                const mockResponse = {
+                    success: true,
+                    route: {
+                        totalDistance: (Math.random() * 50 + 10).toFixed(1) + ' miles',
+                        estimatedTime: Math.floor(Math.random() * 120 + 30) + ' minutes',
+                        waypoints: [
+                            { address: startLocation, type: 'start' },
+                            ...stops.map(stop => ({ address: stop, type: 'stop' })),
+                            { address: endLocation, type: 'end' }
+                        ]
+                    }
+                };
+                
+                handleRouteResponse(mockResponse);
+            }, 1500);
+        }
     } catch (error) {
-        console.error("Route calculation error:", error);
-        showAlert(error.message || 'Error calculating route. Please try again.');
+        console.error('Error calculating route:', error);
+        showAlert('Failed to calculate route. Please try again.');
         toggleLoadingState(false);
     }
 }
 
 /**
- * Validates all addresses using Google Geocoding API
- * @param {Object} locations - Object containing start, end, and stops addresses
- * @returns {Promise} - Promise resolving to validated locations with coordinates
+ * Calculate optimized route using Google Maps APIs
+ * @param {string} startLocation - Starting location address or place name
+ * @param {string} endLocation - Ending location address or place name
+ * @param {Array<string>} stops - Array of stop addresses or place names
+ * @returns {Promise} - Resolves with the route data
  */
-async function validateAddresses(locations) {
-    try {
-        console.log("Validating addresses:", locations);
-        
-        // Create geocoding promises for all addresses
-        const startPromise = geocodeAddress(locations.start);
-        const endPromise = geocodeAddress(locations.end);
-        const stopsPromises = locations.stops.map(stop => geocodeAddress(stop));
-        
-        // Wait for all geocoding requests to complete
-        const [startResult, endResult, ...stopsResults] = await Promise.all([
-            startPromise, 
-            endPromise, 
-            ...stopsPromises
-        ]);
-        
-        console.log("Geocoding results:", {
-            start: startResult,
-            end: endResult,
-            stops: stopsResults
-        });
-        
-        // Check if any geocoding failed
-        if (!startResult || !endResult || stopsResults.includes(null)) {
-            throw new Error('One or more addresses could not be found. Please check your inputs.');
-        }
-        
-        return {
-            start: startResult,
-            end: endResult,
-            stops: stopsResults
-        };
-    } catch (error) {
-        console.error('Address validation error:', error);
-        throw error;
-    }
-}
-
-/**
- * Geocodes an address to coordinates
- * @param {string} address - The address to geocode
- * @returns {Promise} - Promise resolving to location object with coordinates
- */
-function geocodeAddress(address) {
+async function calculateOptimizedRoute(startLocation, endLocation, stops) {
     return new Promise((resolve, reject) => {
-        console.log("Geocoding address:", address);
-        
-        geocoder.geocode({ address }, (results, status) => {
-            console.log(`Geocoding result for "${address}":`, status, results);
-            
-            if (status === 'OK' && results && results.length > 0) {
-                resolve({
-                    address: results[0].formatted_address,
-                    location: results[0].geometry.location,
-                    placeId: results[0].place_id
-                });
-            } else {
-                console.error('Geocoding failed for address:', address, status);
-                resolve(null); // Resolve with null to handle in the main validation function
-            }
-        });
-    });
-}
-
-/**
- * Calculates an optimized route using Google Directions Service
- * @param {Object} locations - Object containing geocoded addresses
- * @returns {Promise} - Promise resolving to route data
- */
-function calculateOptimizedRoute(locations) {
-    return new Promise((resolve, reject) => {
-        console.log("Calculating optimized route...");
-        
-        // For the Google Directions API, we need to optimize waypoint order
-        const waypoints = locations.stops.map(stop => ({
-            location: stop.location,
+        // Combine all waypoints for the optimization request
+        const waypoints = stops.map(stop => ({
+            location: stop,
             stopover: true
         }));
         
+        // Create the directions request
         const request = {
-            origin: locations.start.location,
-            destination: locations.end.location,
+            origin: startLocation,
+            destination: endLocation,
             waypoints: waypoints,
-            optimizeWaypoints: true, // This is key for route optimization
+            optimizeWaypoints: true, // This tells Google to optimize the order
             travelMode: google.maps.TravelMode.DRIVING
         };
         
-        console.log("Direction request:", request);
-        
+        // Make the directions request
         directionsService.route(request, (result, status) => {
-            console.log("Directions service response:", status, result);
-            
-            if (status === 'OK') {
-                // Process route data
-                const legs = result.routes[0].legs;
+            if (status === google.maps.DirectionsStatus.OK) {
+                // Calculate total distance and time
+                let totalDistance = 0;
+                let totalDuration = 0;
+                
+                // Sum up leg distances and durations
+                result.routes[0].legs.forEach(leg => {
+                    totalDistance += leg.distance.value;
+                    totalDuration += leg.duration.value;
+                });
+                
+                // Convert distance from meters to miles
+                const distanceInMiles = (totalDistance / 1609.34).toFixed(1);
+                
+                // Convert duration from seconds to minutes
+                const durationInMinutes = Math.round(totalDuration / 60);
+                
+                // Get the optimized waypoint order
                 const waypointOrder = result.routes[0].waypoint_order;
                 
-                // Calculate total distance and time
-                let totalDistanceMeters = 0;
-                let totalDurationSeconds = 0;
-                
-                for (const leg of legs) {
-                    totalDistanceMeters += leg.distance.value;
-                    totalDurationSeconds += leg.duration.value;
-                }
-                
-                // Convert to miles and minutes
-                const totalDistanceMiles = (totalDistanceMeters / 1609.34).toFixed(1);
-                const totalDurationMinutes = Math.round(totalDurationSeconds / 60);
-                
-                // Format duration into hours and minutes
-                let durationText;
-                if (totalDurationMinutes >= 60) {
-                    const hours = Math.floor(totalDurationMinutes / 60);
-                    const minutes = totalDurationMinutes % 60;
-                    durationText = `${hours} hr ${minutes} min`;
-                } else {
-                    durationText = `${totalDurationMinutes} min`;
-                }
-                
-                // Create ordered waypoints list based on the optimization
+                // Create ordered waypoints array
                 const orderedWaypoints = [
-                    { address: locations.start.address, type: 'start' }
+                    { address: startLocation, type: 'start' }
                 ];
                 
-                // Add stops in optimized order
-                for (const index of waypointOrder) {
+                // Add the stops in the optimized order
+                waypointOrder.forEach(index => {
                     orderedWaypoints.push({
-                        address: locations.stops[index].address,
+                        address: stops[index],
                         type: 'stop'
                     });
-                }
+                });
                 
-                // Add destination
+                // Add the destination
                 orderedWaypoints.push({
-                    address: locations.end.address,
+                    address: endLocation,
                     type: 'end'
                 });
                 
-                // Create route object
-                const route = {
-                    totalDistance: `${totalDistanceMiles} miles`,
-                    estimatedTime: durationText,
-                    waypoints: orderedWaypoints,
-                    directionsResult: result
-                };
+                // Display the route on the map
+                directionsRenderer.setDirections(result);
                 
-                resolve(route);
+                // Fit the map to the route bounds
+                map.fitBounds(result.routes[0].bounds);
+                
+                // Resolve with the route data
+                resolve({
+                    success: true,
+                    route: {
+                        totalDistance: `${distanceInMiles} miles`,
+                        estimatedTime: `${durationInMinutes} minutes`,
+                        waypoints: orderedWaypoints
+                    }
+                });
             } else {
-                console.error('Directions request failed:', status);
-                reject(new Error('Could not calculate route. Please try different locations.'));
+                console.error('Directions request failed with status:', status);
+                reject(new Error(`Directions request failed: ${status}`));
             }
         });
     });
@@ -470,24 +446,28 @@ function toggleLoadingState(isLoading) {
 }
 
 /**
- * Displays the route results in the UI and on the map
+ * Handles the API response and updates the UI accordingly
+ * @param {Object} response - The API response
+ */
+function handleRouteResponse(response) {
+    toggleLoadingState(false);
+    
+    if (response.success && response.route) {
+        currentRoute = response.route;
+        displayRouteResults(response.route);
+    } else {
+        showAlert(response.error || 'Failed to optimize route. Please try again.');
+    }
+}
+
+/**
+ * Displays the route results in the UI
  * @param {Object} route - The optimized route data
  */
 function displayRouteResults(route) {
-    console.log("Displaying route results:", route);
-    
-    // Store current route
-    currentRoute = route;
-    
-    // End loading state
-    toggleLoadingState(false);
-    
     // Update stats
     totalDistance.textContent = route.totalDistance;
     estimatedTime.textContent = route.estimatedTime;
-    
-    // Display route on map
-    directionsRenderer.setDirections(route.directionsResult);
     
     // Clear previous route list
     routeList.innerHTML = '';
@@ -507,23 +487,15 @@ function displayRouteResults(route) {
         routeList.appendChild(listItem);
     });
     
+    // Make sure the map container is visible
+    if (document.getElementById('map-container')) {
+        document.getElementById('map-container').style.display = 'block';
+    }
+    
     // Show results section
     inputSection.classList.add('hidden');
     resultsSection.classList.remove('hidden');
     resultsSection.classList.add('fade-in');
-    
-    // Trigger a resize event to ensure map displays correctly
-    setTimeout(() => {
-        google.maps.event.trigger(map, 'resize');
-        
-        // Set map bounds to fit the route
-        const bounds = new google.maps.LatLngBounds();
-        route.directionsResult.routes[0].legs.forEach(leg => {
-            bounds.extend(leg.start_location);
-            bounds.extend(leg.end_location);
-        });
-        map.fitBounds(bounds);
-    }, 100);
 }
 
 /**
@@ -535,7 +507,7 @@ function showInputSection() {
 }
 
 /**
- * Saves the current route (localStorage implementation)
+ * Saves the current route
  */
 function saveRoute() {
     if (!currentRoute) return;
@@ -543,21 +515,24 @@ function saveRoute() {
     // Create a route object to save
     const routeToSave = {
         id: Date.now(),
-        name: `Route ${new Date().toLocaleDateString()}`,
-        totalDistance: currentRoute.totalDistance,
-        estimatedTime: currentRoute.estimatedTime,
-        waypoints: currentRoute.waypoints,
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        ...currentRoute
     };
     
     // Get existing saved routes or initialize empty array
-    const savedRoutes = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
+    let savedRoutes = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
     
-    // Add new route
+    // Add current route to saved routes
     savedRoutes.push(routeToSave);
     
     // Save back to localStorage
     localStorage.setItem('savedRoutes', JSON.stringify(savedRoutes));
     
+    // Show success message
     showAlert('Route saved successfully!', 'success');
+    
+    console.log('Route saved:', routeToSave);
 }
+
+// Initialize the app when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', initApp);
