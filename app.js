@@ -37,54 +37,88 @@ const mapContainer = document.getElementById('map-container');
  * Initialize the application
  */
 function initApp() {
-    // Initialize Google Maps services
-    initGoogleMaps();
-    
-    // Add first stop input
-    addStopInput();
-    
-    // Set up event listeners
+    // Set up event listeners first
     addStopBtn.addEventListener('click', addStopInput);
     routeForm.addEventListener('submit', handleFormSubmit);
     backBtn.addEventListener('click', showInputSection);
     saveBtn.addEventListener('click', saveRoute);
+    
+    // Add first stop input
+    addStopInput();
+    
+    console.log('App initialized successfully');
 }
 
 /**
- * Initialize Google Maps services
+ * Initialize Google Maps services - This will be called automatically by the API
  */
 function initGoogleMaps() {
-    // Create directions service for route calculation
-    directionsService = new google.maps.DirectionsService();
+    console.log('Google Maps API loaded - initializing services');
     
-    // Create geocoder for converting addresses to coordinates
-    geocoder = new google.maps.Geocoder();
-    
-    // Initialize the map (hidden initially)
-    map = new google.maps.Map(mapContainer, {
-        center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
-        zoom: 12,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true
-    });
-    
-    // Create directions renderer for displaying routes on the map
-    directionsRenderer = new google.maps.DirectionsRenderer({
-        map: map,
-        suppressMarkers: false,
-        draggable: false,
-        polylineOptions: {
-            strokeColor: '#3b82f6',
-            strokeWeight: 5,
-            strokeOpacity: 0.7
+    try {
+        // Create directions service for route calculation
+        directionsService = new google.maps.DirectionsService();
+        
+        // Create geocoder for converting addresses to coordinates
+        geocoder = new google.maps.Geocoder();
+        
+        // Make sure the map container has a height
+        if (mapContainer) {
+            // Force a height if not already set in CSS
+            if (mapContainer.offsetHeight === 0) {
+                mapContainer.style.height = '400px';
+            }
+            
+            // Initialize the map
+            map = new google.maps.Map(mapContainer, {
+                center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
+                zoom: 12,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+            
+            // Create directions renderer for displaying routes on the map
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: false,
+                draggable: false,
+                polylineOptions: {
+                    strokeColor: '#3b82f6',
+                    strokeWeight: 5,
+                    strokeOpacity: 0.7
+                }
+            });
+            
+            // Log success
+            console.log('Google Maps initialized successfully');
+        } else {
+            console.error('Map container element not found');
         }
-    });
-    
-    // Create places service for address autocomplete
-    placesService = new google.maps.places.PlacesService(map);
+        
+        // Initialize autocomplete for start/end fields
+        if (document.getElementById('start-location')) {
+            const startAutocomplete = new google.maps.places.Autocomplete(
+                document.getElementById('start-location'),
+                { types: ['address'], fields: ['formatted_address', 'geometry', 'name', 'place_id'] }
+            );
+            console.log('Start location autocomplete initialized');
+        }
+        
+        if (document.getElementById('end-location')) {
+            const endAutocomplete = new google.maps.places.Autocomplete(
+                document.getElementById('end-location'),
+                { types: ['address'], fields: ['formatted_address', 'geometry', 'name', 'place_id'] }
+            );
+            console.log('End location autocomplete initialized');
+        }
+        
+        // Call the app initialization function after maps are loaded
+        initApp();
+    } catch (error) {
+        console.error('Error initializing Google Maps:', error);
+    }
 }
-
 /**
  * Adds a new stop input field to the form with Google Places autocomplete
  */
