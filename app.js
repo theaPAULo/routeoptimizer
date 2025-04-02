@@ -52,11 +52,28 @@ function initApp() {
     // Initialize dark mode
     initDarkMode();
     
-    // Make the initAllAutocompletes function available globally
-    // This will be called when the Google Maps API finishes loading
-    window.initAllAutocompletes = initAllAutocompletes;
+    // Load Google Maps API and initialize autocomplete
+    loadGoogleMapsAPI();
     
     console.log("Route Optimizer app initialized successfully");
+}
+
+/**
+ * Loads Google Maps API using the modern approach
+ */
+async function loadGoogleMapsAPI() {
+    try {
+        console.log("Loading Google Maps API...");
+        
+        // Load the core Maps JavaScript API
+        const { Map } = await google.maps.importLibrary("maps");
+        console.log("Google Maps API loaded successfully");
+        
+        // Initialize autocomplete
+        await initAllAutocompletes();
+    } catch (error) {
+        console.error("Error loading Google Maps API:", error);
+    }
 }
 
 /**
@@ -164,28 +181,42 @@ function addStopInput() {
  * Initialize address autocomplete for an input element
  * @param {string} inputId - The ID of the input element
  */
-function initAutocomplete(inputId) {
+async function initAutocomplete(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
     
-    const autocomplete = new google.maps.places.Autocomplete(input, {
-        types: ['geocode', 'establishment'] // Allow both addresses and place names
-    });
-    
-    // Ensure the autocomplete stays within the input field bounds
-    autocomplete.addListener('place_changed', function() {
-        const place = autocomplete.getPlace();
+    try {
+        // Load the Places library using the modern importLibrary method
+        const { Autocomplete } = await google.maps.importLibrary("places");
         
-        if (!place.geometry) {
-            // User entered the name of a place that was not suggested
-            return;
-        }
+        const autocomplete = new Autocomplete(input, {
+            types: ['geocode', 'establishment'] // Allow both addresses and place names
+        });
         
-        // You can store the place_id for more accurate routing later
-        input.dataset.placeId = place.place_id;
-        input.dataset.lat = place.geometry.location.lat();
-        input.dataset.lng = place.geometry.location.lng();
-    });
+        // Ensure the autocomplete stays within the input field bounds
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+            
+            if (!place.geometry) {
+                // User entered the name of a place that was not suggested
+                return;
+            }
+            
+            // You can store the place_id for more accurate routing later
+            input.dataset.placeId = place.place_id;
+            
+            if (place.geometry.location) {
+                input.dataset.lat = place.geometry.location.lat();
+                input.dataset.lng = place.geometry.location.lng();
+            }
+            
+            console.log(`Selected place: ${place.name}`, place);
+        });
+        
+        console.log(`Autocomplete initialized for: ${inputId}`);
+    } catch (error) {
+        console.error(`Failed to initialize autocomplete for ${inputId}:`, error);
+    }
 }
 
 /**
@@ -276,20 +307,24 @@ function importRoute() {
  * Initialize autocomplete on all address inputs
  * This function is called when the Google Maps API is loaded
  */
-function initAllAutocompletes() {
+async function initAllAutocompletes() {
     console.log("Initializing Google Places autocomplete...");
     
-    // Initialize for start and end locations
-    initAutocomplete('start-location');
-    initAutocomplete('end-location');
-    
-    // Initialize for existing stops
-    const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
-    for (const input of stopInputs) {
-        initAutocomplete(input.id);
+    try {
+        // Initialize for start and end locations
+        await initAutocomplete('start-location');
+        await initAutocomplete('end-location');
+        
+        // Initialize for existing stops
+        const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
+        for (const input of stopInputs) {
+            await initAutocomplete(input.id);
+        }
+        
+        console.log("Google Places autocomplete initialized successfully");
+    } catch (error) {
+        console.error("Error initializing autocomplete:", error);
     }
-    
-    console.log("Google Places autocomplete initialized successfully");
 }
 
 /**
