@@ -12,7 +12,7 @@
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     # Updated Content-Security-Policy to allow Google Maps and related services
-Content-Security-Policy = "default-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.tailwindcss.com maps.googleapis.com *.google.com *.gstatic.com; img-src 'self' data: maps.googleapis.com *.googleapis.com *.gstatic.com; script-src 'self' 'unsafe-inline' maps.googleapis.com *.googleapis.com;"    Referrer-Policy = "strict-origin-when-cross-origin"
+Content-Security-Policy = "default-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.tailwindcss.com maps.googleapis.com *.google.com *.gstatic.com; img-src 'self' data: maps.googleapis.com *.googleapis.com *.gstatic.com; script-src 'self' 'unsafe-inline' maps.googleapis.com *.googleapis.com;"
 
 # Redirect rules
 [[redirects]]
