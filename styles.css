@@ -6,6 +6,11 @@
     to { opacity: 1; }
 }
 
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
 @keyframes slideDown {
     from { transform: translateY(-10px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -14,6 +19,10 @@
 /* Apply animations */
 .fade-in {
     animation: fadeIn 0.3s ease-in-out;
+}
+
+.fade-out {
+    animation: fadeOut 0.3s ease-in-out;
 }
 
 .slide-down {
@@ -106,33 +115,91 @@
     border-left: 4px solid #3b82f6;
 }
 
-/* Map container styling - essential for Google Maps to display properly */
-#map-container {
-    height: 400px !important; /* Force height with !important */
-    width: 100%;
-    background-color: #f0f0f0;
-    margin-bottom: 1.5rem;
-    border-radius: 0.375rem;
-    overflow: hidden;
-    position: relative;
+/* Modal animations */
+.modal-container {
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Make sure map fills its container */
-#map-container > div {
-    height: 100% !important;
-    width: 100% !important;
+.modal-content {
+    animation: slideDown 0.3s ease-in-out;
 }
 
-/* Loading state for map */
-#map-container:before {
-    content: 'Loading map...';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #6b7280;
-    font-size: 1rem;
-    z-index: 0;
+/* Notes button styling */
+.notes-toggle {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    background-color: #f3f4f6;
+    transition: all 0.2s ease;
+}
+
+.notes-toggle:hover {
+    background-color: #e5e7eb;
+}
+
+/* Category tag styling */
+.category-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+/* Dark mode styles */
+.dark {
+    color-scheme: dark;
+}
+
+.dark body {
+    background-color: #1f2937;
+    color: #f3f4f6;
+}
+
+.dark .bg-white {
+    background-color: #374151;
+}
+
+.dark .text-gray-600 {
+    color: #d1d5db;
+}
+
+.dark .text-gray-700 {
+    color: #e5e7eb;
+}
+
+.dark .border-gray-300 {
+    border-color: #4b5563;
+}
+
+.dark .bg-gray-100 {
+    background-color: #111827;
+}
+
+.dark .bg-blue-50 {
+    background-color: #1e3a8a;
+}
+
+.dark .text-gray-500 {
+    color: #9ca3af;
+}
+
+.dark #route-list li {
+    background-color: #1f2937;
+    border-left-color: #60a5fa;
+}
+
+.dark #route-list li:hover {
+    background-color: #2d3748;
+}
+
+.dark .notes-toggle {
+    background-color: #4b5563;
+}
+
+.dark .notes-toggle:hover {
+    background-color: #6b7280;
 }
 
 /* Responsive adjustments */
@@ -156,7 +223,8 @@
         margin-top: 0.5rem;
     }
     
-    #map-container {
-        height: 300px !important; /* Smaller height on mobile */
+    .maps-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
     }
 }
