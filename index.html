@@ -10,18 +10,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Google Places API for address autocomplete (replace YOUR_API_KEY with actual key) -->
+    <!-- Google Places API for address autocomplete -->
     <script>
         // Use this script tag to dynamically load the API with your key from environment variables
         function loadGooglePlacesAPI() {
+            console.log("Loading Google Maps API...");
+            
             const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&callback=initAllAutocompletes`;
+            // In production, Netlify will replace this with environment variable
+            const apiKey = "YOUR_API_KEY";
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
             script.async = true;
             script.defer = true;
+            
+            // Add event listener to initialize autocomplete when API is loaded
+            script.onload = function() {
+                console.log("Google Maps API loaded successfully");
+                if (typeof window.initAllAutocompletes === 'function') {
+                    window.initAllAutocompletes();
+                } else {
+                    console.error("initAllAutocompletes function not found");
+                }
+            };
+            
             document.head.appendChild(script);
         }
-        // This will be replaced with your actual API key during build
-        const GOOGLE_MAPS_API_KEY = "YOUR_API_KEY";
     </script>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -227,8 +240,13 @@
     <!-- JavaScript Files -->
     <script src="app.js"></script>
     <script>
-        // Initialize Google Maps API loading after page loads
-        document.addEventListener('DOMContentLoaded', loadGooglePlacesAPI);
+        // Initialize Google Maps API loading after page loads and app.js is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the app first
+            initApp();
+            // Then load Google Maps API
+            setTimeout(loadGooglePlacesAPI, 100);
+        });
     </script>
 </body>
 </html>
