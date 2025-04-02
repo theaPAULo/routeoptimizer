@@ -38,6 +38,8 @@ const stopCategories = [
  * Initializes the application
  */
 function initApp() {
+    console.log("Initializing Route Optimizer app...");
+    
     // Add first stop input
     addStopInput();
     
@@ -50,9 +52,11 @@ function initApp() {
     // Initialize dark mode
     initDarkMode();
     
-    // Initialize Google Maps API autocomplete
-    // This will be called via callback when the API loads
+    // Make the initAllAutocompletes function available globally
+    // This will be called when the Google Maps API finishes loading
     window.initAllAutocompletes = initAllAutocompletes;
+    
+    console.log("Route Optimizer app initialized successfully");
 }
 
 /**
@@ -265,13 +269,16 @@ function importRoute() {
     fileInput.click();
 }
 
-// Initialize the app when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initApp);
+// We don't need this anymore since we're calling initApp from the inline script
+// document.addEventListener('DOMContentLoaded', initApp);
 
 /**
  * Initialize autocomplete on all address inputs
+ * This function is called when the Google Maps API is loaded
  */
 function initAllAutocompletes() {
+    console.log("Initializing Google Places autocomplete...");
+    
     // Initialize for start and end locations
     initAutocomplete('start-location');
     initAutocomplete('end-location');
@@ -281,6 +288,8 @@ function initAllAutocompletes() {
     for (const input of stopInputs) {
         initAutocomplete(input.id);
     }
+    
+    console.log("Google Places autocomplete initialized successfully");
 }
 
 /**
