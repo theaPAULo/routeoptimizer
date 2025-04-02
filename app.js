@@ -102,6 +102,25 @@ function initializeGoogleMaps() {
     }
 }
 
+function setupPlacesAutocomplete(inputId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  
+  // Create the autocomplete with expanded options
+  const autocomplete = new google.maps.places.Autocomplete(input, {
+    // No types restriction to allow all place types including businesses
+    fields: ['place_id', 'formatted_address', 'geometry', 'name', 'types'],
+  });
+  
+  // Debug listener to see what's being selected
+  autocomplete.addListener('place_changed', function() {
+    const place = autocomplete.getPlace();
+    console.log('Place selected:', place);
+  });
+  
+  console.log(`Place autocomplete set up for ${inputId}`);
+}
+
 function setupInputAutocomplete(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
