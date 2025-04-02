@@ -537,3 +537,117 @@ function saveRoute() {
     
     showAlert('Route saved successfully!', 'success');
 }
+
+// Global variable to keep track of enhanced inputs
+let enhancedInputs = {};
+
+/**
+ * Initialize Google Places API integration
+ * This function should be called when the DOM is fully loaded
+ */
+function initPlacesAPI() {
+    // Check if Google Maps API is already loading or loaded
+    if (window.googleMapsLoading) {
+        return;
+    }
+    
+    window.googleMapsLoading = true;
+    
+    // Set up the callback function
+    window.initGooglePlaces = function() {
+        console.log('Google Places API loaded');
+        enhanceExistingInputs();
+    };
+    
+    // Create and add the script
+    const script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initGooglePlaces';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+}
+
+/**
+ * Enhance an input field with Places Autocomplete functionality
+ * @param {HTMLElement} input - The input element to enhance
+ */
+function enhanceWithPlaces(input) {
+    // Skip if already enhanced or input doesn't exist
+    if (!input || enhancedInputs[input.id]) {
+        return;
+    }
+    
+    try {
+        // Create autocomplete with options for business search
+        const autocomplete = new google.maps.places.Autocomplete(input, {
+            // Empty array allows ALL types (businesses, addresses, etc.)
+            types: [],
+            fields: ['place_id', 'name', 'formatted_address', 'geometry']
+        });
+        
+        // Mark as enhanced
+        enhancedInputs[input.id] = true;
+        
+        // When a place is selected
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+            
+            // Format business results as "Business Name, Address"
+            if (place.name && place.formatted_address && 
+                !place.formatted_address.includes(place.name)) {
+                input.value = `${place.name}, ${place.formatted_address}`;
+            }
+        });
+        
+        // Prevent form submission when selecting from dropdown
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.activeElement === input) {
+                e.preventDefault();
+            }
+        });
+    } catch (error) {
+        console.error(`Error enhancing input ${input.id}:`, error);
+    }
+}
+
+/**
+ * Enhance all existing location input fields
+ */
+function enhanceExistingInputs() {
+    // Enhance the static input fields
+    enhanceWithPlaces(document.getElementById('start-location'));
+    enhanceWithPlaces(document.getElementById('end-location'));
+    
+    // Enhance any existing stop inputs
+    const stopInputs = document.querySelectorAll('#stops-container input[type="text"]');
+    stopInputs.forEach(input => enhanceWithPlaces(input));
+    
+    // Set up observer for dynamically added inputs
+    setupDynamicInputObserver();
+}
+
+/**
+ * Sets up an observer to watch for dynamically added stop inputs
+ */
+function setupDynamicInputObserver() {
+    const stopsContainer = document.getElementById('stops-container');
+    if (!stopsContainer) return;
+    
+    // Create an observer to watch for new inputs
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        const inputs = node.querySelectorAll('input[type="text"]');
+                        inputs.forEach(input => enhanceWithPlaces(input));
+                    }
+                });
+            }
+        });
+    });
+    
+    // Start observing
+    observer.observe(stopsContainer, { childList: true, subtree: true });
+}
+
