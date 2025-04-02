@@ -31,12 +31,7 @@ const mapContainer = document.getElementById('map-container');
 /**
  * Main initialization function - called after Google Maps loads
  */
-function initializeApp() {
-    console.log("Initializing Route Optimizer App");
-    
-    // Set up Google Maps components
-    initializeGoogleMaps();
-    
+function initApp() {
     // Add first stop input
     addStopInput();
     
@@ -45,6 +40,12 @@ function initializeApp() {
     routeForm.addEventListener('submit', handleFormSubmit);
     backBtn.addEventListener('click', showInputSection);
     saveBtn.addEventListener('click', saveRoute);
+    
+    // Load any saved routes (to be implemented)
+    // loadSavedRoutes();
+    
+    // Add this line to initialize Places API
+    initPlacesAPI();
 }
 
 /**
@@ -650,4 +651,7 @@ function setupDynamicInputObserver() {
     // Start observing
     observer.observe(stopsContainer, { childList: true, subtree: true });
 }
+
+// Initialize the app when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', initApp);
 
