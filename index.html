@@ -223,13 +223,8 @@
     <!-- JavaScript Files -->
     <script src="app.js"></script>
     <script>
-        // Initialize Google Maps API loading after page loads and app.js is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize the app first
-            initApp();
-            // Then load Google Maps API
-            setTimeout(loadGooglePlacesAPI, 100);
-        });
+    // Initialize app when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
