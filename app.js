@@ -1,8 +1,5 @@
 /**
  * Route Optimizer Application with Google Maps API Integration
- * 
- * This script handles the functionality for the Route Optimizer web application.
- * It uses Google Maps API for address autocomplete, route calculation, and map display.
  */
 
 // Global variables
@@ -10,9 +7,7 @@ let map;
 let directionsService;
 let directionsRenderer;
 let geocoder;
-let placesService;
 let autocompletes = [];
-let markers = [];
 let currentRoute = null;
 let stopCounter = 0;
 
@@ -34,11 +29,13 @@ const routeList = document.getElementById('route-list');
 const mapContainer = document.getElementById('map-container');
 
 /**
- * Initialize the application
- * This function is called after the DOM is loaded
+ * Main initialization function - called after Google Maps loads
  */
-function initApp() {
+function initializeApp() {
     console.log("Initializing Route Optimizer App");
+    
+    // Set up Google Maps components
+    initializeGoogleMaps();
     
     // Add first stop input
     addStopInput();
@@ -48,18 +45,12 @@ function initApp() {
     routeForm.addEventListener('submit', handleFormSubmit);
     backBtn.addEventListener('click', showInputSection);
     saveBtn.addEventListener('click', saveRoute);
-    
-    // Initialize Google Maps components if the API is already loaded
-    if (typeof google !== 'undefined' && google.maps) {
-        setupGoogleMapsComponents();
-    }
 }
 
 /**
- * Sets up Google Maps components after the API is loaded
- * This function is called either from initApp or initMap (callback)
+ * Initialize Google Maps components
  */
-function setupGoogleMapsComponents() {
+function initializeGoogleMaps() {
     console.log("Setting up Google Maps components");
     
     try {
@@ -69,8 +60,10 @@ function setupGoogleMapsComponents() {
         // Create geocoder for converting addresses to coordinates
         geocoder = new google.maps.Geocoder();
         
-        // Initialize map if container exists
+        // Initialize map
         if (mapContainer) {
+            console.log("Initializing map in container:", mapContainer);
+            
             // Force a height if not set in CSS
             if (mapContainer.offsetHeight === 0) {
                 mapContainer.style.height = '400px';
@@ -80,9 +73,7 @@ function setupGoogleMapsComponents() {
             map = new google.maps.Map(mapContainer, {
                 center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
                 zoom: 12,
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: true
+                mapTypeId: google.maps.MapTypeId.ROADMAP
             });
             
             // Create directions renderer for displaying routes
@@ -98,6 +89,8 @@ function setupGoogleMapsComponents() {
             });
             
             console.log("Map initialized successfully");
+        } else {
+            console.error("Map container not found");
         }
         
         // Setup autocomplete for start/end fields
@@ -115,7 +108,10 @@ function setupGoogleMapsComponents() {
  */
 function setupAutocomplete(inputId) {
     const input = document.getElementById(inputId);
-    if (!input) return;
+    if (!input) {
+        console.error(`Input element with ID ${inputId} not found`);
+        return;
+    }
     
     try {
         const autocomplete = new google.maps.places.Autocomplete(input, {
@@ -164,10 +160,8 @@ function addStopInput() {
     
     stopsContainer.appendChild(stopDiv);
     
-    // Add Google Places autocomplete if Google Maps is loaded
-    if (typeof google !== 'undefined' && google.maps) {
-        setupAutocomplete(stopId);
-    }
+    // Add Google Places autocomplete
+    setupAutocomplete(stopId);
 }
 
 /**
@@ -211,12 +205,6 @@ function showAlert(message, type = 'error') {
 async function handleFormSubmit(event) {
     event.preventDefault();
     
-    // Google Maps API may not be loaded yet
-    if (typeof google === 'undefined' || !google.maps) {
-        showAlert('Google Maps API is not loaded yet. Please try again in a moment.');
-        return;
-    }
-    
     // Collect form data
     const startLocation = document.getElementById('start-location').value;
     const endLocation = document.getElementById('end-location').value;
@@ -251,6 +239,12 @@ async function handleFormSubmit(event) {
     toggleLoadingState(true);
     
     try {
+        console.log("Calculating route with:", {
+            start: startLocation,
+            stops: stops,
+            end: endLocation
+        });
+        
         // Step 1: Validate and geocode all addresses
         const locations = await validateAddresses({
             start: startLocation,
@@ -258,12 +252,17 @@ async function handleFormSubmit(event) {
             stops: stops
         });
         
+        console.log("Geocoded locations:", locations);
+        
         // Step 2: Calculate the optimized route
         const routeResult = await calculateOptimizedRoute(locations);
+        
+        console.log("Route calculation result:", routeResult);
         
         // Update UI with results
         displayRouteResults(routeResult);
     } catch (error) {
+        console.error("Route calculation error:", error);
         showAlert(error.message || 'Error calculating route. Please try again.');
         toggleLoadingState(false);
     }
@@ -276,6 +275,8 @@ async function handleFormSubmit(event) {
  */
 async function validateAddresses(locations) {
     try {
+        console.log("Validating addresses:", locations);
+        
         // Create geocoding promises for all addresses
         const startPromise = geocodeAddress(locations.start);
         const endPromise = geocodeAddress(locations.end);
@@ -287,6 +288,12 @@ async function validateAddresses(locations) {
             endPromise, 
             ...stopsPromises
         ]);
+        
+        console.log("Geocoding results:", {
+            start: startResult,
+            end: endResult,
+            stops: stopsResults
+        });
         
         // Check if any geocoding failed
         if (!startResult || !endResult || stopsResults.includes(null)) {
@@ -311,7 +318,11 @@ async function validateAddresses(locations) {
  */
 function geocodeAddress(address) {
     return new Promise((resolve, reject) => {
+        console.log("Geocoding address:", address);
+        
         geocoder.geocode({ address }, (results, status) => {
+            console.log(`Geocoding result for "${address}":`, status, results);
+            
             if (status === 'OK' && results && results.length > 0) {
                 resolve({
                     address: results[0].formatted_address,
@@ -333,6 +344,8 @@ function geocodeAddress(address) {
  */
 function calculateOptimizedRoute(locations) {
     return new Promise((resolve, reject) => {
+        console.log("Calculating optimized route...");
+        
         // For the Google Directions API, we need to optimize waypoint order
         const waypoints = locations.stops.map(stop => ({
             location: stop.location,
@@ -347,7 +360,11 @@ function calculateOptimizedRoute(locations) {
             travelMode: google.maps.TravelMode.DRIVING
         };
         
+        console.log("Direction request:", request);
+        
         directionsService.route(request, (result, status) => {
+            console.log("Directions service response:", status, result);
+            
             if (status === 'OK') {
                 // Process route data
                 const legs = result.routes[0].legs;
@@ -433,6 +450,8 @@ function toggleLoadingState(isLoading) {
  * @param {Object} route - The optimized route data
  */
 function displayRouteResults(route) {
+    console.log("Displaying route results:", route);
+    
     // Store current route
     currentRoute = route;
     
@@ -518,6 +537,3 @@ function saveRoute() {
     
     showAlert('Route saved successfully!', 'success');
 }
-
-// Initialize the app when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initApp);
