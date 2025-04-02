@@ -6,11 +6,6 @@
     to { opacity: 1; }
 }
 
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
-
 @keyframes slideDown {
     from { transform: translateY(-10px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -19,10 +14,6 @@
 /* Apply animations */
 .fade-in {
     animation: fadeIn 0.3s ease-in-out;
-}
-
-.fade-out {
-    animation: fadeOut 0.3s ease-in-out;
 }
 
 .slide-down {
@@ -115,91 +106,85 @@
     border-left: 4px solid #3b82f6;
 }
 
-/* Modal animations */
-.modal-container {
-    animation: fadeIn 0.3s ease-in-out;
+/* Map styling */
+#map {
+    width: 100%;
+    height: 300px;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.modal-content {
-    animation: slideDown 0.3s ease-in-out;
+/* Autocomplete dropdown styling */
+.pac-container {
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    font-family: inherit;
+    margin-top: 2px;
+    z-index: 9999 !important;
 }
 
-/* Notes button styling */
-.notes-toggle {
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
+.pac-item {
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.pac-item:hover {
     background-color: #f3f4f6;
-    transition: all 0.2s ease;
 }
 
-.notes-toggle:hover {
-    background-color: #e5e7eb;
+.pac-icon {
+    margin-right: 0.5rem;
 }
 
-/* Category tag styling */
-.category-tag {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    margin-top: 0.25rem;
+.pac-item-query {
+    font-size: 0.875rem;
+    color: #1f2937;
 }
 
-/* Dark mode styles */
-.dark {
-    color-scheme: dark;
+.pac-matched {
+    font-weight: bold;
 }
 
-.dark body {
-    background-color: #1f2937;
-    color: #f3f4f6;
+/* Improve loading state */
+#loading-spinner {
+    display: inline-block;
+    margin-left: 0.5rem;
 }
 
-.dark .bg-white {
-    background-color: #374151;
+/* Map info window styling */
+.gm-style .gm-style-iw-c {
+    padding: 12px;
+    border-radius: 8px;
 }
 
-.dark .text-gray-600 {
-    color: #d1d5db;
+.gm-style .gm-style-iw-d {
+    overflow: hidden !important;
 }
 
-.dark .text-gray-700 {
-    color: #e5e7eb;
+/* Loading animation for route calculation */
+.route-calculating {
+    position: relative;
+    padding-left: 24px;
 }
 
-.dark .border-gray-300 {
-    border-color: #4b5563;
+.route-calculating:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid #3b82f6;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
-.dark .bg-gray-100 {
-    background-color: #111827;
-}
-
-.dark .bg-blue-50 {
-    background-color: #1e3a8a;
-}
-
-.dark .text-gray-500 {
-    color: #9ca3af;
-}
-
-.dark #route-list li {
-    background-color: #1f2937;
-    border-left-color: #60a5fa;
-}
-
-.dark #route-list li:hover {
-    background-color: #2d3748;
-}
-
-.dark .notes-toggle {
-    background-color: #4b5563;
-}
-
-.dark .notes-toggle:hover {
-    background-color: #6b7280;
+@keyframes spin {
+    to { transform: translateY(-50%) rotate(360deg); }
 }
 
 /* Responsive adjustments */
@@ -223,8 +208,7 @@
         margin-top: 0.5rem;
     }
     
-    .maps-buttons {
-        flex-direction: column;
-        gap: 0.5rem;
+    #map {
+        height: 200px;
     }
 }
