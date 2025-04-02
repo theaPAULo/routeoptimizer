@@ -106,18 +106,15 @@ function setupInputAutocomplete(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
     
-    // Create autocomplete instance with expanded options
-    const autocomplete = new google.maps.places.Autocomplete(input, {
-        // Set specific types to include
-        types: [], // Empty array allows ALL types of places
-        fields: ['place_id', 'formatted_address', 'geometry', 'name', 'types'],
-        componentRestrictions: { country: [] } // No country restriction
-    });
+    // Create a basic autocomplete with minimal restrictions
+    const autocomplete = new google.maps.places.Autocomplete(input);
     
-    // Log the place selection for debugging
-    autocomplete.addListener('place_changed', function() {
-        const place = autocomplete.getPlace();
-        console.log('Selected place:', place);
+    // Add a textchange handler to manually search for places
+    input.addEventListener('input', function() {
+        const searchText = input.value;
+        if (searchText.length > 2) { // Only search if more than 2 characters
+            console.log("Searching for:", searchText);
+        }
     });
     
     // Store the autocomplete instance
