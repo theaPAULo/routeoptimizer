@@ -103,27 +103,32 @@ function initializeGoogleMaps() {
 }
 
 /**
- * Sets up autocomplete for an input field
- * @param {string} inputId - ID of the input field
+ * Set up autocomplete for a specific input field
+ * @param {string} inputId - The ID of the input field
  */
-function setupAutocomplete(inputId) {
+function setupInputAutocomplete(inputId) {
     const input = document.getElementById(inputId);
-    if (!input) {
-        console.error(`Input element with ID ${inputId} not found`);
-        return;
-    }
+    if (!input) return;
     
-    try {
-        const autocomplete = new google.maps.places.Autocomplete(input, {
-            types: ['address']
-        });
-        console.log(`Autocomplete initialized for ${inputId}`);
-        
-        // Store autocomplete instance
-        autocompletes.push({ id: inputId, instance: autocomplete });
-    } catch (error) {
-        console.error(`Error setting up autocomplete for ${inputId}:`, error);
-    }
+    // Create autocomplete instance with expanded types
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+        // Change from just 'address' to include establishments and points of interest
+        types: ['address', 'establishment'],
+        fields: ['place_id', 'formatted_address', 'geometry', 'name']
+    });
+    
+    // Store the autocomplete instance
+    autocompleteInstances.push({
+        id: inputId,
+        instance: autocomplete
+    });
+    
+    // Prevent form submission on place selection
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && document.activeElement === input) {
+            e.preventDefault();
+        }
+    });
 }
 
 /**
