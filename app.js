@@ -102,20 +102,22 @@ function initializeGoogleMaps() {
     }
 }
 
-/**
- * Set up autocomplete for a specific input field
- * @param {string} inputId - The ID of the input field
- */
 function setupInputAutocomplete(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
     
-    // Create autocomplete instance with broader search capabilities
+    // Create autocomplete instance with expanded options
     const autocomplete = new google.maps.places.Autocomplete(input, {
-        // Remove the types restriction completely to allow all place types
-        // types: ['address', 'establishment'],
-        fields: ['place_id', 'formatted_address', 'geometry', 'name'],
+        // Set specific types to include
+        types: [], // Empty array allows ALL types of places
+        fields: ['place_id', 'formatted_address', 'geometry', 'name', 'types'],
         componentRestrictions: { country: [] } // No country restriction
+    });
+    
+    // Log the place selection for debugging
+    autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        console.log('Selected place:', place);
     });
     
     // Store the autocomplete instance
