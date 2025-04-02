@@ -10,41 +10,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Google Places API for address autocomplete -->
-<!-- Google Maps JavaScript API with modern bootstrap loader -->
-<script>
-  // Modern recommended way to load the Google Maps JavaScript API
-  (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.googleapis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
-    key: "AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk", // Replace with your actual API key in development
-    v: "weekly" // Use weekly version for the latest features
-  });
-</script>
+    <!-- Environment configuration script -->
+    <script src="env-config.js"></script>
+    <!-- Google Maps API Key Configuration -->
+    <script>
+        // Replace this with your actual Google Maps API key
+        // This will be replaced with the environment variable on Netlify
+        const googleMapsApiKey = 'GOOGLE_MAPS_API_KEY';
+    </script>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto p-4">
         <header class="mb-8">
             <div class="flex justify-between items-center">
                 <h1 class="text-3xl font-bold text-blue-700">Route Optimizer</h1>
-                <div class="flex items-center">
-                    <!-- Dark Mode Toggle -->
-                    <button 
-                        onclick="toggleDarkMode()" 
-                        class="text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white mr-4" 
-                        title="Toggle Dark Mode"
-                    >
-                        <i id="dark-mode-icon" class="fas fa-moon text-xl"></i>
-                    </button>
-                    
-                    <!-- Saved Routes Button -->
-                    <button 
-                        onclick="showSavedRoutesModal()" 
-                        class="text-blue-700 hover:text-blue-900 flex items-center text-sm font-medium mr-4" 
-                        title="View Saved Routes"
-                    >
-                        <i class="fas fa-folder-open mr-1"></i> Saved Routes
-                    </button>
-                    
-                    <!-- GitHub Link -->
+                <div>
                     <a href="https://github.com/yourusername/route-optimizer" target="_blank" 
                        class="text-gray-600 hover:text-black" title="View on GitHub">
                         <i class="fab fa-github text-2xl"></i>
@@ -76,7 +56,7 @@
                                 type="text" 
                                 id="start-location" 
                                 class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                                placeholder="Enter starting address or place name"
+                                placeholder="Enter starting address"
                                 required
                             >
                         </div>
@@ -112,7 +92,7 @@
                                 type="text" 
                                 id="end-location" 
                                 class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                                placeholder="Enter ending address or place name"
+                                placeholder="Enter ending address"
                                 required
                             >
                         </div>
@@ -166,22 +146,6 @@
                     </ol>
                 </div>
                 
-                <!-- Maps Buttons -->
-                <div class="flex justify-center space-x-4 mb-6">
-                    <button 
-                        onclick="openInMaps('google')"
-                        class="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center"
-                    >
-                        <i class="fab fa-google mr-2"></i> Open in Google Maps
-                    </button>
-                    <button 
-                        onclick="openInMaps('apple')"
-                        class="py-2 px-4 bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors flex items-center"
-                    >
-                        <i class="fab fa-apple mr-2"></i> Open in Apple Maps
-                    </button>
-                </div>
-                
                 <div class="flex justify-between">
                     <button 
                         id="back-btn"
@@ -196,22 +160,6 @@
                         <i class="fas fa-save mr-1"></i> Save Route
                     </button>
                 </div>
-                
-                <!-- Export/Import Buttons -->
-                <div class="flex justify-end mt-4 space-x-2">
-                    <button 
-                        onclick="exportRoute()"
-                        class="py-2 px-3 border border-blue-300 text-blue-600 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-sm flex items-center"
-                    >
-                        <i class="fas fa-file-export mr-1"></i> Export
-                    </button>
-                    <button 
-                        onclick="importRoute()"
-                        class="py-2 px-3 border border-blue-300 text-blue-600 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-sm flex items-center"
-                    >
-                        <i class="fas fa-file-import mr-1"></i> Import
-                    </button>
-                </div>
             </section>
         </main>
 
@@ -222,9 +170,6 @@
 
     <!-- JavaScript Files -->
     <script src="app.js"></script>
-    <script>
-    // Initialize app when the DOM is loaded
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
+    <script src="google-maps-integration.js"></script>
 </body>
 </html>
