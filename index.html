@@ -730,5 +730,78 @@
     <script async defer 
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
     </script>
+
+    <script>
+// Function to enhance existing inputs with business search
+function enhanceExistingInputs() {
+  // Wait for Google API to be ready
+  if (!window.google || !window.google.maps || !window.google.maps.places) {
+    console.log('Waiting for Google Places API...');
+    setTimeout(enhanceExistingInputs, 500);
+    return;
+  }
+  
+  console.log('Enhancing inputs with business search capability');
+  
+  // Target all location inputs
+  const inputs = [
+    document.getElementById('start-location'),
+    document.getElementById('end-location'),
+    ...Array.from(document.querySelectorAll('#stops-container input[type="text"]'))
+  ].filter(el => el); // Remove any null values
+  
+  // Replace existing autocomplete instances with new ones
+  inputs.forEach(input => {
+    // Create a new autocomplete instance with minimal options
+    const autocomplete = new google.maps.places.Autocomplete(input);
+    console.log(`Enhanced ${input.id || 'unnamed input'} with business search`);
+    
+    // Add a place_changed listener for debugging
+    autocomplete.addListener('place_changed', function() {
+      const place = autocomplete.getPlace();
+      console.log(`Place selected for ${input.id}:`, place);
+    });
+  });
+  
+  // Monitor for new stop inputs
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.addedNodes.length) {
+        const newInputs = Array.from(mutation.addedNodes)
+          .filter(node => node.nodeType === 1) // Only element nodes
+          .flatMap(node => {
+            // Check if the node itself is an input
+            if (node.tagName === 'INPUT' && node.type === 'text') {
+              return [node];
+            }
+            // Or if it contains inputs
+            return Array.from(node.querySelectorAll('input[type="text"]'));
+          });
+        
+        if (newInputs.length) {
+          newInputs.forEach(input => {
+            const autocomplete = new google.maps.places.Autocomplete(input);
+            console.log(`Enhanced new input with business search`);
+          });
+        }
+      }
+    });
+  });
+  
+  // Start observing the stops container
+  observer.observe(document.getElementById('stops-container'), { 
+    childList: true, 
+    subtree: true 
+  });
+  
+  console.log('Business search enhancement complete');
+}
+
+// Run the enhancement after a short delay to ensure everything is loaded
+setTimeout(enhanceExistingInputs, 1000);
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(enhanceExistingInputs, 1000);
+  });
+</script>
 </body>
 </html>
