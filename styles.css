@@ -129,7 +129,7 @@
 }
 
 #map-container {
-    height: 400px;
+    height: 400px !important; /* Use !important to ensure it overrides any other styles */
     width: 100%;
     background-color: #f0f0f0;
     margin-bottom: 1.5rem;
