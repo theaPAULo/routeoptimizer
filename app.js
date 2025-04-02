@@ -35,25 +35,32 @@ const mapContainer = document.getElementById('map-container');
 
 /**
  * Initialize the application
+ * This function is called after the DOM is loaded
  */
 function initApp() {
-    // Set up event listeners first
+    console.log("Initializing Route Optimizer App");
+    
+    // Add first stop input
+    addStopInput();
+    
+    // Set up event listeners
     addStopBtn.addEventListener('click', addStopInput);
     routeForm.addEventListener('submit', handleFormSubmit);
     backBtn.addEventListener('click', showInputSection);
     saveBtn.addEventListener('click', saveRoute);
     
-    // Add first stop input
-    addStopInput();
-    
-    console.log('App initialized successfully');
+    // Initialize Google Maps components if the API is already loaded
+    if (typeof google !== 'undefined' && google.maps) {
+        setupGoogleMapsComponents();
+    }
 }
 
 /**
- * Initialize Google Maps services - This will be called automatically by the API
+ * Sets up Google Maps components after the API is loaded
+ * This function is called either from initApp or initMap (callback)
  */
-function initGoogleMaps() {
-    console.log('Google Maps API loaded - initializing services');
+function setupGoogleMapsComponents() {
+    console.log("Setting up Google Maps components");
     
     try {
         // Create directions service for route calculation
@@ -62,9 +69,9 @@ function initGoogleMaps() {
         // Create geocoder for converting addresses to coordinates
         geocoder = new google.maps.Geocoder();
         
-        // Make sure the map container has a height
+        // Initialize map if container exists
         if (mapContainer) {
-            // Force a height if not already set in CSS
+            // Force a height if not set in CSS
             if (mapContainer.offsetHeight === 0) {
                 mapContainer.style.height = '400px';
             }
@@ -78,7 +85,7 @@ function initGoogleMaps() {
                 fullscreenControl: true
             });
             
-            // Create directions renderer for displaying routes on the map
+            // Create directions renderer for displaying routes
             directionsRenderer = new google.maps.DirectionsRenderer({
                 map: map,
                 suppressMarkers: false,
@@ -90,35 +97,39 @@ function initGoogleMaps() {
                 }
             });
             
-            // Log success
-            console.log('Google Maps initialized successfully');
-        } else {
-            console.error('Map container element not found');
+            console.log("Map initialized successfully");
         }
         
-        // Initialize autocomplete for start/end fields
-        if (document.getElementById('start-location')) {
-            const startAutocomplete = new google.maps.places.Autocomplete(
-                document.getElementById('start-location'),
-                { types: ['address'], fields: ['formatted_address', 'geometry', 'name', 'place_id'] }
-            );
-            console.log('Start location autocomplete initialized');
-        }
+        // Setup autocomplete for start/end fields
+        setupAutocomplete('start-location');
+        setupAutocomplete('end-location');
         
-        if (document.getElementById('end-location')) {
-            const endAutocomplete = new google.maps.places.Autocomplete(
-                document.getElementById('end-location'),
-                { types: ['address'], fields: ['formatted_address', 'geometry', 'name', 'place_id'] }
-            );
-            console.log('End location autocomplete initialized');
-        }
-        
-        // Call the app initialization function after maps are loaded
-        initApp();
     } catch (error) {
-        console.error('Error initializing Google Maps:', error);
+        console.error("Error setting up Google Maps components:", error);
     }
 }
+
+/**
+ * Sets up autocomplete for an input field
+ * @param {string} inputId - ID of the input field
+ */
+function setupAutocomplete(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    try {
+        const autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['address']
+        });
+        console.log(`Autocomplete initialized for ${inputId}`);
+        
+        // Store autocomplete instance
+        autocompletes.push({ id: inputId, instance: autocomplete });
+    } catch (error) {
+        console.error(`Error setting up autocomplete for ${inputId}:`, error);
+    }
+}
+
 /**
  * Adds a new stop input field to the form with Google Places autocomplete
  */
@@ -153,31 +164,10 @@ function addStopInput() {
     
     stopsContainer.appendChild(stopDiv);
     
-    // Add Google Places autocomplete to the new input
-    const input = document.getElementById(stopId);
-    const autocomplete = new google.maps.places.Autocomplete(input, {
-        types: ['address'],
-        fields: ['formatted_address', 'geometry', 'name', 'place_id']
-    });
-    
-    // Store autocomplete instance
-    autocompletes.push({ id: stopId, instance: autocomplete });
-}
-
-/**
- * Initialize autocomplete for an input field
- * @param {string} inputId - The ID of the input field
- */
-function initAutocomplete(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    
-    const autocomplete = new google.maps.places.Autocomplete(input, {
-        types: ['address'],
-        fields: ['formatted_address', 'geometry', 'name', 'place_id']
-    });
-    
-    return autocomplete;
+    // Add Google Places autocomplete if Google Maps is loaded
+    if (typeof google !== 'undefined' && google.maps) {
+        setupAutocomplete(stopId);
+    }
 }
 
 /**
@@ -188,7 +178,7 @@ function removeStop(button) {
     const stopItem = button.closest('.stop-item');
     const inputId = stopItem.querySelector('input').id;
     
-    // Remove autocomplete from our tracking array
+    // Remove autocomplete from tracking array
     autocompletes = autocompletes.filter(item => item.id !== inputId);
     
     // Animate removal
@@ -206,11 +196,77 @@ function removeStop(button) {
 function showAlert(message, type = 'error') {
     alertBox.textContent = message;
     alertBox.className = `${type} mb-4 p-4 rounded-md fade-in`;
+    alertBox.classList.remove('hidden');
     
     // Automatically hide after 5 seconds
     setTimeout(() => {
         alertBox.classList.add('hidden');
     }, 5000);
+}
+
+/**
+ * Handles the form submission
+ * @param {Event} event - The form submission event
+ */
+async function handleFormSubmit(event) {
+    event.preventDefault();
+    
+    // Google Maps API may not be loaded yet
+    if (typeof google === 'undefined' || !google.maps) {
+        showAlert('Google Maps API is not loaded yet. Please try again in a moment.');
+        return;
+    }
+    
+    // Collect form data
+    const startLocation = document.getElementById('start-location').value;
+    const endLocation = document.getElementById('end-location').value;
+    
+    // Collect all stops
+    const stops = [];
+    const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
+    
+    for (const input of stopInputs) {
+        if (input.value.trim()) {
+            stops.push(input.value.trim());
+        }
+    }
+    
+    // Basic validation
+    if (!startLocation) {
+        showAlert('Please enter a starting location');
+        return;
+    }
+    
+    if (!endLocation) {
+        showAlert('Please enter an ending location');
+        return;
+    }
+    
+    if (stops.length === 0) {
+        showAlert('Please add at least one stop');
+        return;
+    }
+    
+    // Show loading state
+    toggleLoadingState(true);
+    
+    try {
+        // Step 1: Validate and geocode all addresses
+        const locations = await validateAddresses({
+            start: startLocation,
+            end: endLocation,
+            stops: stops
+        });
+        
+        // Step 2: Calculate the optimized route
+        const routeResult = await calculateOptimizedRoute(locations);
+        
+        // Update UI with results
+        displayRouteResults(routeResult);
+    } catch (error) {
+        showAlert(error.message || 'Error calculating route. Please try again.');
+        toggleLoadingState(false);
+    }
 }
 
 /**
@@ -268,65 +324,6 @@ function geocodeAddress(address) {
             }
         });
     });
-}
-
-/**
- * Handles the form submission
- * @param {Event} event - The form submission event
- */
-async function handleFormSubmit(event) {
-    event.preventDefault();
-    
-    // Collect form data
-    const startLocation = document.getElementById('start-location').value;
-    const endLocation = document.getElementById('end-location').value;
-    
-    // Collect all stops
-    const stops = [];
-    const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
-    
-    for (const input of stopInputs) {
-        if (input.value.trim()) {
-            stops.push(input.value.trim());
-        }
-    }
-    
-    // Basic validation
-    if (!startLocation) {
-        showAlert('Please enter a starting location');
-        return;
-    }
-    
-    if (!endLocation) {
-        showAlert('Please enter an ending location');
-        return;
-    }
-    
-    if (stops.length === 0) {
-        showAlert('Please add at least one stop');
-        return;
-    }
-    
-    // Show loading state
-    toggleLoadingState(true);
-    
-    try {
-        // Step 1: Validate and geocode all addresses
-        const locations = await validateAddresses({
-            start: startLocation,
-            end: endLocation,
-            stops: stops
-        });
-        
-        // Step 2: Calculate the optimized route
-        const routeResult = await calculateOptimizedRoute(locations);
-        
-        // Update UI with results
-        displayRouteResults(routeResult);
-    } catch (error) {
-        showAlert(error.message || 'Error calculating route. Please try again.');
-        toggleLoadingState(false);
-    }
 }
 
 /**
@@ -495,7 +492,7 @@ function showInputSection() {
 }
 
 /**
- * Saves the current route (mock implementation)
+ * Saves the current route (localStorage implementation)
  */
 function saveRoute() {
     if (!currentRoute) return;
@@ -522,28 +519,5 @@ function saveRoute() {
     showAlert('Route saved successfully!', 'success');
 }
 
-/**
- * Loads saved routes from localStorage (could be expanded in the future)
- */
-function loadSavedRoutes() {
-    const savedRoutes = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
-    console.log('Saved routes:', savedRoutes);
-    // Future functionality: display saved routes
-}
-
-// Initialize Google Maps autocomplete for start and end locations when the DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // First initialize the app
-    initApp();
-    
-    // Then add autocomplete to start/end fields
-    const startAutocomplete = new google.maps.places.Autocomplete(
-        document.getElementById('start-location'),
-        { types: ['address'], fields: ['formatted_address', 'geometry', 'name', 'place_id'] }
-    );
-    
-    const endAutocomplete = new google.maps.places.Autocomplete(
-        document.getElementById('end-location'),
-        { types: ['address'], fields: ['formatted_address', 'geometry', 'name', 'place_id'] }
-    );
-});
+// Initialize the app when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', initApp);
