@@ -534,5 +534,65 @@ function saveRoute() {
     console.log('Route saved:', routeToSave);
 }
 
-// Initialize the app when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initApp);
+// Add this function to your existing code
+function enableBusinessSearch() {
+  if (typeof google === 'undefined' || typeof google.maps === 'undefined' || 
+      typeof google.maps.places === 'undefined') {
+    console.log('Google Maps Places API not loaded yet, trying again in 1 second');
+    setTimeout(enableBusinessSearch, 1000);
+    return;
+  }
+  
+  // Target all address input fields
+  const inputs = [
+    document.getElementById('start-location'),
+    document.getElementById('end-location'),
+    ...Array.from(document.querySelectorAll('#stops-container input'))
+  ].filter(input => input); // Filter out any null values
+  
+  console.log('Setting up business search for', inputs.length, 'inputs');
+  
+  // Set up each input with unrestricted autocomplete
+  inputs.forEach(input => {
+    // Create autocomplete with no type restrictions
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+      fields: ['place_id', 'formatted_address', 'geometry', 'name'],
+    });
+    
+    // Log when a place is selected
+    autocomplete.addListener('place_changed', function() {
+      const place = autocomplete.getPlace();
+      console.log('Selected place:', place);
+    });
+    
+    console.log('Enhanced autocomplete set up for', input.id || 'unnamed input');
+  });
+  
+  // Handle dynamically added stops
+  const originalAddStopInput = window.addStopInput;
+  if (originalAddStopInput && !window.businessSearchEnabled) {
+    window.businessSearchEnabled = true;
+    window.addStopInput = function() {
+      // Call original function first
+      originalAddStopInput();
+      
+      // Then set up autocomplete for the newly added input
+      setTimeout(() => {
+        const newInputs = document.querySelectorAll('#stops-container input');
+        const lastInput = newInputs[newInputs.length - 1];
+        if (lastInput) {
+          const autocomplete = new google.maps.places.Autocomplete(lastInput, {
+            fields: ['place_id', 'formatted_address', 'geometry', 'name'],
+          });
+          console.log('Added autocomplete to new stop input:', lastInput.id || 'unnamed input');
+        }
+      }, 100);
+    };
+  }
+}
+
+// Run this after page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Try to enable business search after a short delay
+  setTimeout(enableBusinessSearch, 1000);
+});
