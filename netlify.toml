@@ -8,7 +8,7 @@
 # Environment variables (use encrypted values in Netlify UI for production)
 [build.environment]
   # This is for development - replace with your actual API key in the Netlify UI
-  GOOGLE_MAPS_API_KEY = AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk
+  GOOGLE_MAPS_API_KEY = "AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk"
 
 # Headers to set on the site
 [[headers]]
