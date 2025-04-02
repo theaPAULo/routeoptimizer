@@ -9,9 +9,17 @@
     <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Maps API -->
-<script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
-</script>    
+<script>
+  // Define the callback function before loading the API
+  function initMap() {
+    console.log("Google Maps API loaded successfully");
+    // Initialize the app after Maps API is loaded
+    initializeApp();
+  }
+</script>
+<script async defer 
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initMap">
+</script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -168,19 +176,6 @@
             <p>&copy; 2025 Route Optimizer | <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a></p>
         </footer>
     </div>
-
-
-    <!-- Add this script before your app.js script -->
-<script>
-    // This function will be called by the Google Maps API
-    function initMap() {
-        console.log("Google Maps API loaded successfully");
-        
-        // If you have an existing initApp function in app.js, call it here
-        if (typeof initApp === 'function') {
-            initApp();
-        }
-    }
 </script>
     <!-- JavaScript Files -->
     <script src="app.js"></script>
