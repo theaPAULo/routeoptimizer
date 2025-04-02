@@ -1,15 +1,9 @@
 /**
- * Route Optimizer Application with Google Maps API Integration
+ * Route Optimizer Application
+ * 
+ * This script handles the functionality for the Route Optimizer web application.
+ * It manages form inputs, API communication, UI updates, and enhanced features.
  */
-
-// Global variables
-let map;
-let directionsService;
-let directionsRenderer;
-let geocoder;
-let autocompletes = [];
-let currentRoute = null;
-let stopCounter = 0;
 
 // DOM Elements
 const routeForm = document.getElementById('route-form');
@@ -26,17 +20,24 @@ const alertBox = document.getElementById('alert-box');
 const totalDistance = document.getElementById('total-distance');
 const estimatedTime = document.getElementById('estimated-time');
 const routeList = document.getElementById('route-list');
-const mapContainer = document.getElementById('map-container');
+
+// Store current route data
+let currentRoute = null;
+let stopCounter = 0;
+
+// Define stop categories with colors
+const stopCategories = [
+  { name: 'Default', color: '#3b82f6', icon: 'fa-map-pin' },
+  { name: 'Order', color: '#10b981', icon: 'fa-shopping-bag' },
+  { name: 'Sample', color: '#f59e0b', icon: 'fa-box-open' },
+  { name: 'Meeting', color: '#6366f1', icon: 'fa-handshake' },
+  { name: 'Delivery', color: '#ef4444', icon: 'fa-truck' }
+];
 
 /**
- * Main initialization function - called after Google Maps loads
+ * Initializes the application
  */
-function initializeApp() {
-    console.log("Initializing Route Optimizer App");
-    
-    // Set up Google Maps components
-    initializeGoogleMaps();
-    
+function initApp() {
     // Add first stop input
     addStopInput();
     
@@ -45,96 +46,63 @@ function initializeApp() {
     routeForm.addEventListener('submit', handleFormSubmit);
     backBtn.addEventListener('click', showInputSection);
     saveBtn.addEventListener('click', saveRoute);
-}
-
-/**
- * Initialize Google Maps components
- */
-function initializeGoogleMaps() {
-    console.log("Setting up Google Maps components");
     
-    try {
-        // Create directions service for route calculation
-        directionsService = new google.maps.DirectionsService();
-        
-        // Create geocoder for converting addresses to coordinates
-        geocoder = new google.maps.Geocoder();
-        
-        // Initialize map
-        if (mapContainer) {
-            console.log("Initializing map in container:", mapContainer);
-            
-            // Force a height if not set in CSS
-            if (mapContainer.offsetHeight === 0) {
-                mapContainer.style.height = '400px';
-            }
-            
-            // Initialize the map
-            map = new google.maps.Map(mapContainer, {
-                center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
-                zoom: 12,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
-            });
-            
-            // Create directions renderer for displaying routes
-            directionsRenderer = new google.maps.DirectionsRenderer({
-                map: map,
-                suppressMarkers: false,
-                draggable: false,
-                polylineOptions: {
-                    strokeColor: '#3b82f6',
-                    strokeWeight: 5,
-                    strokeOpacity: 0.7
-                }
-            });
-            
-            console.log("Map initialized successfully");
-        } else {
-            console.error("Map container not found");
-        }
-        
-        // Setup autocomplete for start/end fields
-        setupAutocomplete('start-location');
-        setupAutocomplete('end-location');
-        
-    } catch (error) {
-        console.error("Error setting up Google Maps components:", error);
-    }
+    // Initialize dark mode
+    initDarkMode();
+    
+    // Initialize Google Maps API autocomplete
+    // This will be called via callback when the API loads
+    window.initAllAutocompletes = initAllAutocompletes;
 }
 
 /**
- * Sets up autocomplete for an input field
- * @param {string} inputId - ID of the input field
+ * Initialize dark mode based on user preference
  */
-function setupAutocomplete(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input) {
-        console.error(`Input element with ID ${inputId} not found`);
-        return;
+function initDarkMode() {
+    // Check local storage preference
+    const darkModePref = localStorage.getItem('darkMode');
+    
+    // If preference exists, apply it
+    if (darkModePref === 'true') {
+        document.documentElement.classList.add('dark');
+    }
+    // OR check system preference
+    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
     }
     
-    try {
-        const autocomplete = new google.maps.places.Autocomplete(input, {
-            types: ['address']
-        });
-        console.log(`Autocomplete initialized for ${inputId}`);
-        
-        // Store autocomplete instance
-        autocompletes.push({ id: inputId, instance: autocomplete });
-    } catch (error) {
-        console.error(`Error setting up autocomplete for ${inputId}:`, error);
+    // Update icon
+    const darkModeIcon = document.getElementById('dark-mode-icon');
+    if (darkModeIcon) {
+        darkModeIcon.className = document.documentElement.classList.contains('dark') 
+            ? 'fas fa-sun' : 'fas fa-moon';
     }
 }
 
 /**
- * Adds a new stop input field to the form with Google Places autocomplete
+ * Toggles dark mode
+ */
+function toggleDarkMode() {
+    document.documentElement.classList.toggle('dark');
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    localStorage.setItem('darkMode', isDarkMode ? 'true' : 'false');
+    
+    // Update icon
+    const darkModeIcon = document.getElementById('dark-mode-icon');
+    if (darkModeIcon) {
+        darkModeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+    }
+}
+
+/**
+ * Adds a new stop input field to the form with category and notes options
  */
 function addStopInput() {
     stopCounter++;
     const stopId = `stop-${stopCounter}`;
     
     const stopDiv = document.createElement('div');
-    stopDiv.className = 'stop-item fade-in';
+    stopDiv.className = 'stop-item fade-in mb-4 pb-4 border-b border-gray-200';
     stopDiv.innerHTML = `
         <div class="relative flex items-center mb-2">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -144,7 +112,7 @@ function addStopInput() {
                 type="text" 
                 id="${stopId}" 
                 class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                placeholder="Enter stop address"
+                placeholder="Enter stop address or place name"
                 required
             >
             ${stopCounter > 1 ? `<button 
@@ -156,12 +124,163 @@ function addStopInput() {
                 <i class="fas fa-times"></i>
             </button>` : ''}
         </div>
+        
+        <div class="flex flex-wrap gap-2 mt-2">
+            <div class="relative w-full sm:w-auto">
+                <select 
+                    id="${stopId}-category" 
+                    class="block w-full sm:w-auto pl-2 pr-8 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    ${stopCategories.map(cat => 
+                        `<option value="${cat.name}" data-color="${cat.color}" data-icon="${cat.icon}">${cat.name}</option>`
+                    ).join('')}
+                </select>
+            </div>
+            
+            <div class="relative w-full mt-2">
+                <textarea 
+                    id="${stopId}-notes" 
+                    class="block w-full pl-2 pr-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                    placeholder="Add notes for this stop (optional)"
+                    rows="2"
+                ></textarea>
+            </div>
+        </div>
     `;
     
     stopsContainer.appendChild(stopDiv);
     
-    // Add Google Places autocomplete
-    setupAutocomplete(stopId);
+    // Initialize autocomplete for this stop if Google Maps API is loaded
+    if (window.google && window.google.maps) {
+        initAutocomplete(stopId);
+    }
+}
+
+/**
+ * Initialize address autocomplete for an input element
+ * @param {string} inputId - The ID of the input element
+ */
+function initAutocomplete(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+        types: ['geocode', 'establishment'] // Allow both addresses and place names
+    });
+    
+    // Ensure the autocomplete stays within the input field bounds
+    autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        
+        if (!place.geometry) {
+            // User entered the name of a place that was not suggested
+            return;
+        }
+        
+        // You can store the place_id for more accurate routing later
+        input.dataset.placeId = place.place_id;
+        input.dataset.lat = place.geometry.location.lat();
+        input.dataset.lng = place.geometry.location.lng();
+    });
+}
+
+/**
+ * Closes the current modal
+ */
+function closeModal() {
+    if (window.currentModal) {
+        window.currentModal.classList.add('fade-out');
+        setTimeout(() => {
+            document.body.removeChild(window.currentModal);
+            window.currentModal = null;
+        }, 300);
+    }
+}
+
+/**
+ * Refreshes the saved routes modal
+ */
+function refreshSavedRoutesModal() {
+    closeModal();
+    setTimeout(showSavedRoutesModal, 300);
+}
+
+/**
+ * Exports the current route as a JSON file
+ */
+function exportRoute() {
+    if (!currentRoute) return;
+    
+    // Create a download link for the JSON file
+    const dataStr = JSON.stringify(currentRoute, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportName = prompt('Name your export file:', 'route-export');
+    if (!exportName) return;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', `${exportName}.json`);
+    linkElement.click();
+    
+    showAlert('Route exported successfully!', 'success');
+}
+
+/**
+ * Imports a route from a JSON file
+ */
+function importRoute() {
+    // Create a file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'application/json';
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedRoute = JSON.parse(e.target.result);
+                
+                // Validate the imported data has the required structure
+                if (!importedRoute.waypoints || 
+                    !importedRoute.totalDistance ||
+                    !importedRoute.estimatedTime) {
+                    throw new Error('Invalid route data format');
+                }
+                
+                currentRoute = importedRoute;
+                displayRouteResults(currentRoute);
+                showAlert('Route imported successfully!', 'success');
+            } catch (error) {
+                showAlert('Error importing route. Invalid file format.', 'error');
+                console.error('Import error:', error);
+            }
+        };
+        reader.readAsText(file);
+    });
+    
+    fileInput.click();
+}
+
+// Initialize the app when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', initApp);
+
+/**
+ * Initialize autocomplete on all address inputs
+ */
+function initAllAutocompletes() {
+    // Initialize for start and end locations
+    initAutocomplete('start-location');
+    initAutocomplete('end-location');
+    
+    // Initialize for existing stops
+    const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
+    for (const input of stopInputs) {
+        initAutocomplete(input.id);
+    }
 }
 
 /**
@@ -170,13 +289,9 @@ function addStopInput() {
  */
 function removeStop(button) {
     const stopItem = button.closest('.stop-item');
-    const inputId = stopItem.querySelector('input').id;
-    
-    // Remove autocomplete from tracking array
-    autocompletes = autocompletes.filter(item => item.id !== inputId);
-    
-    // Animate removal
     stopItem.style.opacity = 0;
+    
+    // Remove after fade out animation
     setTimeout(() => {
         stopsContainer.removeChild(stopItem);
     }, 300);
@@ -190,7 +305,6 @@ function removeStop(button) {
 function showAlert(message, type = 'error') {
     alertBox.textContent = message;
     alertBox.className = `${type} mb-4 p-4 rounded-md fade-in`;
-    alertBox.classList.remove('hidden');
     
     // Automatically hide after 5 seconds
     setTimeout(() => {
@@ -202,24 +316,60 @@ function showAlert(message, type = 'error') {
  * Handles the form submission
  * @param {Event} event - The form submission event
  */
-async function handleFormSubmit(event) {
+function handleFormSubmit(event) {
     event.preventDefault();
     
     // Collect form data
     const startLocation = document.getElementById('start-location').value;
     const endLocation = document.getElementById('end-location').value;
     
-    // Collect all stops
-    const stops = [];
-    const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
+    // Get coordinates if available from autocomplete
+    const startInput = document.getElementById('start-location');
+    const endInput = document.getElementById('end-location');
     
-    for (const input of stopInputs) {
-        if (input.value.trim()) {
-            stops.push(input.value.trim());
-        }
+    const startCoords = startInput.dataset.lat && startInput.dataset.lng 
+        ? { lat: parseFloat(startInput.dataset.lat), lng: parseFloat(startInput.dataset.lng) }
+        : null;
+        
+    const endCoords = endInput.dataset.lat && endInput.dataset.lng 
+        ? { lat: parseFloat(endInput.dataset.lat), lng: parseFloat(endInput.dataset.lng) }
+        : null;
+    
+    // Collect all stops with their category and notes
+    const stops = [];
+    const stopItems = stopsContainer.querySelectorAll('.stop-item');
+    
+    for (const item of stopItems) {
+        const input = item.querySelector('input[type="text"]');
+        if (!input || !input.value.trim()) continue;
+        
+        const categorySelect = item.querySelector('select');
+        const notesTextarea = item.querySelector('textarea');
+        
+        // Get selected category data
+        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+        const category = {
+            name: selectedOption.value,
+            color: selectedOption.dataset.color,
+            icon: selectedOption.dataset.icon
+        };
+        
+        const notes = notesTextarea ? notesTextarea.value.trim() : '';
+        
+        // Get coordinates if available
+        const coords = input.dataset.lat && input.dataset.lng 
+            ? { lat: parseFloat(input.dataset.lat), lng: parseFloat(input.dataset.lng) }
+            : null;
+        
+        stops.push({
+            address: input.value.trim(),
+            category,
+            notes,
+            coords
+        });
     }
     
-    // Basic validation
+    // Validate inputs
     if (!startLocation) {
         showAlert('Please enter a starting location');
         return;
@@ -238,195 +388,150 @@ async function handleFormSubmit(event) {
     // Show loading state
     toggleLoadingState(true);
     
-    try {
-        console.log("Calculating route with:", {
-            start: startLocation,
-            stops: stops,
-            end: endLocation
-        });
-        
-        // Step 1: Validate and geocode all addresses
-        const locations = await validateAddresses({
-            start: startLocation,
-            end: endLocation,
-            stops: stops
-        });
-        
-        console.log("Geocoded locations:", locations);
-        
-        // Step 2: Calculate the optimized route
-        const routeResult = await calculateOptimizedRoute(locations);
-        
-        console.log("Route calculation result:", routeResult);
-        
-        // Update UI with results
-        displayRouteResults(routeResult);
-    } catch (error) {
-        console.error("Route calculation error:", error);
-        showAlert(error.message || 'Error calculating route. Please try again.');
-        toggleLoadingState(false);
-    }
-}
-
-/**
- * Validates all addresses using Google Geocoding API
- * @param {Object} locations - Object containing start, end, and stops addresses
- * @returns {Promise} - Promise resolving to validated locations with coordinates
- */
-async function validateAddresses(locations) {
-    try {
-        console.log("Validating addresses:", locations);
-        
-        // Create geocoding promises for all addresses
-        const startPromise = geocodeAddress(locations.start);
-        const endPromise = geocodeAddress(locations.end);
-        const stopsPromises = locations.stops.map(stop => geocodeAddress(stop));
-        
-        // Wait for all geocoding requests to complete
-        const [startResult, endResult, ...stopsResults] = await Promise.all([
-            startPromise, 
-            endPromise, 
-            ...stopsPromises
-        ]);
-        
-        console.log("Geocoding results:", {
-            start: startResult,
-            end: endResult,
-            stops: stopsResults
-        });
-        
-        // Check if any geocoding failed
-        if (!startResult || !endResult || stopsResults.includes(null)) {
-            throw new Error('One or more addresses could not be found. Please check your inputs.');
+    // In a real application, you would call an API to optimize the route
+    // For this demo, we'll calculate a simple route based on coordinates if available
+    setTimeout(() => {
+        // Use real coordinates if available, otherwise use mock data
+        if (startCoords && endCoords && stops.every(stop => stop.coords)) {
+            // Calculate actual distances and times
+            const routeData = calculateRouteData(startCoords, endCoords, stops);
+            
+            const optimizedRoute = {
+                success: true,
+                route: {
+                    totalDistance: routeData.totalDistance.toFixed(1) + ' miles',
+                    estimatedTime: routeData.estimatedTime + ' minutes',
+                    waypoints: [
+                        { 
+                            address: startLocation, 
+                            type: 'start', 
+                            category: null, 
+                            notes: '',
+                            coords: startCoords 
+                        },
+                        ...stops.map(stop => ({ 
+                            address: stop.address, 
+                            type: 'stop', 
+                            category: stop.category,
+                            notes: stop.notes,
+                            coords: stop.coords
+                        })),
+                        { 
+                            address: endLocation, 
+                            type: 'end', 
+                            category: null, 
+                            notes: '',
+                            coords: endCoords 
+                        }
+                    ]
+                }
+            };
+            
+            handleRouteResponse(optimizedRoute);
+        } else {
+            // Mock response with random data if coordinates aren't available
+            const mockResponse = {
+                success: true,
+                route: {
+                    totalDistance: (Math.random() * 50 + 10).toFixed(1) + ' miles',
+                    estimatedTime: Math.floor(Math.random() * 120 + 30) + ' minutes',
+                    waypoints: [
+                        { 
+                            address: startLocation, 
+                            type: 'start', 
+                            category: null, 
+                            notes: '',
+                            coords: startCoords 
+                        },
+                        ...stops.map(stop => ({ 
+                            address: stop.address, 
+                            type: 'stop', 
+                            category: stop.category,
+                            notes: stop.notes,
+                            coords: stop.coords
+                        })),
+                        { 
+                            address: endLocation, 
+                            type: 'end', 
+                            category: null, 
+                            notes: '',
+                            coords: endCoords 
+                        }
+                    ]
+                }
+            };
+            
+            handleRouteResponse(mockResponse);
         }
-        
-        return {
-            start: startResult,
-            end: endResult,
-            stops: stopsResults
-        };
-    } catch (error) {
-        console.error('Address validation error:', error);
-        throw error;
+    }, 1500);
+}
+
+/**
+ * Calculates route data based on coordinates
+ * @param {Object} startCoords - {lat, lng} coordinates of start
+ * @param {Object} endCoords - {lat, lng} coordinates of end
+ * @param {Array} stops - Array of stop objects with coordinates
+ * @returns {Object} Route data including total distance and time
+ */
+function calculateRouteData(startCoords, endCoords, stops) {
+    // Create an array of all points in order (including start and end)
+    const allPoints = [
+        { coords: startCoords },
+        ...stops,
+        { coords: endCoords }
+    ];
+    
+    // Calculate total distance by summing distances between consecutive points
+    let totalDistance = 0;
+    
+    for (let i = 0; i < allPoints.length - 1; i++) {
+        totalDistance += calculateDistance(
+            allPoints[i].coords,
+            allPoints[i + 1].coords
+        );
     }
+    
+    // Estimate travel time based on distance (avg speed 30 mph for urban areas)
+    const estimatedTime = estimateTravelTime(totalDistance);
+    
+    return {
+        totalDistance,
+        estimatedTime
+    };
 }
 
 /**
- * Geocodes an address to coordinates
- * @param {string} address - The address to geocode
- * @returns {Promise} - Promise resolving to location object with coordinates
+ * Calculates the distance between two coordinates using the Haversine formula
+ * @param {Object} point1 - {lat, lng} coordinates of point 1
+ * @param {Object} point2 - {lat, lng} coordinates of point 2
+ * @returns {number} Distance in miles
  */
-function geocodeAddress(address) {
-    return new Promise((resolve, reject) => {
-        console.log("Geocoding address:", address);
-        
-        geocoder.geocode({ address }, (results, status) => {
-            console.log(`Geocoding result for "${address}":`, status, results);
-            
-            if (status === 'OK' && results && results.length > 0) {
-                resolve({
-                    address: results[0].formatted_address,
-                    location: results[0].geometry.location,
-                    placeId: results[0].place_id
-                });
-            } else {
-                console.error('Geocoding failed for address:', address, status);
-                resolve(null); // Resolve with null to handle in the main validation function
-            }
-        });
-    });
+function calculateDistance(point1, point2) {
+    if (!point1 || !point2) return 0;
+    
+    const R = 3958.8; // Earth's radius in miles
+    
+    const dLat = (point2.lat - point1.lat) * Math.PI / 180;
+    const dLon = (point2.lng - point1.lng) * Math.PI / 180;
+    
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) * 
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    
+    return distance;
 }
 
 /**
- * Calculates an optimized route using Google Directions Service
- * @param {Object} locations - Object containing geocoded addresses
- * @returns {Promise} - Promise resolving to route data
+ * Estimates travel time based on distance
+ * @param {number} distance - Distance in miles
+ * @returns {number} Estimated time in minutes
  */
-function calculateOptimizedRoute(locations) {
-    return new Promise((resolve, reject) => {
-        console.log("Calculating optimized route...");
-        
-        // For the Google Directions API, we need to optimize waypoint order
-        const waypoints = locations.stops.map(stop => ({
-            location: stop.location,
-            stopover: true
-        }));
-        
-        const request = {
-            origin: locations.start.location,
-            destination: locations.end.location,
-            waypoints: waypoints,
-            optimizeWaypoints: true, // This is key for route optimization
-            travelMode: google.maps.TravelMode.DRIVING
-        };
-        
-        console.log("Direction request:", request);
-        
-        directionsService.route(request, (result, status) => {
-            console.log("Directions service response:", status, result);
-            
-            if (status === 'OK') {
-                // Process route data
-                const legs = result.routes[0].legs;
-                const waypointOrder = result.routes[0].waypoint_order;
-                
-                // Calculate total distance and time
-                let totalDistanceMeters = 0;
-                let totalDurationSeconds = 0;
-                
-                for (const leg of legs) {
-                    totalDistanceMeters += leg.distance.value;
-                    totalDurationSeconds += leg.duration.value;
-                }
-                
-                // Convert to miles and minutes
-                const totalDistanceMiles = (totalDistanceMeters / 1609.34).toFixed(1);
-                const totalDurationMinutes = Math.round(totalDurationSeconds / 60);
-                
-                // Format duration into hours and minutes
-                let durationText;
-                if (totalDurationMinutes >= 60) {
-                    const hours = Math.floor(totalDurationMinutes / 60);
-                    const minutes = totalDurationMinutes % 60;
-                    durationText = `${hours} hr ${minutes} min`;
-                } else {
-                    durationText = `${totalDurationMinutes} min`;
-                }
-                
-                // Create ordered waypoints list based on the optimization
-                const orderedWaypoints = [
-                    { address: locations.start.address, type: 'start' }
-                ];
-                
-                // Add stops in optimized order
-                for (const index of waypointOrder) {
-                    orderedWaypoints.push({
-                        address: locations.stops[index].address,
-                        type: 'stop'
-                    });
-                }
-                
-                // Add destination
-                orderedWaypoints.push({
-                    address: locations.end.address,
-                    type: 'end'
-                });
-                
-                // Create route object
-                const route = {
-                    totalDistance: `${totalDistanceMiles} miles`,
-                    estimatedTime: durationText,
-                    waypoints: orderedWaypoints,
-                    directionsResult: result
-                };
-                
-                resolve(route);
-            } else {
-                console.error('Directions request failed:', status);
-                reject(new Error('Could not calculate route. Please try different locations.'));
-            }
-        });
-    });
+function estimateTravelTime(distance) {
+    // Assume average speed of 30 mph for urban areas
+    return Math.round(distance / 30 * 60);
 }
 
 /**
@@ -446,24 +551,28 @@ function toggleLoadingState(isLoading) {
 }
 
 /**
- * Displays the route results in the UI and on the map
+ * Handles the API response and updates the UI accordingly
+ * @param {Object} response - The API response
+ */
+function handleRouteResponse(response) {
+    toggleLoadingState(false);
+    
+    if (response.success && response.route) {
+        currentRoute = response.route;
+        displayRouteResults(response.route);
+    } else {
+        showAlert(response.error || 'Failed to optimize route. Please try again.');
+    }
+}
+
+/**
+ * Displays the route results in the UI
  * @param {Object} route - The optimized route data
  */
 function displayRouteResults(route) {
-    console.log("Displaying route results:", route);
-    
-    // Store current route
-    currentRoute = route;
-    
-    // End loading state
-    toggleLoadingState(false);
-    
     // Update stats
     totalDistance.textContent = route.totalDistance;
     estimatedTime.textContent = route.estimatedTime;
-    
-    // Display route on map
-    directionsRenderer.setDirections(route.directionsResult);
     
     // Clear previous route list
     routeList.innerHTML = '';
@@ -474,11 +583,54 @@ function displayRouteResults(route) {
         listItem.className = 'slide-down';
         listItem.style.animationDelay = `${index * 0.1}s`;
         
-        listItem.innerHTML = `
-            <div class="stop-number">${index + 1}</div>
-            <div class="stop-address">${point.address}</div>
+        // Determine icon and color based on point type and category
+        let icon = 'fa-map-marker-alt';
+        let color = '#3b82f6'; // Default blue
+        
+        if (point.type === 'start') {
+            icon = 'fa-map-marker-alt';
+            color = '#3b82f6';
+        } else if (point.type === 'end') {
+            icon = 'fa-flag-checkered';
+            color = '#10b981';
+        } else if (point.category) {
+            // Use category icon and color for regular stops
+            icon = point.category.icon;
+            color = point.category.color;
+        }
+        
+        // Create HTML for the list item
+        let itemHTML = `
+            <div class="stop-number" style="background-color: ${color};">${index + 1}</div>
+            <div class="stop-address">
+                <div>${point.address}</div>
+                ${point.category ? `<span class="category-tag" style="background-color: ${point.category.color}20; color: ${point.category.color}">
+                    <i class="fas ${point.category.icon} mr-1"></i>${point.category.name}
+                </span>` : ''}
+            </div>
             <div class="stop-type ${point.type}">${point.type}</div>
         `;
+        
+        // Add notes button if there are notes
+        if (point.notes && point.notes.trim() !== '') {
+            itemHTML += `
+                <button class="ml-2 text-gray-500 hover:text-gray-700 notes-toggle" data-notes="${encodeURIComponent(point.notes)}">
+                    <i class="fas fa-sticky-note"></i>
+                </button>
+            `;
+        }
+        
+        listItem.innerHTML = itemHTML;
+        
+        // Add click event listener for notes
+        if (point.notes && point.notes.trim() !== '') {
+            const notesBtn = listItem.querySelector('.notes-toggle');
+            if (notesBtn) {
+                notesBtn.addEventListener('click', function() {
+                    showNotesModal(decodeURIComponent(this.dataset.notes), point.address);
+                });
+            }
+        }
         
         routeList.appendChild(listItem);
     });
@@ -487,19 +639,64 @@ function displayRouteResults(route) {
     inputSection.classList.add('hidden');
     resultsSection.classList.remove('hidden');
     resultsSection.classList.add('fade-in');
+}
+
+/**
+ * Shows a modal with stop notes
+ * @param {string} notes - The notes text
+ * @param {string} address - The stop address
+ */
+function showNotesModal(notes, address) {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 fade-in';
+    modal.id = 'notes-modal';
     
-    // Trigger a resize event to ensure map displays correctly
-    setTimeout(() => {
-        google.maps.event.trigger(map, 'resize');
-        
-        // Set map bounds to fit the route
-        const bounds = new google.maps.LatLngBounds();
-        route.directionsResult.routes[0].legs.forEach(leg => {
-            bounds.extend(leg.start_location);
-            bounds.extend(leg.end_location);
-        });
-        map.fitBounds(bounds);
-    }, 100);
+    // Create modal content
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold dark:text-white">Notes for ${address}</h3>
+                <button class="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <p class="whitespace-pre-wrap dark:text-gray-200">${notes}</p>
+            </div>
+            <div class="mt-6 text-right">
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" id="confirm-modal">
+                    OK
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    document.body.appendChild(modal);
+    window.currentModal = modal;
+    
+    // Add event listeners for closing
+    const closeBtn = document.getElementById('close-modal');
+    const confirmBtn = document.getElementById('confirm-modal');
+    
+    function closeModal() {
+        modal.classList.add('fade-out');
+        setTimeout(() => {
+            document.body.removeChild(modal);
+            window.currentModal = null;
+        }, 300);
+    }
+    
+    closeBtn.addEventListener('click', closeModal);
+    confirmBtn.addEventListener('click', closeModal);
+    
+    // Close when clicking outside the modal content
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
 }
 
 /**
@@ -511,29 +708,179 @@ function showInputSection() {
 }
 
 /**
- * Saves the current route (localStorage implementation)
+ * Opens the current route in Google Maps or Apple Maps
+ * @param {string} mapType - 'google' or 'apple'
+ */
+function openInMaps(mapType) {
+    if (!currentRoute) return;
+
+    const waypoints = currentRoute.waypoints;
+    
+    if (mapType === 'google') {
+        // Format: https://www.google.com/maps/dir/?api=1&origin=ORIGIN&destination=DESTINATION&waypoints=STOP1|STOP2
+        const origin = encodeURIComponent(waypoints[0].address);
+        const destination = encodeURIComponent(waypoints[waypoints.length - 1].address);
+        
+        // Extract stops (exclude start and end)
+        const stops = waypoints.slice(1, -1).map(wp => encodeURIComponent(wp.address)).join('|');
+        
+        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${stops ? `&waypoints=${stops}` : ''}`;
+        
+        window.open(googleMapsUrl, '_blank');
+    } else if (mapType === 'apple') {
+        // Format: http://maps.apple.com/?saddr=ORIGIN&daddr=STOP1&daddr=STOP2&daddr=DESTINATION
+        const origin = encodeURIComponent(waypoints[0].address);
+        
+        // Start building the URL
+        let appleMapsUrl = `http://maps.apple.com/?saddr=${origin}`;
+        
+        // Add all stops and destination as daddr parameters
+        for (let i = 1; i < waypoints.length; i++) {
+            appleMapsUrl += `&daddr=${encodeURIComponent(waypoints[i].address)}`;
+        }
+        
+        window.open(appleMapsUrl, '_blank');
+    }
+}
+
+/**
+ * Saves the current route to localStorage
  */
 function saveRoute() {
     if (!currentRoute) return;
     
-    // Create a route object to save
-    const routeToSave = {
-        id: Date.now(),
-        name: `Route ${new Date().toLocaleDateString()}`,
-        totalDistance: currentRoute.totalDistance,
-        estimatedTime: currentRoute.estimatedTime,
-        waypoints: currentRoute.waypoints,
-        date: new Date().toISOString()
+    // Prompt user for a name for this route
+    const routeName = prompt('Enter a name for this route:', 'Route ' + new Date().toLocaleDateString());
+    
+    if (!routeName) return; // User cancelled
+    
+    // Get existing saved routes
+    const savedRoutes = getSavedRoutes();
+    
+    // Add new route with timestamp
+    const routeData = {
+        id: Date.now().toString(),
+        name: routeName,
+        timestamp: new Date().toISOString(),
+        route: currentRoute
     };
     
-    // Get existing saved routes or initialize empty array
-    const savedRoutes = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
+    savedRoutes.push(routeData);
     
-    // Add new route
-    savedRoutes.push(routeToSave);
-    
-    // Save back to localStorage
+    // Save to localStorage
     localStorage.setItem('savedRoutes', JSON.stringify(savedRoutes));
     
-    showAlert('Route saved successfully!', 'success');
+    showAlert(`Route "${routeName}" saved successfully!`, 'success');
+}
+
+/**
+ * Gets all saved routes from localStorage
+ * @returns {Array} Array of saved route objects
+ */
+function getSavedRoutes() {
+    const routesJson = localStorage.getItem('savedRoutes');
+    return routesJson ? JSON.parse(routesJson) : [];
+}
+
+/**
+ * Loads a saved route by ID
+ * @param {string} routeId - The ID of the route to load
+ */
+function loadRoute(routeId) {
+    const savedRoutes = getSavedRoutes();
+    const routeData = savedRoutes.find(r => r.id === routeId);
+    
+    if (routeData) {
+        currentRoute = routeData.route;
+        displayRouteResults(currentRoute);
+        showAlert(`Loaded route: ${routeData.name}`, 'info');
+    }
+}
+
+/**
+ * Deletes a saved route
+ * @param {string} routeId - The ID of the route to delete
+ */
+function deleteRoute(routeId) {
+    const savedRoutes = getSavedRoutes();
+    const updatedRoutes = savedRoutes.filter(r => r.id !== routeId);
+    
+    localStorage.setItem('savedRoutes', JSON.stringify(updatedRoutes));
+    showAlert('Route deleted successfully.', 'info');
+}
+
+/**
+ * Shows a modal with all saved routes
+ */
+function showSavedRoutesModal() {
+    const savedRoutes = getSavedRoutes();
+    
+    if (savedRoutes.length === 0) {
+        showAlert('No saved routes found.', 'info');
+        return;
+    }
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 fade-in modal-container';
+    modal.id = 'saved-routes-modal';
+    
+    // Format routes as list items
+    const routeItems = savedRoutes.map(r => `
+        <li class="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <div class="mb-2 sm:mb-0">
+                    <h4 class="font-medium dark:text-white">${r.name}</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">${new Date(r.timestamp).toLocaleString()}</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700" 
+                            onclick="loadRoute('${r.id}'); closeModal();">
+                        Load
+                    </button>
+                    <button class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
+                            onclick="deleteRoute('${r.id}'); refreshSavedRoutesModal();">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </li>
+    `).join('');
+    
+    // Create modal content
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full mx-4 max-h-[80vh] flex flex-col modal-content">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold dark:text-white">Saved Routes</h3>
+                <button class="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white" id="close-routes-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto flex-grow">
+                <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                    ${routeItems}
+                </ul>
+            </div>
+            <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+                <button class="w-full px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-gray-500" id="close-routes-btn">
+                    Close
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Add to body
+    document.body.appendChild(modal);
+    window.currentModal = modal;
+    
+    // Add event listeners
+    document.getElementById('close-routes-modal').addEventListener('click', closeModal);
+    document.getElementById('close-routes-btn').addEventListener('click', closeModal);
+    
+    // Close when clicking outside
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
 }
