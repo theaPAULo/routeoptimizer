@@ -106,6 +106,35 @@
     border-left: 4px solid #3b82f6;
 }
 
+/* Map container styling - essential for Google Maps to display properly */
+#map-container {
+    height: 400px !important; /* Force height with !important */
+    width: 100%;
+    background-color: #f0f0f0;
+    margin-bottom: 1.5rem;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Make sure map fills its container */
+#map-container > div {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+/* Loading state for map */
+#map-container:before {
+    content: 'Loading map...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #6b7280;
+    font-size: 1rem;
+    z-index: 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 640px) {
     .container {
@@ -126,39 +155,8 @@
         margin-left: 0;
         margin-top: 0.5rem;
     }
-}
-
-#map-container {
-    height: 400px !important; /* Use !important to ensure it overrides any other styles */
-    width: 100%;
-    background-color: #f0f0f0;
-    margin-bottom: 1.5rem;
-    border-radius: 0.375rem;
-    overflow: hidden;
-    position: relative;
-}
-
-/* Make sure map fills its container */
-#map-container > div {
-    height: 100%;
-    width: 100%;
-}
-
-/* Loading state for map */
-#map-container:before {
-    content: 'Loading map...';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #6b7280;
-    font-size: 1rem;
-    z-index: 0;
-}
-
-/* Map controls styling */
-.gm-style-cc {
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
-                 "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", 
-                 "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    
+    #map-container {
+        height: 300px !important; /* Smaller height on mobile */
+    }
 }
