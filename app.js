@@ -110,11 +110,12 @@ function setupInputAutocomplete(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
     
-    // Create autocomplete instance with expanded types
+    // Create autocomplete instance with broader search capabilities
     const autocomplete = new google.maps.places.Autocomplete(input, {
-        // Change from just 'address' to include establishments and points of interest
-        types: ['address', 'establishment'],
-        fields: ['place_id', 'formatted_address', 'geometry', 'name']
+        // Remove the types restriction completely to allow all place types
+        // types: ['address', 'establishment'],
+        fields: ['place_id', 'formatted_address', 'geometry', 'name'],
+        componentRestrictions: { country: [] } // No country restriction
     });
     
     // Store the autocomplete instance
