@@ -635,23 +635,29 @@ function hasExceededApiLimit() {
  * Increments the API usage counter
  */
 function incrementApiUsage() {
-  const usageData = getApiUsage();
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  
-  // Initialize today's count if not exists
-  if (!usageData[today]) {
-    usageData[today] = 0;
+    // Don't increment usage for admin users
+    if (isAdminUser()) {
+      console.log("Admin user - not incrementing API usage");
+      return;
+    }
+    
+    const usageData = getApiUsage();
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    // Initialize today's count if not exists
+    if (!usageData[today]) {
+      usageData[today] = 0;
+    }
+    
+    // Increment count
+    usageData[today]++;
+    
+    // Save back to storage
+    localStorage.setItem(API_LIMITS.STORAGE_KEY, JSON.stringify(usageData));
+    
+    // Update the UI indicator
+    updateUsageIndicator();
   }
-  
-  // Increment count
-  usageData[today]++;
-  
-  // Save back to storage
-  localStorage.setItem(API_LIMITS.STORAGE_KEY, JSON.stringify(usageData));
-  
-  // Update the UI indicator
-  updateUsageIndicator();
-}
 
 /**
  * Gets the current API usage data
@@ -806,52 +812,96 @@ function isAdminUser() {
  * Sets up admin functionality
  */
 function setupAdminFunctionality() {
-  // Check if admin already
-  if (isAdminUser()) {
-    document.body.classList.add('admin-user');
-  }
-  
-  // Add admin login link to footer
-  const footer = document.querySelector('footer');
-  if (footer) {
-    const adminLink = document.createElement('a');
-    adminLink.href = '#';
-    adminLink.textContent = 'Admin';
-    adminLink.className = 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-2';
-    adminLink.addEventListener('click', function(e) {
-      e.preventDefault();
-      document.getElementById('admin-login-modal').classList.remove('hidden');
-    });
+    // Check if admin already
+    if (isAdminUser()) {
+      document.body.classList.add('admin-user');
+      // Add logout button to header
+      addAdminLogoutButton();
+    }
     
-    footer.appendChild(document.createTextNode(' | '));
-    footer.appendChild(adminLink);
-  }
-  
-  // Set up admin login form
-  const adminForm = document.getElementById('admin-login-form');
-  const adminModal = document.getElementById('admin-login-modal');
-  const cancelBtn = document.getElementById('admin-cancel-btn');
-  
-  if (adminForm && adminModal && cancelBtn) {
-    adminForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const password = document.getElementById('admin-password').value;
+    // Add admin login link to footer
+    const footer = document.querySelector('footer');
+    if (footer) {
+      const adminLink = document.createElement('a');
+      adminLink.href = '#';
+      adminLink.textContent = 'Admin';
+      adminLink.className = 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-2';
+      adminLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('admin-login-modal').classList.remove('hidden');
+      });
       
-      if (authenticateAdmin(password)) {
-        // Successfully authenticated
-        document.body.classList.add('admin-user');
+      footer.appendChild(document.createTextNode(' | '));
+      footer.appendChild(adminLink);
+    }
+    
+    // Set up admin login form
+    const adminForm = document.getElementById('admin-login-form');
+    const adminModal = document.getElementById('admin-login-modal');
+    const cancelBtn = document.getElementById('admin-cancel-btn');
+    
+    if (adminForm && adminModal && cancelBtn) {
+      adminForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const password = document.getElementById('admin-password').value;
+        
+        if (authenticateAdmin(password)) {
+          // Successfully authenticated
+          document.body.classList.add('admin-user');
+          adminModal.classList.add('hidden');
+          showAlert('Admin mode activated - ads disabled and API limits removed', 'success');
+          addAdminLogoutButton(); // Add logout button after successful login
+        } else {
+          showAlert('Invalid admin password', 'error');
+        }
+      });
+      
+      cancelBtn.addEventListener('click', function() {
         adminModal.classList.add('hidden');
-        showAlert('Admin mode activated - ads disabled and API limits removed', 'success');
-      } else {
-        showAlert('Invalid admin password', 'error');
-      }
+      });
+    }
+  }
+  
+  /**
+   * Adds a logout button to the header for admin users
+   */
+  function addAdminLogoutButton() {
+    // Check if button already exists
+    if (document.getElementById('admin-logout-btn')) {
+      return;
+    }
+    
+    // Create logout button
+    const logoutBtn = document.createElement('button');
+    logoutBtn.id = 'admin-logout-btn';
+    logoutBtn.className = 'text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 ml-4 text-sm';
+    logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt mr-1"></i> Admin Logout';
+    
+    // Add click event
+    logoutBtn.addEventListener('click', function() {
+      // Remove admin status
+      localStorage.removeItem('driveless_admin');
+      document.body.classList.remove('admin-user');
+      
+      // Remove logout button
+      logoutBtn.remove();
+      
+      // Show confirmation
+      showAlert('Admin mode deactivated', 'info');
+      
+      // Refresh ads
+      refreshAds();
+      
+      // Update usage indicator
+      updateUsageIndicator();
     });
     
-    cancelBtn.addEventListener('click', function() {
-      adminModal.classList.add('hidden');
-    });
+    // Add to header next to the theme toggle
+    const headerControls = document.querySelector('header .flex.items-center');
+    if (headerControls) {
+      headerControls.appendChild(logoutBtn);
+    }
   }
-}
 
 /**
  * Attempts to authenticate as admin
