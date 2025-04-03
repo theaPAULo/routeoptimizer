@@ -44,7 +44,33 @@ function initializeApp() {
     addStopBtn.addEventListener('click', addStopInput);
     routeForm.addEventListener('submit', handleFormSubmit);
     backBtn.addEventListener('click', showInputSection);
-    saveBtn.addEventListener('click', saveRoute);
+    // Add event listeners for map buttons
+    document.getElementById('google-maps-btn').addEventListener('click', openGoogleMaps);
+    document.getElementById('apple-maps-btn').addEventListener('click', openAppleMaps);
+}
+
+/**
+ * Opens the current route in Google Maps
+ */
+function openGoogleMaps() {
+    const url = generateGoogleMapsUrl();
+    if (url) {
+        window.open(url, '_blank');
+    } else {
+        showAlert('Please calculate a route first');
+    }
+}
+
+/**
+ * Opens the current route in Apple Maps
+ */
+function openAppleMaps() {
+    const url = generateAppleMapsUrl();
+    if (url) {
+        window.open(url, '_blank');
+    } else {
+        showAlert('Please calculate a route first');
+    }
 }
 
 /**
