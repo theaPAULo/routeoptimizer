@@ -703,18 +703,28 @@
                     </ol>
                 </div>
                 
-                <div class="flex justify-between">
-                    <button 
-                        id="back-btn"
-                        class="py-2 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                    >
-                        Back to Form
-                    </button>
-                    <!-- Save button removed as requested -->
-                    <div id="map-export-container">
-                        <!-- Map export buttons will be inserted here via JavaScript -->
-                    </div>
-                </div>
+<div class="flex justify-between">
+    <button 
+        id="back-btn"
+        class="py-2 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+    >
+        Back to Form
+    </button>
+    <div class="space-x-2">
+        <button 
+            id="google-maps-btn"
+            class="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+        >
+            <i class="fas fa-map mr-1"></i> Google Maps
+        </button>
+        <button 
+            id="apple-maps-btn"
+            class="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+        >
+            <i class="fas fa-map-marker-alt mr-1"></i> Apple Maps
+        </button>
+    </div>
+</div>
             </section>
         </main>
 
