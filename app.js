@@ -366,7 +366,6 @@ function enableDragAndDrop() {
     
     // Start observing
     observer.observe(container, { childList: true });
-}
 /**
  * Refreshes autocompletes after drag-and-drop operations
  */
