@@ -40,7 +40,7 @@ function initMap() {
  * Main initialization function - called after Google Maps loads
  */
 function initializeApp() {
-    console.log("Initializing Route Planner App");
+    console.log("Initializing DriveLess App");
     
     // Set up Google Maps components
     initializeGoogleMaps();
@@ -49,9 +49,11 @@ function initializeApp() {
     addStopInput();
     
     // Set up manual reordering
+    console.log("Setting up reordering...");
     const refreshReorderControls = setupManualReordering();
     
     // Set up dark mode
+    console.log("Setting up dark mode...");
     setupDarkModeToggle();
     
     // Set up event listeners
@@ -883,18 +885,21 @@ function setupManualReordering() {
         items.forEach((item, index) => {
             // Create controls container
             const controls = document.createElement('div');
-            controls.className = 'reorder-controls absolute right-10 flex space-x-1';
+            controls.className = 'reorder-controls';
             controls.style.position = 'absolute';
             controls.style.right = '35px';
             controls.style.top = '50%';
             controls.style.transform = 'translateY(-50%)';
+            controls.style.display = 'flex';
+            controls.style.gap = '4px';
+            controls.style.zIndex = '10';
             
             let controlsHTML = '';
             
             // Add up button if not first
             if (index > 0) {
                 controlsHTML += `
-                    <button type="button" class="up-btn text-blue-500 hover:text-blue-700">
+                    <button type="button" class="up-btn text-blue-500 hover:text-blue-700" style="padding: 2px; border-radius: 4px;">
                         <i class="fas fa-arrow-up"></i>
                     </button>`;
             }
@@ -902,7 +907,7 @@ function setupManualReordering() {
             // Add down button if not last
             if (index < items.length - 1) {
                 controlsHTML += `
-                    <button type="button" class="down-btn text-blue-500 hover:text-blue-700">
+                    <button type="button" class="down-btn text-blue-500 hover:text-blue-700" style="padding: 2px; border-radius: 4px;">
                         <i class="fas fa-arrow-down"></i>
                     </button>`;
             }
@@ -948,7 +953,11 @@ function setupManualReordering() {
     refreshControls();
     
     // Set up observer for dynamic changes
-    const observer = new MutationObserver(refreshControls);
+    const observer = new MutationObserver(function(mutations) {
+        refreshControls();
+    });
+    
+    // Start observing
     observer.observe(stopsContainer, { 
         childList: true,
         subtree: true

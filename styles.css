@@ -1,4 +1,4 @@
-/* Custom CSS for Route Optimizer */
+/* Custom CSS for DriveLess */
 
 /* Animations */
 @keyframes fadeIn {
@@ -21,20 +21,72 @@
 }
 
 /* Dark mode styles */
+.dark body {
+    background-color: #1f2937;
+    color: #f9fafb;
+}
+
+.dark .fa-sun {
+    display: block;
+}
+
+.dark .fa-moon {
+    display: none;
+}
+
+.dark input, .dark select, .dark textarea {
+    background-color: #374151;
+    color: white;
+    border-color: #4b5563;
+}
+
+.dark #input-section, 
+.dark #results-section {
+    background-color: #374151;
+}
+
+.dark #alert-box.error {
+    background-color: #7f1d1d;
+    color: #fecaca;
+}
+
+.dark #alert-box.success {
+    background-color: #064e3b;
+    color: #a7f3d0;
+}
+
+.dark #alert-box.info {
+    background-color: #1e3a8a;
+    color: #bfdbfe;
+}
+
+.dark #route-list li {
+    background-color: #4b5563;
+    border-left-color: #60a5fa;
+}
+
+.dark #route-list li:hover {
+    background-color: #374151;
+}
+
 .dark .stop-number {
     background-color: #3b82f6;
 }
 
 /* Reordering controls */
 .reorder-controls {
+    position: absolute;
+    right: 35px;
     top: 50%;
     transform: translateY(-50%);
     z-index: 5;
+    display: flex;
+    gap: 4px;
 }
 
 /* Update the stop-item input to leave room for controls */
 .stop-item input {
-    padding-right: 80px; /* Make room for the controls and delete button */
+    padding-right: 80px !important; /* Make room for the controls and delete button */
 }
 
 /* Animation for reordering */
@@ -74,6 +126,21 @@
     border-bottom: 2px dashed #3b82f6;
     padding-bottom: 4px;
     margin-bottom: 4px;
+}
+
+/* Make buttons more visible */
+.up-btn, .down-btn {
+    background-color: #f3f4f6;
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dark .up-btn, .dark .down-btn {
+    background-color: #4b5563;
 }
 
 /* Route list styling */
