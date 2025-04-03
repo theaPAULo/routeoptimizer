@@ -4,6 +4,7 @@
   publish = "/"
   # If you had a build command, you would include it here
   # command = "npm run build"
+    functions = "netlify/functions"
 
 # Headers to set on the site
 [[headers]]
@@ -40,6 +41,4 @@
 [build.environment]
   GOOGLE_MAPS_API_KEY = "${GOOGLE_MAPS_API_KEY}"
 
-  [build]
-  functions = "netlify/functions"
 
