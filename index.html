@@ -197,6 +197,7 @@
     
    <!-- At the bottom of your index.html, update the script loading -->
 <!-- Load application JavaScript -->
+<!-- Load application JavaScript -->
 <script src="app.js"></script>
 
 <!-- Wait for everything to be loaded -->
@@ -230,11 +231,11 @@
     // Function to update dark mode styling for inputs
     function updateDarkModeStyles() {
       const isDark = document.documentElement.classList.contains('dark');
-      const inputs = document.querySelectorAll('input[type="text"]');
       
+      // Update all text inputs (both in form and results section)
+      const inputs = document.querySelectorAll('input[type="text"]');
       inputs.forEach(input => {
         if (isDark) {
-          input.classList.add('dark:bg-gray-700', 'dark:text-white', 'dark:border-gray-600');
           input.style.backgroundColor = '#374151';
           input.style.color = 'white';
           input.style.borderColor = '#4B5563';
@@ -245,15 +246,25 @@
         }
       });
       
-      // Update reorder buttons colors for dark mode
-      const reorderBtns = document.querySelectorAll('.up-btn, .down-btn');
-      reorderBtns.forEach(btn => {
+      // Update route list items in results section
+      const routeItems = document.querySelectorAll('#route-list li');
+      routeItems.forEach(item => {
         if (isDark) {
-          btn.style.backgroundColor = '#4B5563';
-          btn.style.color = '#60A5FA';
+          item.style.backgroundColor = '#4B5563';
+          item.style.borderLeftColor = '#60A5FA';
         } else {
-          btn.style.backgroundColor = '#F3F4F6';
-          btn.style.color = '#3B82F6';
+          item.style.backgroundColor = '';
+          item.style.borderLeftColor = '';
+        }
+      });
+      
+      // Update stop numbers in results
+      const stopNumbers = document.querySelectorAll('.stop-number');
+      stopNumbers.forEach(num => {
+        if (isDark) {
+          num.style.backgroundColor = '#3B82F6';
+        } else {
+          num.style.backgroundColor = '';
         }
       });
     }
@@ -261,138 +272,22 @@
     // Initial dark mode styles update
     updateDarkModeStyles();
     
-    // Set up drag and drop
-    function setupDragAndDrop() {
-      const stopsContainer = document.getElementById('stops-container');
-      if (!stopsContainer) return;
-      
-      let draggedItem = null;
-      
-      function handleDragStart(e) {
-        draggedItem = this;
-        this.style.opacity = '0.4';
-        
-        // Required for Firefox
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', this.innerHTML);
-      }
-      
-      function handleDragEnd(e) {
-        this.style.opacity = '1';
-        
-        // Remove all drag-over classes
-        document.querySelectorAll('.stop-item').forEach(item => {
-          item.classList.remove('drag-over');
-        });
-      }
-      
-      function handleDragOver(e) {
-        e.preventDefault();
-        return false;
-      }
-      
-      function handleDragEnter(e) {
-        this.classList.add('drag-over');
-      }
-      
-      function handleDragLeave(e) {
-        this.classList.remove('drag-over');
-      }
-      
-      function handleDrop(e) {
-        e.stopPropagation();
-        
-        if (draggedItem !== this) {
-          // Insert the dragged item before this one
-          stopsContainer.insertBefore(draggedItem, this);
-          
-          // Refresh autocompletes if available
-          if (typeof refreshAutocompletes === 'function') {
-            refreshAutocompletes();
-          }
-        }
-        
-        return false;
-      }
-      
-      // Add event listeners to all stop items
-      function addDragListeners() {
-        document.querySelectorAll('.stop-item').forEach(item => {
-          // Skip if already set up
-          if (item.getAttribute('data-draggable') === 'true') return;
-          
-          // Mark as draggable
-          item.setAttribute('draggable', 'true');
-          item.setAttribute('data-draggable', 'true');
-          
-          // Add a drag handle
-          const inputContainer = item.querySelector('.relative');
-          if (inputContainer) {
-            const dragHandle = document.createElement('span');
-            dragHandle.className = 'drag-handle';
-            dragHandle.innerHTML = '<i class="fas fa-grip-vertical text-gray-400"></i>';
-            dragHandle.style.position = 'absolute';
-            dragHandle.style.left = '0';
-            dragHandle.style.top = '50%';
-            dragHandle.style.transform = 'translateY(-50%)';
-            dragHandle.style.width = '30px';
-            dragHandle.style.height = '100%';
-            dragHandle.style.display = 'flex';
-            dragHandle.style.alignItems = 'center';
-            dragHandle.style.justifyContent = 'center';
-            dragHandle.style.cursor = 'grab';
-            dragHandle.style.zIndex = '10';
-            inputContainer.prepend(dragHandle);
-            
-            // Update input padding
-            const input = inputContainer.querySelector('input');
-            if (input) {
-              input.style.paddingLeft = '30px';
-            }
-          }
-          
-          // Add event listeners
-          item.addEventListener('dragstart', handleDragStart, false);
-          item.addEventListener('dragend', handleDragEnd, false);
-          item.addEventListener('dragover', handleDragOver, false);
-          item.addEventListener('dragenter', handleDragEnter, false);
-          item.addEventListener('dragleave', handleDragLeave, false);
-          item.addEventListener('drop', handleDrop, false);
-        });
-      }
-      
-      // Initial setup
-      addDragListeners();
-      
-      // Watch for new items
-      const observer = new MutationObserver(function(mutations) {
-        addDragListeners();
-      });
-      
-      observer.observe(stopsContainer, { childList: true });
+    // Observe DOM changes to update styles for dynamically added elements
+    const observer = new MutationObserver(function(mutations) {
+      updateDarkModeStyles();
+    });
+    
+    // Observe both the stops container and results container
+    const stopsContainer = document.getElementById('stops-container');
+    const resultsSection = document.getElementById('results-section');
+    
+    if (stopsContainer) {
+      observer.observe(stopsContainer, { childList: true, subtree: true });
     }
     
-    // Set up drag and drop
-    setupDragAndDrop();
-    
-    // Add CSS for drag and drop
-    const style = document.createElement('style');
-    style.textContent = `
-      .stop-item {
-        transition: opacity 0.2s ease;
-      }
-      .stop-item.drag-over {
-        border: 2px dashed #3B82F6;
-        padding: 4px;
-      }
-      .drag-handle {
-        cursor: grab;
-      }
-      .drag-handle:active {
-        cursor: grabbing;
-      }
-    `;
-    document.head.appendChild(style);
+    if (resultsSection) {
+      observer.observe(resultsSection, { childList: true, subtree: true });
+    }
   });
 </script>
 

@@ -41,23 +41,13 @@ function initializeApp() {
         // Add first stop input
         addStopInput();
         
-        try {
-            // Set up manual reordering
-            console.log("Setting up reordering...");
-            const refreshReorderControls = setupManualReordering();
-            console.log("Reordering setup complete");
-        } catch (error) {
-            console.error("Error setting up reordering:", error);
-        }
-        
-        try {
-            // Set up dark mode
-            console.log("Setting up dark mode...");
-            setupDarkModeToggle();
-            console.log("Dark mode setup complete");
-        } catch (error) {
-            console.error("Error setting up dark mode:", error);
-        }
+        // Set up event listeners
+        addStopBtn.addEventListener('click', addStopInput);
+        routeForm.addEventListener('submit', handleFormSubmit);
+        backBtn.addEventListener('click', showInputSection);
+        // Add event listeners for map buttons
+        document.getElementById('google-maps-btn').addEventListener('click', openGoogleMaps);
+        document.getElementById('apple-maps-btn').addEventListener('click', openAppleMaps);
         
         console.log("Initialization complete");
     } catch (error) {
