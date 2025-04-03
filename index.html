@@ -33,21 +33,25 @@
     <link rel="stylesheet" href="styles.css">
 
     <!-- Ad serving script -->
-<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
-<script>
-  window.googletag = window.googletag || {cmd: []};
-  googletag.cmd.push(function() {
-    // Define ad slots
-    googletag.defineSlot('/22639388115/driveless_banner', [728, 90], 'div-gpt-ad-banner')
-      .addService(googletag.pubads());
-    googletag.defineSlot('/22639388115/driveless_sidebar', [300, 250], 'div-gpt-ad-sidebar')
-      .addService(googletag.pubads());
-    
-    // Enable services
-    googletag.pubads().enableSingleRequest();
-    googletag.enableServices();
-  });
-</script>
+    <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+    <script>
+      window.googletag = window.googletag || {cmd: []};
+      googletag.cmd.push(function() {
+        // Define ad slots
+        googletag.defineSlot('/22639388115/driveless_banner', [728, 90], 'div-gpt-ad-banner')
+          .addService(googletag.pubads());
+        googletag.defineSlot('/22639388115/driveless_sidebar', [300, 250], 'div-gpt-ad-sidebar')
+          .addService(googletag.pubads());
+        googletag.defineSlot('/22639388115/driveless_mid', [728, 90], 'div-gpt-ad-mid')
+          .addService(googletag.pubads());
+        googletag.defineSlot('/22639388115/driveless_bottom', [728, 90], 'div-gpt-ad-bottom')
+          .addService(googletag.pubads());
+        
+        // Enable services
+        googletag.pubads().enableSingleRequest();
+        googletag.enableServices();
+      });
+    </script>
     
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 dark:text-white min-h-screen">
@@ -62,22 +66,20 @@
                     </button>
                     <div id="usage-indicator" class="text-sm text-gray-600 dark:text-gray-400 ml-4 hidden">
                         <span id="usage-count">0</span>/<span id="usage-limit">25</span> routes today
-                      </div>
+                    </div>
                 </div>
             </div>
             <p class="text-gray-600 dark:text-gray-400 mt-2">Drive Less, Save Time</p>
         </header>
 
-<!-- Top banner ad (after header) -->
-<div id="div-gpt-ad-banner" class="ad-container mx-auto my-4">
-    <script>
-      googletag.cmd.push(function() {
-        googletag.display('div-gpt-ad-banner');
-      });
-    </script>
-  </div>
-  
-
+        <!-- Top banner ad (after header) -->
+        <div id="div-gpt-ad-banner" class="ad-container mx-auto my-4">
+            <script>
+              googletag.cmd.push(function() {
+                googletag.display('div-gpt-ad-banner');
+              });
+            </script>
+        </div>
 
         <main>
             <!-- Alert Box for Errors and Messages -->
@@ -160,13 +162,13 @@
             </section>
 
             <!-- Add a mid-page ad between input and results sections -->
-<div id="div-gpt-ad-mid" class="ad-container mx-auto my-4">
-    <script>
-      googletag.cmd.push(function() {
-        googletag.display('div-gpt-ad-mid');
-      });
-    </script>
-  </div>
+            <div id="div-gpt-ad-mid" class="ad-container mx-auto my-4">
+                <script>
+                  googletag.cmd.push(function() {
+                    googletag.display('div-gpt-ad-mid');
+                  });
+                </script>
+            </div>
 
             <!-- Results Section (Hidden by default) -->
             <section id="results-section" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hidden">
@@ -193,22 +195,22 @@
                     </div>
                 </div>
                 
-
-                            <!-- Loading Skeleton (hidden by default) -->
-            <div id="loading-skeleton" class="hidden">
-                <div class="animate-pulse space-y-4">
-                <div class="grid md:grid-cols-2 gap-4 mb-6">
-                    <div class="bg-gray-200 dark:bg-gray-700 p-4 rounded-md h-20"></div>
-                    <div class="bg-gray-200 dark:bg-gray-700 p-4 rounded-md h-20"></div>
+                <!-- Loading Skeleton (hidden by default) -->
+                <div id="loading-skeleton" class="hidden">
+                    <div class="animate-pulse space-y-4">
+                        <div class="grid md:grid-cols-2 gap-4 mb-6">
+                            <div class="bg-gray-200 dark:bg-gray-700 p-4 rounded-md h-20"></div>
+                            <div class="bg-gray-200 dark:bg-gray-700 p-4 rounded-md h-20"></div>
+                        </div>
+                        <div class="bg-gray-200 dark:bg-gray-700 h-64 md:h-96 rounded-md mb-6"></div>
+                        <div class="space-y-2">
+                            <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                            <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                            <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-gray-200 dark:bg-gray-700 h-64 md:h-96 rounded-md mb-6"></div>
-                <div class="space-y-2">
-                    <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
-                    <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
-                    <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
-                </div>
-                </div>
-            </div>
+                
                 <!-- Map Container -->
                 <div id="map-container" class="w-full h-64 md:h-96 rounded-md mb-6 border border-gray-300 dark:border-gray-700 overflow-hidden">
                     <!-- Google Map will be rendered here -->
@@ -246,146 +248,151 @@
             </section>
         </main>
 
+        <!-- Admin Login Modal (hidden by default) -->
+        <div id="admin-login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
+              <h3 class="text-xl font-bold mb-4 dark:text-white">Admin Access</h3>
+              <form id="admin-login-form">
+                <div class="mb-4">
+                  <label for="admin-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Admin Password
+                  </label>
+                  <input 
+                    type="password" 
+                    id="admin-password" 
+                    class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" 
+                    required
+                  >
+                </div>
+                <div class="flex justify-between">
+                  <button 
+                    type="button" 
+                    id="admin-cancel-btn"
+                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md"
+                  >
+                    Login
+                  </button>
+                </div>
+              </form>
+            </div>
+        </div>
 
-<!-- Admin Login Modal (hidden by default) -->
-<div id="admin-login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
-      <h3 class="text-xl font-bold mb-4 dark:text-white">Admin Access</h3>
-      <form id="admin-login-form">
-        <div class="mb-4">
-          <label for="admin-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Admin Password
-          </label>
-          <input 
-            type="password" 
-            id="admin-password" 
-            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" 
-            required
-          >
+        <!-- Bottom ad (before footer) -->
+        <div id="div-gpt-ad-bottom" class="ad-container mx-auto my-4">
+            <script>
+              googletag.cmd.push(function() {
+                googletag.display('div-gpt-ad-bottom');
+              });
+            </script>
         </div>
-        <div class="flex justify-between">
-          <button 
-            type="button" 
-            id="admin-cancel-btn"
-            class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md"
-          >
-            Cancel
-          </button>
-          <button 
-            type="submit" 
-            class="px-4 py-2 bg-blue-600 text-white rounded-md"
-          >
-            Login
-          </button>
-        </div>
-      </form>
+        
+        <!-- Footer -->
+        <footer class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>&copy; 2025 DriveLess | <a href="#" class="hover:text-gray-700 dark:hover:text-gray-300">Terms</a> | <a href="#" class="hover:text-gray-700 dark:hover:text-gray-300">Privacy</a></p>
+        </footer>
     </div>
-  </div>
+    
+    <!-- Load application JavaScript -->
+    <script src="app.js"></script>
 
-<!-- Bottom ad (before footer) -->
-<div id="div-gpt-ad-bottom" class="ad-container mx-auto my-4">
+    <!-- Wait for everything to be loaded -->
     <script>
-      googletag.cmd.push(function() {
-        googletag.display('div-gpt-ad-bottom');
+      // Wait for everything to be fully loaded
+      window.addEventListener('load', function() {
+        console.log("Window fully loaded - setting up UI enhancements");
+        
+        // 1. Set up dark mode toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+          console.log("Found theme toggle button");
+          
+          // Apply initial theme based on localStorage
+          const savedTheme = localStorage.getItem('theme');
+          if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          }
+          
+          // Add click handler
+          themeToggle.addEventListener('click', function() {
+            console.log("Theme toggle clicked");
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            // Update input styling
+            setTimeout(updateDarkModeStyles, 50);
+          });
+        }
+        
+        // Function to update dark mode styling for inputs
+        function updateDarkModeStyles() {
+          const isDark = document.documentElement.classList.contains('dark');
+          
+          // Update all text inputs (both in form and results section)
+          const inputs = document.querySelectorAll('input[type="text"]');
+          inputs.forEach(input => {
+            if (isDark) {
+              input.style.backgroundColor = '#374151';
+              input.style.color = 'white';
+              input.style.borderColor = '#4B5563';
+            } else {
+              input.style.backgroundColor = '';
+              input.style.color = '';
+              input.style.borderColor = '';
+            }
+          });
+          
+          // Update route list items in results section
+          const routeItems = document.querySelectorAll('#route-list li');
+          routeItems.forEach(item => {
+            if (isDark) {
+              item.style.backgroundColor = '#4B5563';
+              item.style.borderLeftColor = '#60A5FA';
+            } else {
+              item.style.backgroundColor = '';
+              item.style.borderLeftColor = '';
+            }
+          });
+          
+          // Update stop numbers in results
+          const stopNumbers = document.querySelectorAll('.stop-number');
+          stopNumbers.forEach(num => {
+            if (isDark) {
+              num.style.backgroundColor = '#3B82F6';
+            } else {
+              num.style.backgroundColor = '';
+            }
+          });
+        }
+        
+        // Initial dark mode styles update
+        updateDarkModeStyles();
+        
+        // Observe DOM changes to update styles for dynamically added elements
+        const observer = new MutationObserver(function(mutations) {
+          updateDarkModeStyles();
+        });
+        
+        // Observe both the stops container and results container
+        const stopsContainer = document.getElementById('stops-container');
+        const resultsSection = document.getElementById('results-section');
+        
+        if (stopsContainer) {
+          observer.observe(stopsContainer, { childList: true, subtree: true });
+        }
+        
+        if (resultsSection) {
+          observer.observe(resultsSection, { childList: true, subtree: true });
+        }
       });
     </script>
-  </div>
-    
-<!-- Load application JavaScript -->
-<script src="app.js"></script>
 
-<!-- Wait for everything to be loaded -->
-<script>
-  // Wait for everything to be fully loaded
-  window.addEventListener('load', function() {
-    console.log("Window fully loaded - setting up UI enhancements");
-    
-    // 1. Set up dark mode toggle
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-      console.log("Found theme toggle button");
-      
-      // Apply initial theme based on localStorage
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      }
-      
-      // Add click handler
-      themeToggle.addEventListener('click', function() {
-        console.log("Theme toggle clicked");
-        const isDark = document.documentElement.classList.toggle('dark');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        
-        // Update input styling
-        setTimeout(updateDarkModeStyles, 50);
-      });
-    }
-    
-    // Function to update dark mode styling for inputs
-    function updateDarkModeStyles() {
-      const isDark = document.documentElement.classList.contains('dark');
-      
-      // Update all text inputs (both in form and results section)
-      const inputs = document.querySelectorAll('input[type="text"]');
-      inputs.forEach(input => {
-        if (isDark) {
-          input.style.backgroundColor = '#374151';
-          input.style.color = 'white';
-          input.style.borderColor = '#4B5563';
-        } else {
-          input.style.backgroundColor = '';
-          input.style.color = '';
-          input.style.borderColor = '';
-        }
-      });
-      
-      // Update route list items in results section
-      const routeItems = document.querySelectorAll('#route-list li');
-      routeItems.forEach(item => {
-        if (isDark) {
-          item.style.backgroundColor = '#4B5563';
-          item.style.borderLeftColor = '#60A5FA';
-        } else {
-          item.style.backgroundColor = '';
-          item.style.borderLeftColor = '';
-        }
-      });
-      
-      // Update stop numbers in results
-      const stopNumbers = document.querySelectorAll('.stop-number');
-      stopNumbers.forEach(num => {
-        if (isDark) {
-          num.style.backgroundColor = '#3B82F6';
-        } else {
-          num.style.backgroundColor = '';
-        }
-      });
-    }
-    
-    // Initial dark mode styles update
-    updateDarkModeStyles();
-    
-    // Observe DOM changes to update styles for dynamically added elements
-    const observer = new MutationObserver(function(mutations) {
-      updateDarkModeStyles();
-    });
-    
-    // Observe both the stops container and results container
-    const stopsContainer = document.getElementById('stops-container');
-    const resultsSection = document.getElementById('results-section');
-    
-    if (stopsContainer) {
-      observer.observe(stopsContainer, { childList: true, subtree: true });
-    }
-    
-    if (resultsSection) {
-      observer.observe(resultsSection, { childList: true, subtree: true });
-    }
-  });
-</script>
-
-<!-- Load the Google Maps API -->
-<script src="/.netlify/functions/load-maps"></script>
+    <!-- Load the Google Maps API -->
+    <script src="/.netlify/functions/load-maps"></script>
 </body>
 </html>

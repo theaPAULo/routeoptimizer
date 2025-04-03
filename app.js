@@ -54,8 +54,13 @@ function initializeApp() {
         document.getElementById('google-maps-btn').addEventListener('click', openGoogleMaps);
         document.getElementById('apple-maps-btn').addEventListener('click', openAppleMaps);
         
-        console.log("Initialization complete");
+        // Set up admin functionality
+        setupAdminFunctionality();
+        
+        // Update usage indicator
         updateUsageIndicator();
+        
+        console.log("Initialization complete");
     } catch (error) {
         console.error("Error during initialization:", error);
     }
@@ -160,7 +165,6 @@ function refreshAds() {
   }
   
 
-
 /**
  * Refreshes autocompletes after reordering operations
  */
@@ -250,175 +254,6 @@ function showAlert(message, type = 'error') {
 }
 
 /**
- * Handles the form submission
- * @param {Event} event - The form submission event
- */
-async function handleFormSubmit(event) {
-
-    async function handleFormSubmit(event) {
-        event.preventDefault();
-        
-        // Check server-side API usage limit (if admin, skip)
-        if (!isAdminUser()) {
-          try {
-            const usageData = await checkServerApiUsage();
-            
-            if (usageData.error) {
-              // Fall back to client-side check
-              if (hasExceededApiLimit()) {
-                showAlert('You have reached your daily limit of route calculations. Please try again tomorrow.', 'error');
-                showUsageStats();
-                return;
-              }
-            } else if (usageData.currentUsage > usageData.limit) {
-              showAlert('You have reached your daily limit of route calculations. Please try again tomorrow.', 'error');
-              showUsageStats();
-              return;
-            }
-          } catch (error) {
-            console.error('Error checking API usage:', error);
-            // Fall back to client-side check
-            if (hasExceededApiLimit()) {
-              showAlert('You have reached your daily limit of route calculations. Please try again tomorrow.', 'error');
-              showUsageStats();
-              return;
-            }
-          }
-        }
-    // Collect form data
-const startLocation = sanitizeInput(document.getElementById('start-location').value);
-const endLocation = sanitizeInput(document.getElementById('end-location').value);
-
-// Collect all stops
-const stops = [];
-const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
-
-for (const input of stopInputs) {
-  if (input.value.trim()) {
-    stops.push(sanitizeInput(input.value.trim()));
-  }
-}
-    
-    // Basic validation
-    if (!startLocation) {
-        showAlert('Please enter a starting location');
-        return;
-    }
-    
-    if (!endLocation) {
-        showAlert('Please enter an ending location');
-        return;
-    }
-    
-    if (stops.length === 0) {
-        showAlert('Please add at least one stop');
-        return;
-    }
-    
-    // Show loading state
-    toggleLoadingState(true);
-    
-    try {
-        console.log("Calculating route with:", {
-            start: startLocation,
-            stops: stops,
-            end: endLocation
-        });
-        
-        // Step 1: Validate and geocode all addresses
-        const locations = await validateAddresses({
-            start: startLocation,
-            end: endLocation,
-            stops: stops
-        });
-        
-        console.log("Geocoded locations:", locations);
-        
-        // Step 2: Calculate the optimized route
-        const routeResult = await calculateOptimizedRoute(locations);
-        
-        console.log("Route calculation result:", routeResult);
-        
-        // Update UI with results
-        displayRouteResults(routeResult);
-        incrementApiUsage();
-    } catch (error) {
-        console.error("Route calculation error:", error);
-        showAlert(error.message || 'Error calculating route. Please try again.');
-        toggleLoadingState(false);
-    }
-}
-
-/**
- * Validates all addresses using Google Geocoding API
- * @param {Object} locations - Object containing start, end, and stops addresses
- * @returns {Promise} - Promise resolving to validated locations with coordinates
- */
-async function validateAddresses(locations) {
-    try {
-        console.log("Validating addresses:", locations);
-        
-        // Create geocoding promises for all addresses
-        const startPromise = geocodeAddress(locations.start);
-        const endPromise = geocodeAddress(locations.end);
-        const stopsPromises = locations.stops.map(stop => geocodeAddress(stop));
-        
-        // Wait for all geocoding requests to complete
-        const [startResult, endResult, ...stopsResults] = await Promise.all([
-            startPromise, 
-            endPromise, 
-            ...stopsPromises
-        ]);
-        
-        console.log("Geocoding results:", {
-            start: startResult,
-            end: endResult,
-            stops: stopsResults
-        });
-        
-        // Check if any geocoding failed
-        if (!startResult || !endResult || stopsResults.includes(null)) {
-            throw new Error('One or more addresses could not be found. Please check your inputs.');
-        }
-        
-        return {
-            start: startResult,
-            end: endResult,
-            stops: stopsResults
-        };
-    } catch (error) {
-        console.error('Address validation error:', error);
-        throw error;
-    }
-}
-
-/**
- * Geocodes an address to coordinates
- * @param {string} address - The address to geocode
- * @returns {Promise} - Promise resolving to location object with coordinates
- */
-function geocodeAddress(address) {
-    return new Promise((resolve, reject) => {
-        console.log("Geocoding address:", address);
-        
-        geocoder.geocode({ address }, (results, status) => {
-            console.log(`Geocoding result for "${address}":`, status, results);
-            
-            if (status === 'OK' && results && results.length > 0) {
-                resolve({
-                    address: results[0].formatted_address,
-                    location: results[0].geometry.location,
-                    placeId: results[0].place_id
-                });
-            } else {
-                console.error('Geocoding failed for address:', address, status);
-                resolve(null); // Resolve with null to handle in the main validation function
-            }
-        });
-    });
-}
-
-/**
  * Shows the user's API usage statistics
  */
 function showUsageStats() {
@@ -482,7 +317,172 @@ function updateUsageIndicator() {
       countEl.textContent = todayCount;
       limitEl.textContent = API_LIMITS.DAILY_LIMIT;
     }
-  }
+}
+
+/**
+ * Handles the form submission
+ * @param {Event} event - The form submission event
+ */
+async function handleFormSubmit(event) {
+    event.preventDefault();
+    
+    // Check API usage limit (skip for admin users)
+    if (!isAdminUser() && hasExceededApiLimit()) {
+      showAlert('You have reached your daily limit of route calculations. Please try again tomorrow.', 'error');
+      showUsageStats();
+      return;
+    }
+    
+    // Collect form data with sanitization
+    const startLocation = sanitizeInput(document.getElementById('start-location').value);
+    const endLocation = sanitizeInput(document.getElementById('end-location').value);
+    
+    // Collect all stops
+    const stops = [];
+    const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
+    
+    for (const input of stopInputs) {
+      if (input.value.trim()) {
+        stops.push(sanitizeInput(input.value.trim()));
+      }
+    }
+    
+    // Basic validation
+    if (!startLocation) {
+        showAlert('Please enter a starting location');
+        return;
+    }
+    
+    if (!endLocation) {
+        showAlert('Please enter an ending location');
+        return;
+    }
+    
+    if (stops.length === 0) {
+        showAlert('Please add at least one stop');
+        return;
+    }
+    
+    // Show loading state
+    toggleLoadingState(true);
+    
+    try {
+        console.log("Calculating route with:", {
+            start: startLocation,
+            stops: stops,
+            end: endLocation
+        });
+        
+        // Step 1: Validate and geocode all addresses
+        const locations = await validateAddresses({
+            start: startLocation,
+            end: endLocation,
+            stops: stops
+        });
+        
+        console.log("Geocoded locations:", locations);
+        
+        // Step 2: Calculate the optimized route
+        const routeResult = await calculateOptimizedRoute(locations);
+        
+        console.log("Route calculation result:", routeResult);
+        
+        // Update UI with results
+        displayRouteResults(routeResult);
+        
+        // Increment API usage counter
+        incrementApiUsage();
+    } catch (error) {
+        console.error("Route calculation error:", error);
+        showAlert(error.message || 'Error calculating route. Please try again.');
+        toggleLoadingState(false);
+    }
+}
+
+/**
+ * Validates all addresses using Google Geocoding API
+ * @param {Object} locations - Object containing start, end, and stops addresses
+ * @returns {Promise} - Promise resolving to validated locations with coordinates
+ */
+async function validateAddresses(locations) {
+    try {
+        console.log("Validating addresses:", locations);
+        
+        // Create geocoding promises for all addresses
+        const startPromise = geocodeAddress(locations.start);
+        const endPromise = geocodeAddress(locations.end);
+        const stopsPromises = locations.stops.map(stop => geocodeAddress(stop));
+        
+        // Wait for all geocoding requests to complete
+        const [startResult, endResult, ...stopsResults] = await Promise.all([
+            startPromise, 
+            endPromise, 
+            ...stopsPromises
+        ]);
+        
+        console.log("Geocoding results:", {
+            start: startResult,
+            end: endResult,
+            stops: stopsResults
+        });
+        
+        // Check if any geocoding failed
+        if (!startResult || !endResult || stopsResults.includes(null)) {
+            throw new Error('One or more addresses could not be found. Please check your inputs.');
+        }
+        
+        return {
+            start: startResult,
+            end: endResult,
+            stops: stopsResults
+        };
+    } catch (error) {
+        console.error('Address validation error:', error);
+        throw error;
+    }
+}
+
+/**
+ * Geocodes an address to coordinates
+ * @param {string} address - The address to geocode
+ * @returns {Promise} - Promise resolving to location object with coordinates
+ */
+function geocodeAddress(address) {
+    return new Promise((resolve, reject) => {
+        console.log("Geocoding address:", address);
+        
+        // Check cache first
+        const cacheKey = `geocode_${address}`;
+        const cached = localStorage.getItem(cacheKey);
+        
+        if (cached) {
+            console.log("Using cached geocoding result");
+            resolve(JSON.parse(cached));
+            return;
+        }
+        
+        // Not in cache, use Google API
+        geocoder.geocode({ address }, (results, status) => {
+            console.log(`Geocoding result for "${address}":`, status, results);
+            
+            if (status === 'OK' && results && results.length > 0) {
+                const result = {
+                    address: results[0].formatted_address,
+                    location: results[0].geometry.location,
+                    placeId: results[0].place_id
+                };
+                
+                // Cache the result
+                localStorage.setItem(cacheKey, JSON.stringify(result));
+                
+                resolve(result);
+            } else {
+                console.error('Geocoding failed for address:', address, status);
+                resolve(null);
+            }
+        });
+    });
+}
 
 /**
  * Calculates an optimized route using Google Directions Service
@@ -591,84 +591,67 @@ function toggleLoadingState(isLoading) {
         optimizeBtn.disabled = false;
     }
 }
-/**
- * Checks and tracks API usage on the server
- * @returns {Promise<Object>} - Usage information
- */
-async function checkServerApiUsage() {
-    try {
-      // Get a unique user identifier (use localStorage or generate a UUID)
-      const userId = localStorage.getItem('userId') || generateUserId();
-      
-      // Track usage on server
-      const response = await fetch('/.netlify/functions/track-usage', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId: userId,
-          userIp: '' // The server will capture the IP
-        })
-      });
-      
-      const data = await response.json();
-      
-      // Update local usage indicator
-      if (document.getElementById('usage-count')) {
-        document.getElementById('usage-count').textContent = data.currentUsage;
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('Error checking API usage:', error);
-      return { error: true, message: error.message };
-    }
-  }
-  
-  /**
-   * Generates a unique user ID
-   * @returns {string} - User ID
-   */
-  function generateUserId() {
-    // Simple UUID generation
-    const userId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-    
-    // Store in localStorage
-    localStorage.setItem('userId', userId);
-    
-    return userId;
-  }
 
 /**
- * Checks if the current user is an admin
- * Uses localStorage for simple implementation
- * @returns {boolean} - Whether the user is an admin
+ * API usage monitoring and rate limiting
  */
-function isAdminUser() {
-    return localStorage.getItem('driveless_admin') === 'true';
+const API_LIMITS = {
+  // Daily limit for all users
+  DAILY_LIMIT: 25,
+  // Storage key
+  STORAGE_KEY: 'driveless_api_usage',
+};
+
+/**
+ * Checks if the user has exceeded their API usage limit
+ * @returns {boolean} - Whether the user has exceeded their limit
+ */
+function hasExceededApiLimit() {
+  const isAdmin = isAdminUser();
+  if (isAdmin) return false; // Admin has unlimited usage
+  
+  const usageData = getApiUsage();
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  
+  // Initialize today's count if not exists
+  if (!usageData[today]) {
+    usageData[today] = 0;
   }
   
-  /**
-   * Attempts to authenticate as admin
-   * @param {string} password - Admin password
-   * @returns {boolean} - Whether authentication was successful
-   */
-  function authenticateAdmin(password) {
-    // Use a secure hashing mechanism in production
-    // This is a simple example - DO NOT use in production as-is
-    const hashedPassword = "5f4dcc3b5aa765d61d8327deb882cf99"; // "password" hashed with MD5
-    
-    // In production, you'd use a more secure method and server-side verification
-    if (password && hashPassword(password) === hashedPassword) {
-      localStorage.setItem('driveless_admin', 'true');
-      return true;
-    }
-    return false;
+  // Check if exceeded limit
+  return usageData[today] >= API_LIMITS.DAILY_LIMIT;
+}
+
+/**
+ * Increments the API usage counter
+ */
+function incrementApiUsage() {
+  const usageData = getApiUsage();
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  
+  // Initialize today's count if not exists
+  if (!usageData[today]) {
+    usageData[today] = 0;
   }
+  
+  // Increment count
+  usageData[today]++;
+  
+  // Save back to storage
+  localStorage.setItem(API_LIMITS.STORAGE_KEY, JSON.stringify(usageData));
+  
+  // Update the UI indicator
+  updateUsageIndicator();
+}
+
+/**
+ * Gets the current API usage data
+ * @returns {Object} - API usage data
+ */
+function getApiUsage() {
+  const usageJson = localStorage.getItem(API_LIMITS.STORAGE_KEY);
+  return usageJson ? JSON.parse(usageJson) : {};
+}
 
 /**
  * Displays the route results in the UI and on the map
@@ -712,6 +695,8 @@ function displayRouteResults(route) {
     inputSection.classList.add('hidden');
     resultsSection.classList.remove('hidden');
     resultsSection.classList.add('fade-in');
+    
+    // Refresh ads
     refreshAds();
     
     // Trigger a resize event to ensure map displays correctly
@@ -726,14 +711,6 @@ function displayRouteResults(route) {
         });
         map.fitBounds(bounds);
     }, 100);
-}
-
-/**
- * Shows the input section again
- */
-function showInputSection() {
-    inputSection.classList.remove('hidden');
-    resultsSection.classList.add('hidden');
 }
 
 /**
@@ -799,48 +776,6 @@ function openAppleMaps() {
 }
 
 /**
- * Geocodes an address with caching
- * @param {string} address - The address to geocode
- * @returns {Promise} - Promise resolving to location object
- */
-function geocodeAddress(address) {
-    return new Promise((resolve, reject) => {
-        console.log("Geocoding address:", address);
-        
-        // Check cache first
-        const cacheKey = `geocode_${address}`;
-        const cached = localStorage.getItem(cacheKey);
-        
-        if (cached) {
-            console.log("Using cached geocoding result");
-            resolve(JSON.parse(cached));
-            return;
-        }
-        
-        // Not in cache, use Google API
-        geocoder.geocode({ address }, (results, status) => {
-            console.log(`Geocoding result for "${address}":`, status, results);
-            
-            if (status === 'OK' && results && results.length > 0) {
-                const result = {
-                    address: results[0].formatted_address,
-                    location: results[0].geometry.location,
-                    placeId: results[0].place_id
-                };
-                
-                // Cache the result
-                localStorage.setItem(cacheKey, JSON.stringify(result));
-                
-                resolve(result);
-            } else {
-                console.error('Geocoding failed for address:', address, status);
-                resolve(null);
-            }
-        });
-    });
-}
-
-/**
  * Function to sanitize user input to prevent XSS attacks
  * @param {string} input - User provided input
  * @returns {string} - Sanitized input
@@ -850,9 +785,13 @@ function sanitizeInput(input) {
   return input.replace(/<\/?[^>]+(>|$)/g, "");
 }
 
-// At the end of initializeApp function
-// Set up admin functionality
-setupAdminFunctionality();
+/**
+ * Checks if the current user is an admin
+ * @returns {boolean} - Whether the user is an admin
+ */
+function isAdminUser() {
+  return localStorage.getItem('driveless_admin') === 'true';
+}
 
 /**
  * Sets up admin functionality
@@ -865,100 +804,63 @@ function setupAdminFunctionality() {
   
   // Add admin login link to footer
   const footer = document.querySelector('footer');
-  const adminLink = document.createElement('a');
-  adminLink.href = '#';
-  adminLink.textContent = 'Admin';
-  adminLink.className = 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-2';
-  adminLink.addEventListener('click', function(e) {
-    e.preventDefault();
-    document.getElementById('admin-login-modal').classList.remove('hidden');
-  });
-  
-  footer.appendChild(document.createTextNode(' | '));
-  footer.appendChild(adminLink);
+  if (footer) {
+    const adminLink = document.createElement('a');
+    adminLink.href = '#';
+    adminLink.textContent = 'Admin';
+    adminLink.className = 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-2';
+    adminLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('admin-login-modal').classList.remove('hidden');
+    });
+    
+    footer.appendChild(document.createTextNode(' | '));
+    footer.appendChild(adminLink);
+  }
   
   // Set up admin login form
   const adminForm = document.getElementById('admin-login-form');
   const adminModal = document.getElementById('admin-login-modal');
   const cancelBtn = document.getElementById('admin-cancel-btn');
   
-  adminForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const password = document.getElementById('admin-password').value;
+  if (adminForm && adminModal && cancelBtn) {
+    adminForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const password = document.getElementById('admin-password').value;
+      
+      if (authenticateAdmin(password)) {
+        // Successfully authenticated
+        document.body.classList.add('admin-user');
+        adminModal.classList.add('hidden');
+        showAlert('Admin mode activated - ads disabled and API limits removed', 'success');
+      } else {
+        showAlert('Invalid admin password', 'error');
+      }
+    });
     
-    if (authenticateAdmin(password)) {
-      // Successfully authenticated
-      document.body.classList.add('admin-user');
+    cancelBtn.addEventListener('click', function() {
       adminModal.classList.add('hidden');
-      showAlert('Admin mode activated', 'success');
-    } else {
-      showAlert('Invalid admin password', 'error');
-    }
-  });
-  
-  cancelBtn.addEventListener('click', function() {
-    adminModal.classList.add('hidden');
-  });
+    });
+  }
 }
 
 /**
- * API usage monitoring and rate limiting
+ * Attempts to authenticate as admin
+ * @param {string} password - Admin password
+ * @returns {boolean} - Whether authentication was successful
  */
-const API_LIMITS = {
-    // Daily limit for all users
-    DAILY_LIMIT: 25,
-    // Storage key
-    STORAGE_KEY: 'driveless_api_usage',
-  };
+function authenticateAdmin(password) {
+  // Use a secure hashing mechanism in production
+  // This is a simple example - DO NOT use in production as-is
+  const hashedPassword = "5f4dcc3b5aa765d61d8327deb882cf99"; // "password" hashed with MD5
   
-  /**
-   * Checks if the user has exceeded their API usage limit
-   * @returns {boolean} - Whether the user has exceeded their limit
-   */
-  function hasExceededApiLimit() {
-    const isAdmin = isAdminUser();
-    if (isAdmin) return false; // Admin has unlimited usage
-    
-    const usageData = getApiUsage();
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    
-    // Initialize today's count if not exists
-    if (!usageData[today]) {
-      usageData[today] = 0;
-    }
-    
-    // Check if exceeded limit
-    return usageData[today] >= API_LIMITS.DAILY_LIMIT;
+  // In production, you'd use a more secure method and server-side verification
+  if (password && hashPassword(password) === hashedPassword) {
+    localStorage.setItem('driveless_admin', 'true');
+    return true;
   }
-  
-  /**
-   * Increments the API usage counter
-   */
-  function incrementApiUsage() {
-    const usageData = getApiUsage();
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    
-    // Initialize today's count if not exists
-    if (!usageData[today]) {
-      usageData[today] = 0;
-    }
-    
-    // Increment count
-    usageData[today]++;
-    
-    // Save back to storage
-    localStorage.setItem(API_LIMITS.STORAGE_KEY, JSON.stringify(usageData));
-    updateUsageIndicator();
-  }
-  
-  /**
-   * Gets the current API usage data
-   * @returns {Object} - API usage data
-   */
-  function getApiUsage() {
-    const usageJson = localStorage.getItem(API_LIMITS.STORAGE_KEY);
-    return usageJson ? JSON.parse(usageJson) : {};
-  }
+  return false;
+}
 
 /**
  * Simple password hashing function
@@ -972,14 +874,6 @@ function hashPassword(password) {
   return password; // Do NOT use this in production
 }
 
-if (authenticateAdmin(password)) {
-    // Successfully authenticated
-    document.body.classList.add('admin-user');
-    adminModal.classList.add('hidden');
-    showAlert('Admin mode activated - ads disabled and API limits removed', 'success');
-  } else {
-    showAlert('Invalid admin password', 'error');
-  }
 // Keep this function at the bottom of your app.js file
 function initMap() {
     console.log("Google Maps API loaded successfully");

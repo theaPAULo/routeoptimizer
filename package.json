@@ -1,9 +1,0 @@
-{
-    "name": "driveless",
-    "version": "1.0.0",
-    "description": "Route optimizer app for multiple stops",
-    "main": "app.js",
-    "dependencies": {
-      "faunadb": "^4.8.0"
-    }
-  }
