@@ -1,0 +1,41 @@
+# Netlify configuration file
+
+[build]
+  publish = "/"
+  # If you had a build command, you would include it here
+  # command = "npm run build"
+
+# Headers to set on the site
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.tailwindcss.com maps.googleapis.com; img-src 'self' data: maps.googleapis.com maps.gstatic.com; script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.tailwindcss.com maps.googleapis.com; connect-src 'self' maps.googleapis.com;"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Redirect rules
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Cache Control
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[build.environment]
+  GOOGLE_MAPS_API_KEY = "AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk"
