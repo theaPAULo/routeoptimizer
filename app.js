@@ -146,10 +146,19 @@ function setupAutocomplete(inputId) {
  * Refreshes ads when changing views
  */
 function refreshAds() {
-    if (window.googletag && googletag.pubads) {
-      googletag.cmd.push(function() {
-        googletag.pubads().refresh();
-      });
+    // Only attempt to refresh ads if not in admin mode
+    if (!isAdminUser()) {
+      if (window.adsbygoogle) {
+        try {
+          // Push a new ad request
+          (adsbygoogle = window.adsbygoogle || []).push({});
+          console.log("AdSense refresh requested");
+        } catch (e) {
+          console.error("Error refreshing ads:", e);
+        }
+      } else {
+        console.log("AdSense not available for refresh");
+      }
     }
   }
   
