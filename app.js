@@ -59,21 +59,6 @@ function initializeApp() {
             console.error("Error setting up dark mode:", error);
         }
         
-        // Set up event listeners
-        addStopBtn.addEventListener('click', () => {
-            addStopInput();
-            // Refresh controls after adding a stop
-            if (typeof refreshReorderControls === 'function') {
-                setTimeout(refreshReorderControls, 50);
-            }
-        });
-        
-        routeForm.addEventListener('submit', handleFormSubmit);
-        backBtn.addEventListener('click', showInputSection);
-        // Add event listeners for map buttons
-        document.getElementById('google-maps-btn').addEventListener('click', openGoogleMaps);
-        document.getElementById('apple-maps-btn').addEventListener('click', openAppleMaps);
-        
         console.log("Initialization complete");
     } catch (error) {
         console.error("Error during initialization:", error);
@@ -999,7 +984,7 @@ function setupManualReordering() {
     return refreshControls;
 }
 
-// Add this at the end of your app.js file, after all functions are defined
+// Add this at the end of your app.js file
 document.addEventListener('DOMContentLoaded', function() {
     // Only run this if not already initialized by Google Maps
     if (typeof window.appInitialized === 'undefined') {

@@ -195,12 +195,20 @@
         </footer>
     </div>
     
-    <!-- Load application JavaScript -->
-    <script src="app.js"></script>
-
-    <!-- Load the Google Maps API -->
-    <script async defer 
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
-    </script>
+   <!-- At the bottom of your index.html, update the script loading -->
+<script src="app.js"></script>
+<script>
+    // Fallback initialization in case the Google Maps callback doesn't fire
+    setTimeout(function() {
+        if (typeof window.appInitialized === 'undefined') {
+            console.log("Fallback initialization after timeout");
+            window.appInitialized = true;
+            initializeApp();
+        }
+    }, 3000); // 3 second timeout
+</script>
+<script async defer 
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
+</script>
 </body>
 </html>
