@@ -862,98 +862,102 @@ function setupDarkModeToggle() {
 }
 
 /**
- * Enables manual reordering of stops
+ * Enables manual reordering of stops - simplified version
  */
 function setupManualReordering() {
+    console.log("Setting up manual reordering - simplified");
     const stopsContainer = document.getElementById('stops-container');
     
-    // Add move up/down buttons to each stop
-    function addReorderControls() {
-        const stopItems = stopsContainer.querySelectorAll('.stop-item');
+    // Function to refresh all controls
+    function refreshControls() {
+        console.log("Refreshing controls");
+        // Remove all existing controls
+        const existingControls = document.querySelectorAll('.reorder-controls');
+        existingControls.forEach(control => control.remove());
         
-        stopItems.forEach((item, index) => {
-            // Skip if already set up
-            if (item.querySelector('.reorder-controls')) {
-                return;
-            }
-            
+        // Get all stop items
+        const items = stopsContainer.querySelectorAll('.stop-item');
+        console.log("Found", items.length, "items");
+        
+        // Add controls to each item
+        items.forEach((item, index) => {
             // Create controls container
             const controls = document.createElement('div');
-            controls.className = 'reorder-controls absolute right-12 flex space-x-1';
+            controls.className = 'reorder-controls absolute right-10 flex space-x-1';
+            controls.style.position = 'absolute';
+            controls.style.right = '35px';
+            controls.style.top = '50%';
+            controls.style.transform = 'translateY(-50%)';
             
-            // Add move up button (except for first item)
+            let controlsHTML = '';
+            
+            // Add up button if not first
             if (index > 0) {
-                const upBtn = document.createElement('button');
-                upBtn.type = 'button';
-                upBtn.className = 'text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300';
-                upBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
-                upBtn.setAttribute('aria-label', 'Move stop up');
-                upBtn.addEventListener('click', () => moveStopUp(item));
-                controls.appendChild(upBtn);
+                controlsHTML += `
+                    <button type="button" class="up-btn text-blue-500 hover:text-blue-700">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>`;
             }
             
-            // Add move down button (except for last item)
-            if (index < stopItems.length - 1) {
-                const downBtn = document.createElement('button');
-                downBtn.type = 'button';
-                downBtn.className = 'text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300';
-                downBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
-                downBtn.setAttribute('aria-label', 'Move stop down');
-                downBtn.addEventListener('click', () => moveStopDown(item));
-                controls.appendChild(downBtn);
+            // Add down button if not last
+            if (index < items.length - 1) {
+                controlsHTML += `
+                    <button type="button" class="down-btn text-blue-500 hover:text-blue-700">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>`;
             }
             
-            // Add controls to item
-            const inputContainer = item.querySelector('.relative');
-            inputContainer.appendChild(controls);
+            controls.innerHTML = controlsHTML;
+            
+            // Add event listeners
+            const upBtn = controls.querySelector('.up-btn');
+            if (upBtn) {
+                upBtn.addEventListener('click', function() {
+                    console.log("Move up clicked");
+                    const prev = item.previousElementSibling;
+                    if (prev) {
+                        stopsContainer.insertBefore(item, prev);
+                        refreshControls();
+                        refreshAutocompletes();
+                    }
+                });
+            }
+            
+            const downBtn = controls.querySelector('.down-btn');
+            if (downBtn) {
+                downBtn.addEventListener('click', function() {
+                    console.log("Move down clicked");
+                    const next = item.nextElementSibling;
+                    if (next) {
+                        stopsContainer.insertBefore(next, item);
+                        refreshControls();
+                        refreshAutocompletes();
+                    }
+                });
+            }
+            
+            // Add to item
+            const inputWrapper = item.querySelector('.relative');
+            if (inputWrapper) {
+                inputWrapper.appendChild(controls);
+            }
         });
     }
     
-    // Move a stop up in the list
-    function moveStopUp(item) {
-        const prev = item.previousElementSibling;
-        if (prev) {
-            stopsContainer.insertBefore(item, prev);
-            // Refresh controls
-            refreshReorderControls();
-            // Refresh autocompletes
-            refreshAutocompletes();
-        }
-    }
-    
-    // Move a stop down in the list
-    function moveStopDown(item) {
-        const next = item.nextElementSibling;
-        if (next) {
-            stopsContainer.insertBefore(next, item);
-            // Refresh controls
-            refreshReorderControls();
-            // Refresh autocompletes
-            refreshAutocompletes();
-        }
-    }
-    
-    // Refresh all reorder controls
-    function refreshReorderControls() {
-        // Remove all existing controls
-        const controls = stopsContainer.querySelectorAll('.reorder-controls');
-        controls.forEach(control => control.remove());
-        
-        // Add new controls
-        addReorderControls();
-    }
-    
     // Initial setup
-    addReorderControls();
+    refreshControls();
     
-    // Observer for dynamic changes
-    const observer = new MutationObserver(() => {
-        refreshReorderControls();
+    // Set up observer for dynamic changes
+    const observer = new MutationObserver(refreshControls);
+    observer.observe(stopsContainer, { 
+        childList: true,
+        subtree: true
     });
     
-    // Start observing
-    observer.observe(stopsContainer, { childList: true });
+    // Also refresh after adding a stop
+    document.getElementById('add-stop-btn').addEventListener('click', function() {
+        setTimeout(refreshControls, 100);
+    });
     
-    // Return refresh function for external use
-    return refreshReorderControls;
+    return refreshControls;
 }
