@@ -984,8 +984,29 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Keep the original initMap function (Google Maps will call this)
+// Near the bottom of app.js, find or add this function
 function initMap() {
     console.log("Google Maps API loaded successfully");
     window.appInitialized = true;
-    initializeApp();
+    
+    // Check if the app has already been initialized
+    if (typeof window.appInitialized === 'undefined' || !window.appInitialized) {
+        initializeApp();
+    }
 }
+
+// Make sure the DOMContentLoaded event handler can work even if Maps API hasn't loaded yet
+document.addEventListener('DOMContentLoaded', function() {
+    // Only run this if not already initialized by Google Maps
+    if (typeof window.appInitialized === 'undefined') {
+        console.log("DOM Content Loaded - initializing app");
+        
+        // Check if Maps API is loaded
+        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+            console.log("Google Maps API not yet loaded, waiting for callback");
+            // The Maps API will call initMap when it loads
+        } else {
+            initializeApp();
+        }
+    }
+});

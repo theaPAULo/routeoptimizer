@@ -292,8 +292,6 @@
 </script>
 
 <!-- Load the Google Maps API -->
-<script async defer 
-src="https://maps.googleapis.com/maps/api/js?key=<%= process.env.GOOGLE_MAPS_API_KEY %>&libraries=places&callback=initMap">
-</script>
+<script src="/.netlify/functions/load-maps"></script>
 </body>
 </html>
