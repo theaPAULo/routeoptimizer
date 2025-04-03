@@ -843,24 +843,39 @@ function openAppleMaps() {
  * Handles dark mode toggle functionality
  */
 function setupDarkModeToggle() {
+    console.log("Setting up dark mode toggle");
     const themeToggle = document.getElementById('theme-toggle');
+    
+    if (!themeToggle) {
+        console.error("Theme toggle button not found!");
+        return;
+    }
+    
+    console.log("Theme toggle found:", themeToggle);
     
     // Check for saved theme preference or use the system preference
     const savedTheme = localStorage.getItem('theme');
     const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
+    console.log("Saved theme:", savedTheme, "System dark mode:", systemDarkMode);
+    
     // Set initial theme
     if (savedTheme === 'dark' || (!savedTheme && systemDarkMode)) {
         document.documentElement.classList.add('dark');
+        console.log("Dark mode activated on load");
     }
     
     // Toggle theme when button is clicked
     themeToggle.addEventListener('click', () => {
+        console.log("Theme toggle clicked");
         const isDark = document.documentElement.classList.toggle('dark');
         
         // Save preference to localStorage
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        console.log("Theme set to:", isDark ? 'dark' : 'light');
     });
+    
+    console.log("Dark mode toggle setup complete");
 }
 
 /**
