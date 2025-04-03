@@ -38,8 +38,13 @@ function initializeApp() {
         // Set up Google Maps components
         initializeGoogleMaps();
         
-        // Add first stop input
-        addStopInput();
+        // Add first stop input - only if Google Maps is available
+        if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+            // Clear any existing stops first
+            stopsContainer.innerHTML = '';
+            stopCounter = 0;
+            addStopInput();
+        }
         
         // Set up event listeners
         addStopBtn.addEventListener('click', addStopInput);
