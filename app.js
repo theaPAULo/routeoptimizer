@@ -27,14 +27,6 @@ const estimatedTime = document.getElementById('estimated-time');
 const routeList = document.getElementById('route-list');
 const mapContainer = document.getElementById('map-container');
 
-/**
- * Main initialization function - called after Google Maps loads
- */
-function initMap() {
-    console.log("Google Maps API loaded successfully");
-    // Initialize our application
-    initializeApp();
-}
 
 /**
  * Main initialization function - called after Google Maps loads
@@ -1002,4 +994,20 @@ function setupManualReordering() {
     });
     
     return refreshControls;
+}
+
+// Add this at the end of your app.js file, after all functions are defined
+document.addEventListener('DOMContentLoaded', function() {
+    // Only run this if not already initialized by Google Maps
+    if (typeof window.appInitialized === 'undefined') {
+        console.log("DOM Content Loaded - initializing app");
+        initializeApp();
+    }
+});
+
+// Keep the original initMap function (Google Maps will call this)
+function initMap() {
+    console.log("Google Maps API loaded successfully");
+    window.appInitialized = true;
+    initializeApp();
 }

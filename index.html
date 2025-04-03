@@ -202,25 +202,5 @@
     <script async defer 
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
     </script>
-
-    <!-- Place this just before the closing </body> tag -->
-<script>
-    // Simple inline dark mode toggle
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log("Setting up inline dark mode toggle");
-      
-      const themeToggle = document.getElementById('theme-toggle');
-      if (themeToggle) {
-        themeToggle.addEventListener('click', function() {
-          console.log("Theme toggle clicked");
-          document.documentElement.classList.toggle('dark');
-          
-          // Save preference to localStorage
-          const isDark = document.documentElement.classList.contains('dark');
-          localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        });
-      }
-    });
-  </script>
 </body>
 </html>
