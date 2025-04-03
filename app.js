@@ -127,10 +127,6 @@ function initializeGoogleMaps() {
     }
 }
 
-/**
- * Sets up autocomplete for an input field
- * @param {string} inputId - ID of the input field
- */
 function setupAutocomplete(inputId) {
     const input = document.getElementById(inputId);
     if (!input) {
@@ -139,8 +135,9 @@ function setupAutocomplete(inputId) {
     }
     
     try {
+        // Allow all types of places (addresses, establishments, etc.)
         const autocomplete = new google.maps.places.Autocomplete(input, {
-            types: ['address']
+            types: [] // Empty array means all types
         });
         console.log(`Autocomplete initialized for ${inputId}`);
         
