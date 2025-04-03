@@ -17,7 +17,6 @@ const stopsContainer = document.getElementById('stops-container');
 const addStopBtn = document.getElementById('add-stop-btn');
 const optimizeBtn = document.getElementById('optimize-btn');
 const backBtn = document.getElementById('back-btn');
-const saveBtn = document.getElementById('save-btn');
 const loadingSpinner = document.getElementById('loading-spinner');
 const optimizeBtnText = document.getElementById('optimize-btn-text');
 const inputSection = document.getElementById('input-section');
