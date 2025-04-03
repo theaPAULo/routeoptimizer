@@ -578,7 +578,3 @@ function openAppleMaps() {
         showAlert('Please calculate a route first');
     }
 }
-
-
-
-
