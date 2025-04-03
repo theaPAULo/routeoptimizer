@@ -5,13 +5,11 @@ exports.handler = async function(event, context) {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/javascript',
-        'Cache-Control': 'public, max-age=3600' // Cache for an hour
+        'Cache-Control': 'public, max-age=3600'
       },
       body: `
-        // Initialize Google Maps with the secure API key
+        // Initialize Google Maps with the API key
         (function() {
-          // Store the key in a closure instead of adding it to window
-          const apiKey = "${apiKey}";
           const script = document.createElement('script');
           script.src = "https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap";
           script.async = true;
