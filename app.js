@@ -873,6 +873,9 @@ function setupDarkModeToggle() {
     if (savedTheme === 'dark' || (!savedTheme && systemDarkMode)) {
         document.documentElement.classList.add('dark');
         console.log("Dark mode activated on load");
+    } else {
+        document.documentElement.classList.remove('dark');
+        console.log("Light mode activated on load");
     }
     
     // Toggle theme when button is clicked
