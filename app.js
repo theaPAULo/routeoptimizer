@@ -55,6 +55,7 @@ function initializeApp() {
         document.getElementById('apple-maps-btn').addEventListener('click', openAppleMaps);
         
         console.log("Initialization complete");
+        updateUsageIndicator();
     } catch (error) {
         console.error("Error during initialization:", error);
     }
@@ -135,6 +136,30 @@ function setupAutocomplete(inputId) {
         console.error(`Error setting up autocomplete for ${inputId}:`, error);
     }
 }
+
+/**
+ * Refreshes ads when changing views
+ */
+function refreshAds() {
+    if (window.googletag && googletag.pubads) {
+      googletag.cmd.push(function() {
+        googletag.pubads().refresh();
+      });
+    }
+  }
+  
+  /**
+   * Modifies the showInputSection function to refresh ads
+   */
+  function showInputSection() {
+    inputSection.classList.remove('hidden');
+    resultsSection.classList.add('hidden');
+    
+    // Refresh ads when changing view
+    refreshAds();
+  }
+  
+
 
 /**
  * Refreshes autocompletes after reordering operations
@@ -229,8 +254,37 @@ function showAlert(message, type = 'error') {
  * @param {Event} event - The form submission event
  */
 async function handleFormSubmit(event) {
-    event.preventDefault();
-    
+
+    async function handleFormSubmit(event) {
+        event.preventDefault();
+        
+        // Check server-side API usage limit (if admin, skip)
+        if (!isAdminUser()) {
+          try {
+            const usageData = await checkServerApiUsage();
+            
+            if (usageData.error) {
+              // Fall back to client-side check
+              if (hasExceededApiLimit()) {
+                showAlert('You have reached your daily limit of route calculations. Please try again tomorrow.', 'error');
+                showUsageStats();
+                return;
+              }
+            } else if (usageData.currentUsage > usageData.limit) {
+              showAlert('You have reached your daily limit of route calculations. Please try again tomorrow.', 'error');
+              showUsageStats();
+              return;
+            }
+          } catch (error) {
+            console.error('Error checking API usage:', error);
+            // Fall back to client-side check
+            if (hasExceededApiLimit()) {
+              showAlert('You have reached your daily limit of route calculations. Please try again tomorrow.', 'error');
+              showUsageStats();
+              return;
+            }
+          }
+        }
     // Collect form data
 const startLocation = sanitizeInput(document.getElementById('start-location').value);
 const endLocation = sanitizeInput(document.getElementById('end-location').value);
@@ -287,6 +341,7 @@ for (const input of stopInputs) {
         
         // Update UI with results
         displayRouteResults(routeResult);
+        incrementApiUsage();
     } catch (error) {
         console.error("Route calculation error:", error);
         showAlert(error.message || 'Error calculating route. Please try again.');
@@ -362,6 +417,72 @@ function geocodeAddress(address) {
         });
     });
 }
+
+/**
+ * Shows the user's API usage statistics
+ */
+function showUsageStats() {
+  // Create usage stats modal if it doesn't exist
+  if (!document.getElementById('usage-stats-modal')) {
+    const usageData = getApiUsage();
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const todayCount = usageData[today] || 0;
+    
+    const modal = document.createElement('div');
+    modal.id = 'usage-stats-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
+        <h3 class="text-xl font-bold mb-4 dark:text-white">Usage Limit Reached</h3>
+        <p class="mb-4 dark:text-gray-300">You've used ${todayCount} out of ${API_LIMITS.DAILY_LIMIT} route calculations today.</p>
+        <p class="mb-4 dark:text-gray-300">Your limit will reset at midnight.</p>
+        <div class="mb-4 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+          <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${(todayCount / API_LIMITS.DAILY_LIMIT) * 100}%"></div>
+        </div>
+        <div class="flex justify-center">
+          <button 
+            id="usage-close-btn"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md"
+          >
+            OK, I Understand
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add event listener
+    document.getElementById('usage-close-btn').addEventListener('click', function() {
+      modal.remove();
+    });
+  } else {
+    document.getElementById('usage-stats-modal').classList.remove('hidden');
+  }
+}
+
+/**
+ * Updates the usage indicator display
+ */
+function updateUsageIndicator() {
+    const usageData = getApiUsage();
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const todayCount = usageData[today] || 0;
+    
+    const indicator = document.getElementById('usage-indicator');
+    const countEl = document.getElementById('usage-count');
+    const limitEl = document.getElementById('usage-limit');
+    
+    if (indicator && countEl && limitEl) {
+      // Only show if user has made at least one request
+      if (todayCount > 0) {
+        indicator.classList.remove('hidden');
+      }
+      
+      countEl.textContent = todayCount;
+      limitEl.textContent = API_LIMITS.DAILY_LIMIT;
+    }
+  }
 
 /**
  * Calculates an optimized route using Google Directions Service
@@ -470,6 +591,57 @@ function toggleLoadingState(isLoading) {
         optimizeBtn.disabled = false;
     }
 }
+/**
+ * Checks and tracks API usage on the server
+ * @returns {Promise<Object>} - Usage information
+ */
+async function checkServerApiUsage() {
+    try {
+      // Get a unique user identifier (use localStorage or generate a UUID)
+      const userId = localStorage.getItem('userId') || generateUserId();
+      
+      // Track usage on server
+      const response = await fetch('/.netlify/functions/track-usage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: userId,
+          userIp: '' // The server will capture the IP
+        })
+      });
+      
+      const data = await response.json();
+      
+      // Update local usage indicator
+      if (document.getElementById('usage-count')) {
+        document.getElementById('usage-count').textContent = data.currentUsage;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error checking API usage:', error);
+      return { error: true, message: error.message };
+    }
+  }
+  
+  /**
+   * Generates a unique user ID
+   * @returns {string} - User ID
+   */
+  function generateUserId() {
+    // Simple UUID generation
+    const userId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+    
+    // Store in localStorage
+    localStorage.setItem('userId', userId);
+    
+    return userId;
+  }
 
 /**
  * Checks if the current user is an admin
@@ -540,6 +712,7 @@ function displayRouteResults(route) {
     inputSection.classList.add('hidden');
     resultsSection.classList.remove('hidden');
     resultsSection.classList.add('fade-in');
+    refreshAds();
     
     // Trigger a resize event to ensure map displays correctly
     setTimeout(() => {
@@ -729,6 +902,65 @@ function setupAdminFunctionality() {
 }
 
 /**
+ * API usage monitoring and rate limiting
+ */
+const API_LIMITS = {
+    // Daily limit for all users
+    DAILY_LIMIT: 25,
+    // Storage key
+    STORAGE_KEY: 'driveless_api_usage',
+  };
+  
+  /**
+   * Checks if the user has exceeded their API usage limit
+   * @returns {boolean} - Whether the user has exceeded their limit
+   */
+  function hasExceededApiLimit() {
+    const isAdmin = isAdminUser();
+    if (isAdmin) return false; // Admin has unlimited usage
+    
+    const usageData = getApiUsage();
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    // Initialize today's count if not exists
+    if (!usageData[today]) {
+      usageData[today] = 0;
+    }
+    
+    // Check if exceeded limit
+    return usageData[today] >= API_LIMITS.DAILY_LIMIT;
+  }
+  
+  /**
+   * Increments the API usage counter
+   */
+  function incrementApiUsage() {
+    const usageData = getApiUsage();
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    // Initialize today's count if not exists
+    if (!usageData[today]) {
+      usageData[today] = 0;
+    }
+    
+    // Increment count
+    usageData[today]++;
+    
+    // Save back to storage
+    localStorage.setItem(API_LIMITS.STORAGE_KEY, JSON.stringify(usageData));
+    updateUsageIndicator();
+  }
+  
+  /**
+   * Gets the current API usage data
+   * @returns {Object} - API usage data
+   */
+  function getApiUsage() {
+    const usageJson = localStorage.getItem(API_LIMITS.STORAGE_KEY);
+    return usageJson ? JSON.parse(usageJson) : {};
+  }
+
+/**
  * Simple password hashing function
  * NOTE: This is NOT secure for production. Use a proper hashing library.
  * @param {string} password - Password to hash
@@ -740,15 +972,14 @@ function hashPassword(password) {
   return password; // Do NOT use this in production
 }
 
-// Add this at the end of your app.js file
-document.addEventListener('DOMContentLoaded', function() {
-    // Only run this if not already initialized by Google Maps
-    if (typeof window.appInitialized === 'undefined') {
-        console.log("DOM Content Loaded - initializing app");
-        initializeApp();
-    }
-});
-
+if (authenticateAdmin(password)) {
+    // Successfully authenticated
+    document.body.classList.add('admin-user');
+    adminModal.classList.add('hidden');
+    showAlert('Admin mode activated - ads disabled and API limits removed', 'success');
+  } else {
+    showAlert('Invalid admin password', 'error');
+  }
 // Keep this function at the bottom of your app.js file
 function initMap() {
     console.log("Google Maps API loaded successfully");

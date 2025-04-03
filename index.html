@@ -60,12 +60,15 @@
                         <i class="fas fa-moon text-xl dark:hidden"></i>
                         <i class="fas fa-sun text-xl hidden dark:block"></i>
                     </button>
+                    <div id="usage-indicator" class="text-sm text-gray-600 dark:text-gray-400 ml-4 hidden">
+                        <span id="usage-count">0</span>/<span id="usage-limit">25</span> routes today
+                      </div>
                 </div>
             </div>
             <p class="text-gray-600 dark:text-gray-400 mt-2">Drive Less, Save Time</p>
         </header>
 
-        <!-- Under the header section -->
+<!-- Top banner ad (after header) -->
 <div id="div-gpt-ad-banner" class="ad-container mx-auto my-4">
     <script>
       googletag.cmd.push(function() {
@@ -156,6 +159,15 @@
                 </form>
             </section>
 
+            <!-- Add a mid-page ad between input and results sections -->
+<div id="div-gpt-ad-mid" class="ad-container mx-auto my-4">
+    <script>
+      googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-mid');
+      });
+    </script>
+  </div>
+
             <!-- Results Section (Hidden by default) -->
             <section id="results-section" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hidden">
                 <h2 class="text-xl font-semibold mb-4 dark:text-white">Optimal Route</h2>
@@ -181,6 +193,22 @@
                     </div>
                 </div>
                 
+
+                            <!-- Loading Skeleton (hidden by default) -->
+            <div id="loading-skeleton" class="hidden">
+                <div class="animate-pulse space-y-4">
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-200 dark:bg-gray-700 p-4 rounded-md h-20"></div>
+                    <div class="bg-gray-200 dark:bg-gray-700 p-4 rounded-md h-20"></div>
+                </div>
+                <div class="bg-gray-200 dark:bg-gray-700 h-64 md:h-96 rounded-md mb-6"></div>
+                <div class="space-y-2">
+                    <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                    <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                    <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                </div>
+                </div>
+            </div>
                 <!-- Map Container -->
                 <div id="map-container" class="w-full h-64 md:h-96 rounded-md mb-6 border border-gray-300 dark:border-gray-700 overflow-hidden">
                     <!-- Google Map will be rendered here -->
@@ -219,14 +247,14 @@
         </main>
 
 
-        <!-- Admin Login Modal (hidden by default) -->
+<!-- Admin Login Modal (hidden by default) -->
 <div id="admin-login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
-      <h3 class="text-xl font-bold mb-4 dark:text-white">Admin Login</h3>
+      <h3 class="text-xl font-bold mb-4 dark:text-white">Admin Access</h3>
       <form id="admin-login-form">
         <div class="mb-4">
           <label for="admin-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Password
+            Admin Password
           </label>
           <input 
             type="password" 
@@ -254,18 +282,14 @@
     </div>
   </div>
 
-    <!-- In a sidebar or before the footer -->
-    <div id="div-gpt-ad-sidebar" class="ad-container mx-auto my-4">
-        <script>
-          googletag.cmd.push(function() {
-            googletag.display('div-gpt-ad-sidebar');
-          });
-        </script>
-      </div>
-        <footer class="mt-8 text-center text-gray-500 dark:text-gray-400 text-sm">
-            <p>&copy; 2025 DriveLess | <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</a></p>
-        </footer>
-    </div>
+<!-- Bottom ad (before footer) -->
+<div id="div-gpt-ad-bottom" class="ad-container mx-auto my-4">
+    <script>
+      googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-bottom');
+      });
+    </script>
+  </div>
     
 <!-- Load application JavaScript -->
 <script src="app.js"></script>
