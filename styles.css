@@ -20,65 +20,48 @@
     animation: slideDown 0.3s ease-in-out;
 }
 
-/* Stop item styling */
+/* Add or update these styles in your styles.css */
 .stop-item {
     position: relative;
     margin-bottom: 0.75rem;
     transition: all 0.2s ease-in-out;
 }
 
-.stop-item:hover {
-    transform: translateY(-2px);
-}
-
-/* Drag and Drop styling */
-.stop-item {
-    position: relative;
-    margin-bottom: 0.75rem;
-    transition: all 0.2s ease-in-out;
-}
-
-.stop-item.dragging {
-    opacity: 0.5;
-    z-index: 1000;
-}
-
-.stop-item.drop-above {
-    border-top: 2px dashed #3b82f6;
-    padding-top: 4px;
-}
-
-.stop-item.drop-below {
-    border-bottom: 2px dashed #3b82f6;
-    padding-bottom: 4px;
+.stop-item input {
+    padding-left: 32px; /* Make room for the drag handle */
 }
 
 .drag-handle {
     cursor: grab;
+    width: 30px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
 }
 
 .drag-handle:active {
     cursor: grabbing;
 }
 
-/* Add this to your styles.css file */
-.stop-item input {
-    padding-left: 30px; /* Make room for the drag handle */
+.stop-item.dragging {
+    opacity: 0.8;
+    background-color: #f3f4f6;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.drag-handle {
-    cursor: grab;
-    width: 20px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 5;
+.stop-item.drop-above {
+    border-top: 2px dashed #3b82f6;
+    padding-top: 4px;
+    margin-top: 4px;
 }
 
-.dragging {
-    background-color: #f9fafb;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+.stop-item.drop-below {
+    border-bottom: 2px dashed #3b82f6;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
 }
 
 /* Route list styling */

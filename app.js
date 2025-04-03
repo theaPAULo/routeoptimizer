@@ -137,76 +137,162 @@ function setupAutocomplete(inputId) {
 }
 
 /**
- * Enables drag and drop functionality for stop items
+ * Enables drag and drop functionality for stop items - simplified version
  */
 function enableDragAndDrop() {
-    // We'll use the Sortable library which is much more reliable for drag-and-drop
-    // This is a polyfill implementation using native HTML5 drag and drop
+    console.log("Setting up simplified drag and drop");
     
+    // Get the stops container
     const container = document.getElementById('stops-container');
     
-    // Store references for the drag operation
-    let dragEl = null;
-    let nextEl = null;
+    // Variables to track dragging state
+    let draggedItem = null;
     
-    // Helper function to get mouse position
-    function getY(e) {
-        return e.clientY || (e.touches && e.touches[0].clientY);
-    }
-    
-    // Add event listeners to container
-    function addEventListeners() {
-        const items = container.querySelectorAll('.stop-item');
+    // Function to update the drag and drop capability on all stops
+    function setupDragForStops() {
+        console.log("Setting up drag for stops");
         
-        items.forEach(item => {
-            // Make sure we only attach listeners once
-            if (item.getAttribute('data-drag-initialized') === 'true') {
+        // Get all stop items
+        const stopItems = container.querySelectorAll('.stop-item');
+        
+        stopItems.forEach(item => {
+            // Skip if already set up
+            if (item.getAttribute('data-drag-setup') === 'true') {
                 return;
             }
             
-            const handle = item.querySelector('.drag-handle');
+            // Mark as set up
+            item.setAttribute('data-drag-setup', 'true');
             
-            // Skip items without handles
+            // Get handle element
+            const handle = item.querySelector('.drag-handle');
             if (!handle) return;
             
-            // Mark as initialized
-            item.setAttribute('data-drag-initialized', 'true');
-            
-            // Prevent inputs from interfering with drag
-            const inputs = item.querySelectorAll('input, button');
-            inputs.forEach(input => {
-                input.addEventListener('mousedown', e => {
-                    e.stopPropagation();
-                });
-            });
-            
-            // Drag start event
+            // Add mouse down event to handle
             handle.addEventListener('mousedown', function(e) {
-                // Prevent default to avoid text selection, etc.
+                // Prevent default actions
                 e.preventDefault();
                 
-                dragEl = item;
-                
-                // Set position attributes for later calculation
-                const items = Array.from(container.querySelectorAll('.stop-item'));
-                items.forEach(item => {
-                    const rect = item.getBoundingClientRect();
-                    item.dataset.y = rect.top + container.scrollTop;
-                    item.dataset.height = rect.height;
-                });
+                // Set dragged item
+                draggedItem = item;
                 
                 // Add dragging class
-                dragEl.classList.add('dragging');
+                item.classList.add('dragging');
                 
-                // Add listeners for move and end
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onEnd);
+                // Calculate initial positions and offsets
+                const itemRect = item.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
                 
-                // Trigger initial position check
-                onMove(e);
+                // Initial position
+                const startY = e.clientY;
+                const startTop = item.offsetTop;
+                
+                // Function to handle mouse move
+                function onMouseMove(e) {
+                    if (!draggedItem) return;
+                    
+                    // Calculate new position
+                    const deltaY = e.clientY - startY;
+                    const newTop = startTop + deltaY;
+                    
+                    // Set position
+                    draggedItem.style.position = 'relative';
+                    draggedItem.style.top = `${deltaY}px`;
+                    
+                    // Find position to insert
+                    const siblings = Array.from(container.querySelectorAll('.stop-item:not(.dragging)'));
+                    
+                    // Clear all indicator classes
+                    siblings.forEach(sib => {
+                        sib.classList.remove('drop-above', 'drop-below');
+                    });
+                    
+                    // Find the element we're hovering over
+                    const hoverEl = siblings.find(sib => {
+                        const rect = sib.getBoundingClientRect();
+                        return e.clientY < rect.bottom && e.clientY > rect.top;
+                    });
+                    
+                    if (hoverEl) {
+                        const hoverRect = hoverEl.getBoundingClientRect();
+                        const hoverMiddle = hoverRect.top + hoverRect.height / 2;
+                        
+                        // Determine if we should show above or below indicator
+                        if (e.clientY < hoverMiddle) {
+                            hoverEl.classList.add('drop-above');
+                        } else {
+                            hoverEl.classList.add('drop-below');
+                        }
+                    }
+                }
+                
+                // Function to handle mouse up
+                function onMouseUp(e) {
+                    if (!draggedItem) return;
+                    
+                    // Remove dragging class
+                    draggedItem.classList.remove('dragging');
+                    
+                    // Reset positioning
+                    draggedItem.style.position = '';
+                    draggedItem.style.top = '';
+                    
+                    // Find any element with drop indicators
+                    const dropAbove = container.querySelector('.drop-above');
+                    const dropBelow = container.querySelector('.drop-below');
+                    
+                    // Reposition the element
+                    if (dropAbove) {
+                        container.insertBefore(draggedItem, dropAbove);
+                        dropAbove.classList.remove('drop-above');
+                    } else if (dropBelow) {
+                        // Insert after the element
+                        const next = dropBelow.nextElementSibling;
+                        if (next) {
+                            container.insertBefore(draggedItem, next);
+                        } else {
+                            container.appendChild(draggedItem);
+                        }
+                        dropBelow.classList.remove('drop-below');
+                    }
+                    
+                    // Clear other classes
+                    const siblings = Array.from(container.querySelectorAll('.stop-item'));
+                    siblings.forEach(sib => {
+                        sib.classList.remove('drop-above', 'drop-below');
+                    });
+                    
+                    // Remove event listeners
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    
+                    // Reset dragged item
+                    draggedItem = null;
+                    
+                    // Refresh autocompletes
+                    refreshAutocompletes();
+                    
+                    console.log("Drag and drop completed");
+                }
+                
+                // Add event listeners for move and up
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
             });
         });
     }
+    
+    // Set up initial items
+    setupDragForStops();
+    
+    // Create observer to watch for new items
+    const observer = new MutationObserver(function(mutations) {
+        setupDragForStops();
+    });
+    
+    // Start observing
+    observer.observe(container, { childList: true });
+}
     
     // Handle movement during drag
     function onMove(e) {
@@ -308,7 +394,7 @@ function addStopInput() {
     stopDiv.className = 'stop-item fade-in';
     stopDiv.innerHTML = `
         <div class="relative flex items-center mb-2">
-            <div class="drag-handle absolute inset-y-0 left-0 flex items-center pl-1">
+            <div class="drag-handle absolute inset-y-0 left-0 flex items-center pl-1 cursor-grab" style="width: 30px; z-index: 10;">
                 <i class="fas fa-grip-vertical text-gray-400"></i>
             </div>
             <input 
