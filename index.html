@@ -40,7 +40,6 @@
             const addStopBtn = document.getElementById('add-stop-btn');
             const optimizeBtn = document.getElementById('optimize-btn');
             const backBtn = document.getElementById('back-btn');
-            const saveBtn = document.getElementById('save-btn');
             const loadingSpinner = document.getElementById('loading-spinner');
             const optimizeBtnText = document.getElementById('optimize-btn-text');
             const inputSection = document.getElementById('input-section');
@@ -61,7 +60,9 @@
             addStopBtn.addEventListener('click', addStopInput);
             routeForm.addEventListener('submit', handleFormSubmit);
             backBtn.addEventListener('click', showInputSection);
-            saveBtn.addEventListener('click', saveRoute);
+            // Add event listeners for map buttons
+            document.getElementById('google-maps-btn').addEventListener('click', openGoogleMaps);
+            document.getElementById('apple-maps-btn').addEventListener('click', openAppleMaps);
         }
 
         /**
@@ -119,6 +120,68 @@
                 console.error("Error setting up Google Maps components:", error);
             }
         }
+
+        /**
+ * Generates a Google Maps URL for the current route
+ * @returns {string} URL to open the route in Google Maps
+ */
+function generateGoogleMapsUrl() {
+    if (!currentRoute) return null;
+    
+    // Extract addresses
+    const waypoints = currentRoute.waypoints;
+    const origin = encodeURIComponent(waypoints[0].address);
+    const destination = encodeURIComponent(waypoints[waypoints.length - 1].address);
+    
+    // Extract intermediate stops
+    const stops = waypoints.slice(1, waypoints.length - 1)
+        .map(point => encodeURIComponent(point.address))
+        .join('|');
+    
+    // Build Google Maps URL
+    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${stops}&travelmode=driving`;
+}
+
+/**
+ * Generates an Apple Maps URL for the current route
+ * @returns {string} URL to open the route in Apple Maps
+ */
+function generateAppleMapsUrl() {
+    if (!currentRoute) return null;
+    
+    // Extract addresses
+    const waypoints = currentRoute.waypoints;
+    const origin = encodeURIComponent(waypoints[0].address);
+    const destination = encodeURIComponent(waypoints[waypoints.length - 1].address);
+    
+    // Apple Maps doesn't support multiple waypoints in the same way Google Maps does
+    // But we can provide a basic directions URL from start to end
+    return `http://maps.apple.com/?saddr=${origin}&daddr=${destination}&dirflg=d`;
+}
+
+/**
+ * Opens the current route in Google Maps
+ */
+function openGoogleMaps() {
+    const url = generateGoogleMapsUrl();
+    if (url) {
+        window.open(url, '_blank');
+    } else {
+        showAlert('Please calculate a route first');
+    }
+}
+
+/**
+ * Opens the current route in Apple Maps
+ */
+function openAppleMaps() {
+    const url = generateAppleMapsUrl();
+    if (url) {
+        window.open(url, '_blank');
+    } else {
+        showAlert('Please calculate a route first');
+    }
+}
 
         /**
          * Sets up autocomplete for an input field
@@ -540,34 +603,6 @@
             const resultsSection = document.getElementById('results-section');
             inputSection.classList.remove('hidden');
             resultsSection.classList.add('hidden');
-        }
-
-        /**
-         * Saves the current route (localStorage implementation)
-         */
-        function saveRoute() {
-            if (!currentRoute) return;
-            
-            // Create a route object to save
-            const routeToSave = {
-                id: Date.now(),
-                name: `Route ${new Date().toLocaleDateString()}`,
-                totalDistance: currentRoute.totalDistance,
-                estimatedTime: currentRoute.estimatedTime,
-                waypoints: currentRoute.waypoints,
-                date: new Date().toISOString()
-            };
-            
-            // Get existing saved routes or initialize empty array
-            const savedRoutes = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
-            
-            // Add new route
-            savedRoutes.push(routeToSave);
-            
-            // Save back to localStorage
-            localStorage.setItem('savedRoutes', JSON.stringify(savedRoutes));
-            
-            showAlert('Route saved successfully!', 'success');
         }
     </script>
 </head>
