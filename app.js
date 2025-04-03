@@ -511,29 +511,41 @@ function showInputSection() {
 }
 
 /**
- * Saves the current route (localStorage implementation)
+ * Generates a Google Maps URL for the current route
+ * @returns {string} URL to open the route in Google Maps
  */
-function saveRoute() {
-    if (!currentRoute) return;
+function generateGoogleMapsUrl() {
+    if (!currentRoute) return null;
     
-    // Create a route object to save
-    const routeToSave = {
-        id: Date.now(),
-        name: `Route ${new Date().toLocaleDateString()}`,
-        totalDistance: currentRoute.totalDistance,
-        estimatedTime: currentRoute.estimatedTime,
-        waypoints: currentRoute.waypoints,
-        date: new Date().toISOString()
-    };
+    // Extract addresses
+    const waypoints = currentRoute.waypoints;
+    const origin = encodeURIComponent(waypoints[0].address);
+    const destination = encodeURIComponent(waypoints[waypoints.length - 1].address);
     
-    // Get existing saved routes or initialize empty array
-    const savedRoutes = JSON.parse(localStorage.getItem('savedRoutes') || '[]');
+    // Extract intermediate stops
+    const stops = waypoints.slice(1, waypoints.length - 1)
+        .map(point => encodeURIComponent(point.address))
+        .join('|');
     
-    // Add new route
-    savedRoutes.push(routeToSave);
-    
-    // Save back to localStorage
-    localStorage.setItem('savedRoutes', JSON.stringify(savedRoutes));
-    
-    showAlert('Route saved successfully!', 'success');
+    // Build Google Maps URL
+    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${stops}&travelmode=driving`;
 }
+
+/**
+ * Generates an Apple Maps URL for the current route
+ * @returns {string} URL to open the route in Apple Maps
+ */
+function generateAppleMapsUrl() {
+    if (!currentRoute) return null;
+    
+    // Extract addresses
+    const waypoints = currentRoute.waypoints;
+    const origin = encodeURIComponent(waypoints[0].address);
+    const destination = encodeURIComponent(waypoints[waypoints.length - 1].address);
+    
+    // Apple Maps doesn't support multiple waypoints in the same way Google Maps does
+    // But we can provide a basic directions URL from start to end
+    return `http://maps.apple.com/?saddr=${origin}&daddr=${destination}&dirflg=d`;
+}
+
+
