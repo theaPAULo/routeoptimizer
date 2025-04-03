@@ -133,6 +133,141 @@ function setupAutocomplete(inputId) {
     }
 }
 
+// Add this to your app.js file, right after the existing imports at the top
+
+/**
+ * Enables drag and drop functionality for stop items
+ */
+function enableDragAndDrop() {
+    const container = document.getElementById('stops-container');
+    
+    // Exit if no container or if browser doesn't support Drag and Drop API
+    if (!container || !('draggable' in document.createElement('div'))) {
+        console.log("Drag and drop not supported or container not found");
+        return;
+    }
+    
+    let draggedItem = null;
+    
+    // Setup event delegation for the container
+    container.addEventListener('dragstart', function(e) {
+        const target = e.target.closest('.stop-item');
+        if (!target) return;
+        
+        // Reference the dragged item
+        draggedItem = target;
+        
+        // Add dragging class
+        setTimeout(function() {
+            target.classList.add('dragging');
+        }, 0);
+        
+        // Set dataTransfer for Firefox compatibility
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', target.outerHTML);
+    });
+    
+    container.addEventListener('dragend', function(e) {
+        const target = e.target.closest('.stop-item');
+        if (!target) return;
+        
+        // Remove dragging class
+        target.classList.remove('dragging');
+        
+        // Reset cursor style
+        document.body.style.cursor = 'default';
+        
+        // Re-initialize autocompletes after drag
+        refreshAutocompletes();
+    });
+    
+    container.addEventListener('dragover', function(e) {
+        // Prevent default to allow drop
+        e.preventDefault();
+        
+        const target = e.target.closest('.stop-item');
+        if (!target || target === draggedItem) return;
+        
+        // Change cursor style
+        document.body.style.cursor = 'grabbing';
+        
+        // Get the bounding rect of target
+        const rect = target.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        
+        // Determine if we're inserting before or after the target
+        const insertBefore = e.clientY < midY;
+        
+        // Remove hover class from all elements
+        const allItems = container.querySelectorAll('.stop-item');
+        allItems.forEach(item => {
+            item.classList.remove('drop-above', 'drop-below');
+        });
+        
+        // Add appropriate class to current target
+        if (insertBefore) {
+            target.classList.add('drop-above');
+        } else {
+            target.classList.add('drop-below');
+        }
+    });
+    
+    container.addEventListener('dragleave', function(e) {
+        const target = e.target.closest('.stop-item');
+        if (!target) return;
+        
+        // Remove hover classes
+        target.classList.remove('drop-above', 'drop-below');
+    });
+    
+    container.addEventListener('drop', function(e) {
+        // Prevent default action
+        e.preventDefault();
+        
+        const target = e.target.closest('.stop-item');
+        if (!target || target === draggedItem) return;
+        
+        // Remove hover classes
+        const allItems = container.querySelectorAll('.stop-item');
+        allItems.forEach(item => {
+            item.classList.remove('drop-above', 'drop-below');
+        });
+        
+        // Get the bounding rect of target
+        const rect = target.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        
+        // Determine if we're inserting before or after the target
+        const insertBefore = e.clientY < midY;
+        
+        // Insert the draggedItem before or after the target
+        if (insertBefore) {
+            container.insertBefore(draggedItem, target);
+        } else {
+            container.insertBefore(draggedItem, target.nextSibling);
+        }
+        
+        // Reset cursor style
+        document.body.style.cursor = 'default';
+    });
+}
+
+/**
+ * Refreshes autocompletes after drag-and-drop operations
+ */
+function refreshAutocompletes() {
+    // Clear existing autocompletes
+    autocompletes = autocompletes.filter(item => 
+        item.id === 'start-location' || item.id === 'end-location'
+    );
+    
+    // Re-initialize all stop autocompletes
+    const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
+    stopInputs.forEach(input => {
+        setupAutocomplete(input.id);
+    });
+}
+
 /**
  * Adds a new stop input field to the form with Google Places autocomplete
  */
@@ -142,10 +277,11 @@ function addStopInput() {
     
     const stopDiv = document.createElement('div');
     stopDiv.className = 'stop-item fade-in';
+    stopDiv.draggable = true; // Make it draggable
     stopDiv.innerHTML = `
         <div class="relative flex items-center mb-2">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <i class="fas fa-map-pin text-gray-400"></i>
+            <span class="drag-handle absolute inset-y-0 left-0 flex items-center pl-1 cursor-grab">
+                <i class="fas fa-grip-lines text-gray-400"></i>
             </span>
             <input 
                 type="text" 
