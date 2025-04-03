@@ -347,9 +347,6 @@ function enableDragAndDrop() {
         refreshAutocompletes();
     }
     
-    // Initialize drag and drop
-    addEventListeners();
-    
     // Add a mutation observer to handle dynamically added stops
     const observer = new MutationObserver(mutations => {
         mutations.forEach(mutation => {
