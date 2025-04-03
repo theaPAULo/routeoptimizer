@@ -300,6 +300,8 @@ function showUsageStats() {
  * Updates the usage indicator display
  */
 function updateUsageIndicator() {
+    console.log("Updating usage indicator...");
+    
     const usageData = getApiUsage();
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const todayCount = usageData[today] || 0;
@@ -308,14 +310,21 @@ function updateUsageIndicator() {
     const countEl = document.getElementById('usage-count');
     const limitEl = document.getElementById('usage-limit');
     
+    console.log("Usage indicator elements:", {
+        indicator: indicator,
+        countEl: countEl,
+        limitEl: limitEl,
+        todayCount: todayCount
+    });
+    
     if (indicator && countEl && limitEl) {
-      // Only show if user has made at least one request
-      if (todayCount > 0) {
+        // Always show the indicator
         indicator.classList.remove('hidden');
-      }
-      
-      countEl.textContent = todayCount;
-      limitEl.textContent = API_LIMITS.DAILY_LIMIT;
+        
+        countEl.textContent = todayCount;
+        limitEl.textContent = API_LIMITS.DAILY_LIMIT;
+    } else {
+        console.error("One or more usage indicator elements not found");
     }
 }
 
@@ -850,29 +859,22 @@ function setupAdminFunctionality() {
  * @returns {boolean} - Whether authentication was successful
  */
 function authenticateAdmin(password) {
-  // Use a secure hashing mechanism in production
-  // This is a simple example - DO NOT use in production as-is
-  const hashedPassword = "5f4dcc3b5aa765d61d8327deb882cf99"; // "password" hashed with MD5
-  
-  // In production, you'd use a more secure method and server-side verification
-  if (password && hashPassword(password) === hashedPassword) {
-    localStorage.setItem('driveless_admin', 'true');
-    return true;
+    // Use a simple hash comparison for the demo version
+    // In production, you'd use a more secure method and server-side verification
+    const hashedPassword = "e62c40e04f5355250d7e349d0d1e5714"; // Hash for "pdxWaterMehn628!?"
+    
+    // Compare directly for the demo
+    if (password === "pdxWaterMehn628!?") {
+      localStorage.setItem('driveless_admin', 'true');
+      return true;
+    }
+    return false;
   }
-  return false;
-}
-
-/**
- * Simple password hashing function
- * NOTE: This is NOT secure for production. Use a proper hashing library.
- * @param {string} password - Password to hash
- * @returns {string} - Hashed password
- */
-function hashPassword(password) {
-  // This is a placeholder - in production use a secure hashing method
-  // For example, use a library like bcrypt
-  return password; // Do NOT use this in production
-}
+  
+  // We're not using this function anymore, but keeping it for reference
+  function hashPassword(password) {
+    return password; // Not actually used in our implementation
+  }
 
 // Keep this function at the bottom of your app.js file
 function initMap() {
