@@ -40,34 +40,52 @@ function initMap() {
  * Main initialization function - called after Google Maps loads
  */
 function initializeApp() {
-    console.log("Initializing DriveLess App");
-    
-    // Set up Google Maps components
-    initializeGoogleMaps();
-    
-    // Add first stop input
-    addStopInput();
-    
-    // Set up manual reordering
-    console.log("Setting up reordering...");
-    const refreshReorderControls = setupManualReordering();
-    
-    // Set up dark mode
-    console.log("Setting up dark mode...");
-    setupDarkModeToggle();
-    
-    // Set up event listeners
-    addStopBtn.addEventListener('click', () => {
+    try {
+        console.log("Initializing DriveLess App");
+        
+        // Set up Google Maps components
+        initializeGoogleMaps();
+        
+        // Add first stop input
         addStopInput();
-        // Refresh controls after adding a stop
-        setTimeout(refreshReorderControls, 50);
-    });
-    
-    routeForm.addEventListener('submit', handleFormSubmit);
-    backBtn.addEventListener('click', showInputSection);
-    // Add event listeners for map buttons
-    document.getElementById('google-maps-btn').addEventListener('click', openGoogleMaps);
-    document.getElementById('apple-maps-btn').addEventListener('click', openAppleMaps);
+        
+        try {
+            // Set up manual reordering
+            console.log("Setting up reordering...");
+            const refreshReorderControls = setupManualReordering();
+            console.log("Reordering setup complete");
+        } catch (error) {
+            console.error("Error setting up reordering:", error);
+        }
+        
+        try {
+            // Set up dark mode
+            console.log("Setting up dark mode...");
+            setupDarkModeToggle();
+            console.log("Dark mode setup complete");
+        } catch (error) {
+            console.error("Error setting up dark mode:", error);
+        }
+        
+        // Set up event listeners
+        addStopBtn.addEventListener('click', () => {
+            addStopInput();
+            // Refresh controls after adding a stop
+            if (typeof refreshReorderControls === 'function') {
+                setTimeout(refreshReorderControls, 50);
+            }
+        });
+        
+        routeForm.addEventListener('submit', handleFormSubmit);
+        backBtn.addEventListener('click', showInputSection);
+        // Add event listeners for map buttons
+        document.getElementById('google-maps-btn').addEventListener('click', openGoogleMaps);
+        document.getElementById('apple-maps-btn').addEventListener('click', openAppleMaps);
+        
+        console.log("Initialization complete");
+    } catch (error) {
+        console.error("Error during initialization:", error);
+    }
 }
 
 /**
