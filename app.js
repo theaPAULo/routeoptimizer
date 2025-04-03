@@ -48,6 +48,9 @@ function initializeApp() {
     // Add first stop input
     addStopInput();
     
+    // Enable drag and drop for stops
+    enableDragAndDrop();
+    
     // Set up event listeners
     addStopBtn.addEventListener('click', addStopInput);
     routeForm.addEventListener('submit', handleFormSubmit);
