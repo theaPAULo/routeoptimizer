@@ -31,6 +31,36 @@
     transform: translateY(-2px);
 }
 
+/* Drag and Drop styling */
+.stop-item {
+    position: relative;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.stop-item.dragging {
+    opacity: 0.5;
+    z-index: 1000;
+}
+
+.stop-item.drop-above {
+    border-top: 2px dashed #3b82f6;
+    padding-top: 4px;
+}
+
+.stop-item.drop-below {
+    border-bottom: 2px dashed #3b82f6;
+    padding-bottom: 4px;
+}
+
+.drag-handle {
+    cursor: grab;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
 /* Route list styling */
 #route-list li {
     padding: 0.75rem;
