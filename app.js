@@ -232,18 +232,18 @@ async function handleFormSubmit(event) {
     event.preventDefault();
     
     // Collect form data
-    const startLocation = document.getElementById('start-location').value;
-    const endLocation = document.getElementById('end-location').value;
-    
-    // Collect all stops
-    const stops = [];
-    const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
-    
-    for (const input of stopInputs) {
-        if (input.value.trim()) {
-            stops.push(input.value.trim());
-        }
-    }
+const startLocation = sanitizeInput(document.getElementById('start-location').value);
+const endLocation = sanitizeInput(document.getElementById('end-location').value);
+
+// Collect all stops
+const stops = [];
+const stopInputs = stopsContainer.querySelectorAll('input[type="text"]');
+
+for (const input of stopInputs) {
+  if (input.value.trim()) {
+    stops.push(sanitizeInput(input.value.trim()));
+  }
+}
     
     // Basic validation
     if (!startLocation) {
