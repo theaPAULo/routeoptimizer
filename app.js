@@ -136,125 +136,151 @@ function setupAutocomplete(inputId) {
     }
 }
 
-// Add this to your app.js file, right after the existing imports at the top
-
 /**
  * Enables drag and drop functionality for stop items
  */
 function enableDragAndDrop() {
+    // We'll use the Sortable library which is much more reliable for drag-and-drop
+    // This is a polyfill implementation using native HTML5 drag and drop
+    
     const container = document.getElementById('stops-container');
     
-    // Exit if no container or if browser doesn't support Drag and Drop API
-    if (!container || !('draggable' in document.createElement('div'))) {
-        console.log("Drag and drop not supported or container not found");
-        return;
+    // Store references for the drag operation
+    let dragEl = null;
+    let nextEl = null;
+    
+    // Helper function to get mouse position
+    function getY(e) {
+        return e.clientY || (e.touches && e.touches[0].clientY);
     }
     
-    let draggedItem = null;
+    // Add event listeners to container
+    function addEventListeners() {
+        const items = container.querySelectorAll('.stop-item');
+        
+        items.forEach(item => {
+            // Make sure we only attach listeners once
+            if (item.getAttribute('data-drag-initialized') === 'true') {
+                return;
+            }
+            
+            const handle = item.querySelector('.drag-handle');
+            
+            // Skip items without handles
+            if (!handle) return;
+            
+            // Mark as initialized
+            item.setAttribute('data-drag-initialized', 'true');
+            
+            // Prevent inputs from interfering with drag
+            const inputs = item.querySelectorAll('input, button');
+            inputs.forEach(input => {
+                input.addEventListener('mousedown', e => {
+                    e.stopPropagation();
+                });
+            });
+            
+            // Drag start event
+            handle.addEventListener('mousedown', function(e) {
+                // Prevent default to avoid text selection, etc.
+                e.preventDefault();
+                
+                dragEl = item;
+                
+                // Set position attributes for later calculation
+                const items = Array.from(container.querySelectorAll('.stop-item'));
+                items.forEach(item => {
+                    const rect = item.getBoundingClientRect();
+                    item.dataset.y = rect.top + container.scrollTop;
+                    item.dataset.height = rect.height;
+                });
+                
+                // Add dragging class
+                dragEl.classList.add('dragging');
+                
+                // Add listeners for move and end
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onEnd);
+                
+                // Trigger initial position check
+                onMove(e);
+            });
+        });
+    }
     
-    // Setup event delegation for the container
-    container.addEventListener('dragstart', function(e) {
-        const target = e.target.closest('.stop-item');
-        if (!target) return;
+    // Handle movement during drag
+    function onMove(e) {
+        if (!dragEl) return;
         
-        // Reference the dragged item
-        draggedItem = target;
+        const y = getY(e);
         
-        // Add dragging class
-        setTimeout(function() {
-            target.classList.add('dragging');
-        }, 0);
+        // Find the element we're hovering over
+        const items = Array.from(container.querySelectorAll('.stop-item:not(.dragging)'));
         
-        // Set dataTransfer for Firefox compatibility
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', target.outerHTML);
-    });
+        // Remove any previous indicators
+        items.forEach(item => {
+            item.classList.remove('drop-above', 'drop-below');
+        });
+        
+        // Find the element we should insert before
+        nextEl = items.find(item => {
+            const box = item.getBoundingClientRect();
+            const boxY = box.top + box.height / 2;
+            return y <= boxY;
+        });
+        
+        if (nextEl) {
+            nextEl.classList.add('drop-above');
+        } else if (items.length) {
+            // If no nextEl, we're at the end
+            items[items.length - 1].classList.add('drop-below');
+        }
+    }
     
-    container.addEventListener('dragend', function(e) {
-        const target = e.target.closest('.stop-item');
-        if (!target) return;
+    // Handle drop
+    function onEnd() {
+        if (!dragEl) return;
         
-        // Remove dragging class
-        target.classList.remove('dragging');
+        // Remove classes
+        dragEl.classList.remove('dragging');
+        Array.from(container.querySelectorAll('.stop-item')).forEach(item => {
+            item.classList.remove('drop-above', 'drop-below');
+        });
         
-        // Reset cursor style
-        document.body.style.cursor = 'default';
+        // Insert the element
+        if (nextEl) {
+            container.insertBefore(dragEl, nextEl);
+        } else {
+            container.appendChild(dragEl);
+        }
         
-        // Re-initialize autocompletes after drag
+        // Remove listeners
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onEnd);
+        
+        // Reset variables
+        dragEl = null;
+        nextEl = null;
+        
+        // Refresh autocompletes
         refreshAutocompletes();
-    });
+    }
     
-    container.addEventListener('dragover', function(e) {
-        // Prevent default to allow drop
-        e.preventDefault();
-        
-        const target = e.target.closest('.stop-item');
-        if (!target || target === draggedItem) return;
-        
-        // Change cursor style
-        document.body.style.cursor = 'grabbing';
-        
-        // Get the bounding rect of target
-        const rect = target.getBoundingClientRect();
-        const midY = rect.top + rect.height / 2;
-        
-        // Determine if we're inserting before or after the target
-        const insertBefore = e.clientY < midY;
-        
-        // Remove hover class from all elements
-        const allItems = container.querySelectorAll('.stop-item');
-        allItems.forEach(item => {
-            item.classList.remove('drop-above', 'drop-below');
+    // Initialize drag and drop
+    addEventListeners();
+    
+    // Add a mutation observer to handle dynamically added stops
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            if (mutation.addedNodes.length) {
+                addEventListeners();
+            }
         });
-        
-        // Add appropriate class to current target
-        if (insertBefore) {
-            target.classList.add('drop-above');
-        } else {
-            target.classList.add('drop-below');
-        }
     });
     
-    container.addEventListener('dragleave', function(e) {
-        const target = e.target.closest('.stop-item');
-        if (!target) return;
-        
-        // Remove hover classes
-        target.classList.remove('drop-above', 'drop-below');
-    });
-    
-    container.addEventListener('drop', function(e) {
-        // Prevent default action
-        e.preventDefault();
-        
-        const target = e.target.closest('.stop-item');
-        if (!target || target === draggedItem) return;
-        
-        // Remove hover classes
-        const allItems = container.querySelectorAll('.stop-item');
-        allItems.forEach(item => {
-            item.classList.remove('drop-above', 'drop-below');
-        });
-        
-        // Get the bounding rect of target
-        const rect = target.getBoundingClientRect();
-        const midY = rect.top + rect.height / 2;
-        
-        // Determine if we're inserting before or after the target
-        const insertBefore = e.clientY < midY;
-        
-        // Insert the draggedItem before or after the target
-        if (insertBefore) {
-            container.insertBefore(draggedItem, target);
-        } else {
-            container.insertBefore(draggedItem, target.nextSibling);
-        }
-        
-        // Reset cursor style
-        document.body.style.cursor = 'default';
-    });
+    // Start observing
+    observer.observe(container, { childList: true });
 }
-
 /**
  * Refreshes autocompletes after drag-and-drop operations
  */
@@ -280,12 +306,11 @@ function addStopInput() {
     
     const stopDiv = document.createElement('div');
     stopDiv.className = 'stop-item fade-in';
-    stopDiv.draggable = true; // Make it draggable
     stopDiv.innerHTML = `
         <div class="relative flex items-center mb-2">
-            <span class="drag-handle absolute inset-y-0 left-0 flex items-center pl-1 cursor-grab">
-                <i class="fas fa-grip-lines text-gray-400"></i>
-            </span>
+            <div class="drag-handle absolute inset-y-0 left-0 flex items-center pl-1">
+                <i class="fas fa-grip-vertical text-gray-400"></i>
+            </div>
             <input 
                 type="text" 
                 id="${stopId}" 
