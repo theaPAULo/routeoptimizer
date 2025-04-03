@@ -31,6 +31,23 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
+
+    <!-- Ad serving script -->
+<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>
+  window.googletag = window.googletag || {cmd: []};
+  googletag.cmd.push(function() {
+    // Define ad slots
+    googletag.defineSlot('/22639388115/driveless_banner', [728, 90], 'div-gpt-ad-banner')
+      .addService(googletag.pubads());
+    googletag.defineSlot('/22639388115/driveless_sidebar', [300, 250], 'div-gpt-ad-sidebar')
+      .addService(googletag.pubads());
+    
+    // Enable services
+    googletag.pubads().enableSingleRequest();
+    googletag.enableServices();
+  });
+</script>
     
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 dark:text-white min-h-screen">
@@ -47,6 +64,17 @@
             </div>
             <p class="text-gray-600 dark:text-gray-400 mt-2">Drive Less, Save Time</p>
         </header>
+
+        <!-- Under the header section -->
+<div id="div-gpt-ad-banner" class="ad-container mx-auto my-4">
+    <script>
+      googletag.cmd.push(function() {
+        googletag.display('div-gpt-ad-banner');
+      });
+    </script>
+  </div>
+  
+
 
         <main>
             <!-- Alert Box for Errors and Messages -->
@@ -190,6 +218,50 @@
             </section>
         </main>
 
+
+        <!-- Admin Login Modal (hidden by default) -->
+<div id="admin-login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
+      <h3 class="text-xl font-bold mb-4 dark:text-white">Admin Login</h3>
+      <form id="admin-login-form">
+        <div class="mb-4">
+          <label for="admin-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Password
+          </label>
+          <input 
+            type="password" 
+            id="admin-password" 
+            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" 
+            required
+          >
+        </div>
+        <div class="flex justify-between">
+          <button 
+            type="button" 
+            id="admin-cancel-btn"
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="px-4 py-2 bg-blue-600 text-white rounded-md"
+          >
+            Login
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+    <!-- In a sidebar or before the footer -->
+    <div id="div-gpt-ad-sidebar" class="ad-container mx-auto my-4">
+        <script>
+          googletag.cmd.push(function() {
+            googletag.display('div-gpt-ad-sidebar');
+          });
+        </script>
+      </div>
         <footer class="mt-8 text-center text-gray-500 dark:text-gray-400 text-sm">
             <p>&copy; 2025 DriveLess | <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</a></p>
         </footer>

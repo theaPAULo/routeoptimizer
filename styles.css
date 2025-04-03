@@ -94,54 +94,21 @@
     transition: all 0.2s ease-out;
 }
 
-/* Add or update these styles in your styles.css */
-.drag-handle {
-    cursor: grab;
-    width: 30px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-}
+/* Add to styles.css */
+.ad-container {
+    text-align: center;
+    margin: 1rem auto;
+    min-height: 90px;
+    background-color: #f9f9f9;
+    border-radius: 0.375rem;
+    overflow: hidden;
+  }
+  
+  /* Admin user shouldn't see ads */
+  .admin-user .ad-container {
+    display: none;
+  }
 
-.drag-handle:active {
-    cursor: grabbing;
-}
-
-.stop-item.dragging {
-    opacity: 0.8;
-    background-color: #f3f4f6;
-    z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.stop-item.drop-above {
-    border-top: 2px dashed #3b82f6;
-    padding-top: 4px;
-    margin-top: 4px;
-}
-
-.stop-item.drop-below {
-    border-bottom: 2px dashed #3b82f6;
-    padding-bottom: 4px;
-    margin-bottom: 4px;
-}
-
-/* Make buttons more visible */
-.up-btn, .down-btn {
-    background-color: #f3f4f6;
-    border-radius: 4px;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.dark .up-btn, .dark .down-btn {
-    background-color: #4b5563;
-}
 
 /* Route list styling */
 #route-list li {

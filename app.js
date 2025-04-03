@@ -472,6 +472,33 @@ function toggleLoadingState(isLoading) {
 }
 
 /**
+ * Checks if the current user is an admin
+ * Uses localStorage for simple implementation
+ * @returns {boolean} - Whether the user is an admin
+ */
+function isAdminUser() {
+    return localStorage.getItem('driveless_admin') === 'true';
+  }
+  
+  /**
+   * Attempts to authenticate as admin
+   * @param {string} password - Admin password
+   * @returns {boolean} - Whether authentication was successful
+   */
+  function authenticateAdmin(password) {
+    // Use a secure hashing mechanism in production
+    // This is a simple example - DO NOT use in production as-is
+    const hashedPassword = "5f4dcc3b5aa765d61d8327deb882cf99"; // "password" hashed with MD5
+    
+    // In production, you'd use a more secure method and server-side verification
+    if (password && hashPassword(password) === hashedPassword) {
+      localStorage.setItem('driveless_admin', 'true');
+      return true;
+    }
+    return false;
+  }
+
+/**
  * Displays the route results in the UI and on the map
  * @param {Object} route - The optimized route data
  */
@@ -599,6 +626,48 @@ function openAppleMaps() {
 }
 
 /**
+ * Geocodes an address with caching
+ * @param {string} address - The address to geocode
+ * @returns {Promise} - Promise resolving to location object
+ */
+function geocodeAddress(address) {
+    return new Promise((resolve, reject) => {
+        console.log("Geocoding address:", address);
+        
+        // Check cache first
+        const cacheKey = `geocode_${address}`;
+        const cached = localStorage.getItem(cacheKey);
+        
+        if (cached) {
+            console.log("Using cached geocoding result");
+            resolve(JSON.parse(cached));
+            return;
+        }
+        
+        // Not in cache, use Google API
+        geocoder.geocode({ address }, (results, status) => {
+            console.log(`Geocoding result for "${address}":`, status, results);
+            
+            if (status === 'OK' && results && results.length > 0) {
+                const result = {
+                    address: results[0].formatted_address,
+                    location: results[0].geometry.location,
+                    placeId: results[0].place_id
+                };
+                
+                // Cache the result
+                localStorage.setItem(cacheKey, JSON.stringify(result));
+                
+                resolve(result);
+            } else {
+                console.error('Geocoding failed for address:', address, status);
+                resolve(null);
+            }
+        });
+    });
+}
+
+/**
  * Function to sanitize user input to prevent XSS attacks
  * @param {string} input - User provided input
  * @returns {string} - Sanitized input
@@ -606,6 +675,69 @@ function openAppleMaps() {
 function sanitizeInput(input) {
   // Basic sanitization - removes HTML tags and script
   return input.replace(/<\/?[^>]+(>|$)/g, "");
+}
+
+// At the end of initializeApp function
+// Set up admin functionality
+setupAdminFunctionality();
+
+/**
+ * Sets up admin functionality
+ */
+function setupAdminFunctionality() {
+  // Check if admin already
+  if (isAdminUser()) {
+    document.body.classList.add('admin-user');
+  }
+  
+  // Add admin login link to footer
+  const footer = document.querySelector('footer');
+  const adminLink = document.createElement('a');
+  adminLink.href = '#';
+  adminLink.textContent = 'Admin';
+  adminLink.className = 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-2';
+  adminLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('admin-login-modal').classList.remove('hidden');
+  });
+  
+  footer.appendChild(document.createTextNode(' | '));
+  footer.appendChild(adminLink);
+  
+  // Set up admin login form
+  const adminForm = document.getElementById('admin-login-form');
+  const adminModal = document.getElementById('admin-login-modal');
+  const cancelBtn = document.getElementById('admin-cancel-btn');
+  
+  adminForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const password = document.getElementById('admin-password').value;
+    
+    if (authenticateAdmin(password)) {
+      // Successfully authenticated
+      document.body.classList.add('admin-user');
+      adminModal.classList.add('hidden');
+      showAlert('Admin mode activated', 'success');
+    } else {
+      showAlert('Invalid admin password', 'error');
+    }
+  });
+  
+  cancelBtn.addEventListener('click', function() {
+    adminModal.classList.add('hidden');
+  });
+}
+
+/**
+ * Simple password hashing function
+ * NOTE: This is NOT secure for production. Use a proper hashing library.
+ * @param {string} password - Password to hash
+ * @returns {string} - Hashed password
+ */
+function hashPassword(password) {
+  // This is a placeholder - in production use a secure hashing method
+  // For example, use a library like bcrypt
+  return password; // Do NOT use this in production
 }
 
 // Add this at the end of your app.js file
