@@ -30,6 +30,15 @@ const mapContainer = document.getElementById('map-container');
 /**
  * Main initialization function - called after Google Maps loads
  */
+function initMap() {
+    console.log("Google Maps API loaded successfully");
+    // Initialize our application
+    initializeApp();
+}
+
+/**
+ * Main initialization function - called after Google Maps loads
+ */
 function initializeApp() {
     console.log("Initializing Route Optimizer App");
     
@@ -46,30 +55,6 @@ function initializeApp() {
     // Add event listeners for map buttons
     document.getElementById('google-maps-btn').addEventListener('click', openGoogleMaps);
     document.getElementById('apple-maps-btn').addEventListener('click', openAppleMaps);
-}
-
-/**
- * Opens the current route in Google Maps
- */
-function openGoogleMaps() {
-    const url = generateGoogleMapsUrl();
-    if (url) {
-        window.open(url, '_blank');
-    } else {
-        showAlert('Please calculate a route first');
-    }
-}
-
-/**
- * Opens the current route in Apple Maps
- */
-function openAppleMaps() {
-    const url = generateAppleMapsUrl();
-    if (url) {
-        window.open(url, '_blank');
-    } else {
-        showAlert('Please calculate a route first');
-    }
 }
 
 /**
@@ -569,5 +554,31 @@ function generateAppleMapsUrl() {
     // But we can provide a basic directions URL from start to end
     return `http://maps.apple.com/?saddr=${origin}&daddr=${destination}&dirflg=d`;
 }
+
+/**
+ * Opens the current route in Google Maps
+ */
+function openGoogleMaps() {
+    const url = generateGoogleMapsUrl();
+    if (url) {
+        window.open(url, '_blank');
+    } else {
+        showAlert('Please calculate a route first');
+    }
+}
+
+/**
+ * Opens the current route in Apple Maps
+ */
+function openAppleMaps() {
+    const url = generateAppleMapsUrl();
+    if (url) {
+        window.open(url, '_blank');
+    } else {
+        showAlert('Please calculate a route first');
+    }
+}
+
+
 
 
