@@ -40,7 +40,7 @@ function initMap() {
  * Main initialization function - called after Google Maps loads
  */
 function initializeApp() {
-    console.log("Initializing Route Optimizer App");
+    console.log("Initializing Route Planner App");
     
     // Set up Google Maps components
     initializeGoogleMaps();
@@ -48,14 +48,19 @@ function initializeApp() {
     // Add first stop input
     addStopInput();
     
-    // Enable drag and drop for stops
-    enableDragAndDrop();
-
-       // Set up dark mode
-       setupDarkModeToggle();
+    // Set up manual reordering
+    const refreshReorderControls = setupManualReordering();
+    
+    // Set up dark mode
+    setupDarkModeToggle();
     
     // Set up event listeners
-    addStopBtn.addEventListener('click', addStopInput);
+    addStopBtn.addEventListener('click', () => {
+        addStopInput();
+        // Refresh controls after adding a stop
+        setTimeout(refreshReorderControls, 50);
+    });
+    
     routeForm.addEventListener('submit', handleFormSubmit);
     backBtn.addEventListener('click', showInputSection);
     // Add event listeners for map buttons
@@ -385,6 +390,9 @@ function refreshAutocompletes() {
     });
 }
 
+/**
+ * Adds a new stop input field to the form with Google Places autocomplete
+ */
 function addStopInput() {
     stopCounter++;
     const stopId = `stop-${stopCounter}`;
@@ -393,7 +401,7 @@ function addStopInput() {
     stopDiv.className = 'stop-item fade-in';
     stopDiv.innerHTML = `
         <div class="relative flex items-center mb-2">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-1 cursor-grab">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <i class="fas fa-map-marker-alt text-gray-400"></i>
             </span>
             <input 
@@ -877,7 +885,7 @@ function setupManualReordering() {
             if (index > 0) {
                 const upBtn = document.createElement('button');
                 upBtn.type = 'button';
-                upBtn.className = 'text-blue-500 hover:text-blue-700';
+                upBtn.className = 'text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300';
                 upBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
                 upBtn.setAttribute('aria-label', 'Move stop up');
                 upBtn.addEventListener('click', () => moveStopUp(item));
@@ -888,7 +896,7 @@ function setupManualReordering() {
             if (index < stopItems.length - 1) {
                 const downBtn = document.createElement('button');
                 downBtn.type = 'button';
-                downBtn.className = 'text-blue-500 hover:text-blue-700';
+                downBtn.className = 'text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300';
                 downBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
                 downBtn.setAttribute('aria-label', 'Move stop down');
                 downBtn.addEventListener('click', () => moveStopDown(item));

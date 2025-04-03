@@ -25,6 +25,23 @@
     background-color: #3b82f6;
 }
 
+/* Reordering controls */
+.reorder-controls {
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+}
+
+/* Update the stop-item input to leave room for controls */
+.stop-item input {
+    padding-right: 80px; /* Make room for the controls and delete button */
+}
+
+/* Animation for reordering */
+.stop-item {
+    transition: all 0.2s ease-out;
+}
+
 /* Add or update these styles in your styles.css */
 .drag-handle {
     cursor: grab;
@@ -57,23 +74,6 @@
     border-bottom: 2px dashed #3b82f6;
     padding-bottom: 4px;
     margin-bottom: 4px;
-}
-
-/* Add this to your styles.css */
-.reorder-controls {
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 5;
-}
-
-/* Update the stop-item input to leave room for controls */
-.stop-item input {
-    padding-right: 80px; /* Make room for the controls and delete button */
-}
-
-/* Animation for reordering */
-.stop-item {
-    transition: all 0.2s ease-out;
 }
 
 /* Route list styling */
