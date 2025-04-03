@@ -3,28 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Route Optimizer</title>
+    <title>DriveLess</title>
+    
+    <!-- Add Tailwind dark mode support -->
+    <script>
+        // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+    
     <!-- Add Tailwind CSS via CDN for quick styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+    
     <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
     
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-white min-h-screen">
     <div class="container mx-auto p-4">
         <header class="mb-8">
             <div class="flex justify-between items-center">
-                <h1 class="text-3xl font-bold text-blue-700">Route Optimizer</h1>
-                <div>
+                <h1 class="text-3xl font-bold text-blue-700 dark:text-blue-500">DriveLess</h1>
+                <div class="flex items-center">
                     <a href="https://github.com/yourusername/route-optimizer" target="_blank" 
-                       class="text-gray-600 hover:text-black" title="View on GitHub">
+                       class="text-gray-600 hover:text-black dark:hover:text-white mr-4" title="View on GitHub">
                         <i class="fab fa-github text-2xl"></i>
                     </a>
+                    <button id="theme-toggle" class="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white">
+                        <i class="fas fa-moon text-xl dark:hidden"></i>
+                        <i class="fas fa-sun text-xl hidden dark:block"></i>
+                    </button>
                 </div>
             </div>
-            <p class="text-gray-600 mt-2">Find the most efficient route for multiple stops</p>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">Find the most efficient route for multiple stops</p>
         </header>
 
         <main>
@@ -32,13 +57,13 @@
             <div id="alert-box" class="hidden mb-4 p-4 rounded-md"></div>
 
             <!-- Input Form Section -->
-            <section id="input-section" class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-semibold mb-4">Enter Your Locations</h2>
+            <section id="input-section" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4 dark:text-white">Enter Your Locations</h2>
                 
                 <form id="route-form" class="space-y-4">
                     <!-- Starting Location -->
                     <div>
-                        <label for="start-location" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="start-location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Starting Location
                         </label>
                         <div class="relative">
@@ -48,7 +73,7 @@
                             <input 
                                 type="text" 
                                 id="start-location" 
-                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                                 placeholder="Enter starting address"
                                 required
                             >
@@ -57,7 +82,7 @@
 
                     <!-- Stops Container -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Stops
                         </label>
                         <div id="stops-container">
@@ -66,7 +91,7 @@
                         <button 
                             type="button" 
                             id="add-stop-btn" 
-                            class="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                            class="mt-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center"
                         >
                             <i class="fas fa-plus-circle mr-1"></i> Add another stop
                         </button>
@@ -74,7 +99,7 @@
 
                     <!-- Ending Location -->
                     <div>
-                        <label for="end-location" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="end-location" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Ending Location
                         </label>
                         <div class="relative">
@@ -84,7 +109,7 @@
                             <input 
                                 type="text" 
                                 id="end-location" 
-                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                                 placeholder="Enter ending address"
                                 required
                             >
@@ -96,7 +121,7 @@
                         <button 
                             type="submit" 
                             id="optimize-btn"
-                            class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                            class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
                         >
                             <span id="optimize-btn-text">Optimize Route</span>
                             <span id="loading-spinner" class="hidden">
@@ -108,37 +133,37 @@
             </section>
 
             <!-- Results Section (Hidden by default) -->
-            <section id="results-section" class="bg-white rounded-lg shadow-md p-6 hidden">
-                <h2 class="text-xl font-semibold mb-4">Optimized Route</h2>
+            <section id="results-section" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hidden">
+                <h2 class="text-xl font-semibold mb-4 dark:text-white">Optimized Route</h2>
                 
                 <div class="grid md:grid-cols-2 gap-4 mb-6">
-                    <div class="bg-blue-50 p-4 rounded-md">
+                    <div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-md">
                         <div class="flex items-center">
-                            <i class="fas fa-route text-blue-600 text-xl mr-3"></i>
+                            <i class="fas fa-route text-blue-600 dark:text-blue-400 text-xl mr-3"></i>
                             <div>
-                                <h3 class="text-gray-500 text-sm">Total Distance</h3>
-                                <p id="total-distance" class="font-medium text-lg">0 miles</p>
+                                <h3 class="text-gray-500 dark:text-gray-300 text-sm">Total Distance</h3>
+                                <p id="total-distance" class="font-medium text-lg dark:text-white">0 miles</p>
                             </div>
                         </div>
                     </div>
-                    <div class="bg-blue-50 p-4 rounded-md">
+                    <div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-md">
                         <div class="flex items-center">
-                            <i class="fas fa-clock text-blue-600 text-xl mr-3"></i>
+                            <i class="fas fa-clock text-blue-600 dark:text-blue-400 text-xl mr-3"></i>
                             <div>
-                                <h3 class="text-gray-500 text-sm">Estimated Time</h3>
-                                <p id="estimated-time" class="font-medium text-lg">0 min</p>
+                                <h3 class="text-gray-500 dark:text-gray-300 text-sm">Estimated Time</h3>
+                                <p id="estimated-time" class="font-medium text-lg dark:text-white">0 min</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Map Container -->
-                <div id="map-container" class="w-full h-64 md:h-96 rounded-md mb-6 border border-gray-300 overflow-hidden">
+                <div id="map-container" class="w-full h-64 md:h-96 rounded-md mb-6 border border-gray-300 dark:border-gray-700 overflow-hidden">
                     <!-- Google Map will be rendered here -->
                 </div>
                 
                 <div class="mb-6">
-                    <h3 class="text-lg font-medium mb-3">Recommended Route Order:</h3>
+                    <h3 class="text-lg font-medium mb-3 dark:text-white">Recommended Route Order:</h3>
                     <ol id="route-list" class="space-y-2 pl-0">
                         <!-- Route points will be added by JavaScript -->
                     </ol>
@@ -147,20 +172,20 @@
                 <div class="flex justify-between">
                     <button 
                         id="back-btn"
-                        class="py-2 px-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                        class="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
                     >
                         Back to Form
                     </button>
                     <div class="space-x-2">
                         <button 
                             id="google-maps-btn"
-                            class="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                            class="py-2 px-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
                         >
                             <i class="fas fa-map mr-1"></i> Google Maps
                         </button>
                         <button 
                             id="apple-maps-btn"
-                            class="py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                            class="py-2 px-4 bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
                         >
                             <i class="fas fa-map-marker-alt mr-1"></i> Apple Maps
                         </button>
@@ -169,16 +194,17 @@
             </section>
         </main>
 
-        <footer class="mt-8 text-center text-gray-500 text-sm">
-            <p>&copy; 2025 Route Optimizer | <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a></p>
+        <footer class="mt-8 text-center text-gray-500 dark:text-gray-400 text-sm">
+            <p>&copy; 2025 DriveLess | <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</a></p>
         </footer>
     </div>
-<!-- Load application JavaScript -->
-<script src="app.js"></script>
+    
+    <!-- Load application JavaScript -->
+    <script src="app.js"></script>
 
-<!-- Load the Google Maps API -->
-<script async defer 
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
-</script>
+    <!-- Load the Google Maps API -->
+    <script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
+    </script>
 </body>
 </html>

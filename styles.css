@@ -20,17 +20,12 @@
     animation: slideDown 0.3s ease-in-out;
 }
 
+/* Dark mode styles */
+.dark .stop-number {
+    background-color: #3b82f6;
+}
+
 /* Add or update these styles in your styles.css */
-.stop-item {
-    position: relative;
-    margin-bottom: 0.75rem;
-    transition: all 0.2s ease-in-out;
-}
-
-.stop-item input {
-    padding-left: 32px; /* Make room for the drag handle */
-}
-
 .drag-handle {
     cursor: grab;
     width: 30px;
@@ -62,6 +57,23 @@
     border-bottom: 2px dashed #3b82f6;
     padding-bottom: 4px;
     margin-bottom: 4px;
+}
+
+/* Add this to your styles.css */
+.reorder-controls {
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+}
+
+/* Update the stop-item input to leave room for controls */
+.stop-item input {
+    padding-right: 80px; /* Make room for the controls and delete button */
+}
+
+/* Animation for reordering */
+.stop-item {
+    transition: all 0.2s ease-out;
 }
 
 /* Route list styling */

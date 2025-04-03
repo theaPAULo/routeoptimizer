@@ -50,6 +50,9 @@ function initializeApp() {
     
     // Enable drag and drop for stops
     enableDragAndDrop();
+
+       // Set up dark mode
+       setupDarkModeToggle();
     
     // Set up event listeners
     addStopBtn.addEventListener('click', addStopInput);
@@ -382,9 +385,6 @@ function refreshAutocompletes() {
     });
 }
 
-/**
- * Adds a new stop input field to the form with Google Places autocomplete
- */
 function addStopInput() {
     stopCounter++;
     const stopId = `stop-${stopCounter}`;
@@ -393,24 +393,25 @@ function addStopInput() {
     stopDiv.className = 'stop-item fade-in';
     stopDiv.innerHTML = `
         <div class="relative flex items-center mb-2">
-            <div class="drag-handle absolute inset-y-0 left-0 flex items-center pl-1 cursor-grab" style="width: 30px; z-index: 10;">
-                <i class="fas fa-grip-vertical text-gray-400"></i>
-            </div>
+            <span class="absolute inset-y-0 left-0 flex items-center pl-1 cursor-grab">
+                <i class="fas fa-map-marker-alt text-gray-400"></i>
+            </span>
             <input 
                 type="text" 
                 id="${stopId}" 
-                class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                class="block w-full pl-10 pr-12 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 placeholder="Enter stop address"
                 required
             >
             ${stopCounter > 1 ? `<button 
                 type="button" 
-                class="absolute right-2 text-red-500 hover:text-red-700"
+                class="absolute right-2 text-red-500 hover:text-red-700 dark:hover:text-red-400"
                 aria-label="Remove stop"
                 onclick="removeStop(this)"
             >
                 <i class="fas fa-times"></i>
             </button>` : ''}
+            <!-- Reorder controls will be added here by JavaScript -->
         </div>
     `;
     
@@ -826,4 +827,125 @@ function openAppleMaps() {
     } else {
         showAlert('Please calculate a route first');
     }
+}
+
+/**
+ * Handles dark mode toggle functionality
+ */
+function setupDarkModeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    
+    // Check for saved theme preference or use the system preference
+    const savedTheme = localStorage.getItem('theme');
+    const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Set initial theme
+    if (savedTheme === 'dark' || (!savedTheme && systemDarkMode)) {
+        document.documentElement.classList.add('dark');
+    }
+    
+    // Toggle theme when button is clicked
+    themeToggle.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        
+        // Save preference to localStorage
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+}
+
+/**
+ * Enables manual reordering of stops
+ */
+function setupManualReordering() {
+    const stopsContainer = document.getElementById('stops-container');
+    
+    // Add move up/down buttons to each stop
+    function addReorderControls() {
+        const stopItems = stopsContainer.querySelectorAll('.stop-item');
+        
+        stopItems.forEach((item, index) => {
+            // Skip if already set up
+            if (item.querySelector('.reorder-controls')) {
+                return;
+            }
+            
+            // Create controls container
+            const controls = document.createElement('div');
+            controls.className = 'reorder-controls absolute right-12 flex space-x-1';
+            
+            // Add move up button (except for first item)
+            if (index > 0) {
+                const upBtn = document.createElement('button');
+                upBtn.type = 'button';
+                upBtn.className = 'text-blue-500 hover:text-blue-700';
+                upBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                upBtn.setAttribute('aria-label', 'Move stop up');
+                upBtn.addEventListener('click', () => moveStopUp(item));
+                controls.appendChild(upBtn);
+            }
+            
+            // Add move down button (except for last item)
+            if (index < stopItems.length - 1) {
+                const downBtn = document.createElement('button');
+                downBtn.type = 'button';
+                downBtn.className = 'text-blue-500 hover:text-blue-700';
+                downBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
+                downBtn.setAttribute('aria-label', 'Move stop down');
+                downBtn.addEventListener('click', () => moveStopDown(item));
+                controls.appendChild(downBtn);
+            }
+            
+            // Add controls to item
+            const inputContainer = item.querySelector('.relative');
+            inputContainer.appendChild(controls);
+        });
+    }
+    
+    // Move a stop up in the list
+    function moveStopUp(item) {
+        const prev = item.previousElementSibling;
+        if (prev) {
+            stopsContainer.insertBefore(item, prev);
+            // Refresh controls
+            refreshReorderControls();
+            // Refresh autocompletes
+            refreshAutocompletes();
+        }
+    }
+    
+    // Move a stop down in the list
+    function moveStopDown(item) {
+        const next = item.nextElementSibling;
+        if (next) {
+            stopsContainer.insertBefore(next, item);
+            // Refresh controls
+            refreshReorderControls();
+            // Refresh autocompletes
+            refreshAutocompletes();
+        }
+    }
+    
+    // Refresh all reorder controls
+    function refreshReorderControls() {
+        // Remove all existing controls
+        const controls = stopsContainer.querySelectorAll('.reorder-controls');
+        controls.forEach(control => control.remove());
+        
+        // Add new controls
+        addReorderControls();
+    }
+    
+    // Initial setup
+    addReorderControls();
+    
+    // Observer for dynamic changes
+    const observer = new MutationObserver(() => {
+        refreshReorderControls();
+    });
+    
+    // Start observing
+    observer.observe(stopsContainer, { childList: true });
+    
+    // Return refresh function for external use
+    return refreshReorderControls;
 }
