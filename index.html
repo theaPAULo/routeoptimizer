@@ -291,17 +291,6 @@
   });
 </script>
 
-<!-- Fallback initialization in case Google Maps callback doesn't fire -->
-<script>
-  setTimeout(function() {
-    if (typeof window.appInitialized === 'undefined') {
-      console.log("Fallback initialization after timeout");
-      window.appInitialized = true;
-      initializeApp();
-    }
-  }, 3000); // 3 second timeout
-</script>
-
 <!-- Load the Google Maps API -->
 <script async defer 
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
