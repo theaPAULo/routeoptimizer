@@ -210,5 +210,137 @@
 <script async defer 
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
 </script>
+<!-- Add this at the bottom of your index.html, just before closing </body> tag -->
+<script>
+    // Wait for everything to be fully loaded
+    window.addEventListener('load', function() {
+      console.log("Window fully loaded - setting up UI enhancements");
+      
+      // 1. Set up dark mode toggle
+      const themeToggle = document.getElementById('theme-toggle');
+      if (themeToggle) {
+        console.log("Found theme toggle button");
+        
+        // Apply initial theme based on localStorage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+        
+        // Add click handler
+        themeToggle.addEventListener('click', function() {
+          console.log("Theme toggle clicked");
+          const isDark = document.documentElement.classList.toggle('dark');
+          localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+      }
+      
+      // 2. Add reordering controls to all stops
+      function addReorderingControls() {
+        const stopsContainer = document.getElementById('stops-container');
+        if (!stopsContainer) return;
+        
+        const stops = stopsContainer.querySelectorAll('.stop-item');
+        stops.forEach((stop, index) => {
+          // Skip if already has controls
+          if (stop.querySelector('.reorder-controls')) return;
+          
+          const controls = document.createElement('div');
+          controls.className = 'reorder-controls';
+          controls.style.position = 'absolute';
+          controls.style.right = '40px';
+          controls.style.top = '50%';
+          controls.style.transform = 'translateY(-50%)';
+          controls.style.zIndex = '5';
+          controls.style.display = 'flex';
+          controls.style.gap = '4px';
+          
+          // Add up button (if not first item)
+          if (index > 0) {
+            const upBtn = document.createElement('button');
+            upBtn.type = 'button';
+            upBtn.className = 'up-btn';
+            upBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+            upBtn.style.background = '#f3f4f6';
+            upBtn.style.color = '#3b82f6';
+            upBtn.style.borderRadius = '4px';
+            upBtn.style.width = '24px';
+            upBtn.style.height = '24px';
+            upBtn.style.display = 'flex';
+            upBtn.style.alignItems = 'center';
+            upBtn.style.justifyContent = 'center';
+            
+            upBtn.addEventListener('click', function() {
+              const prev = stop.previousElementSibling;
+              if (prev) {
+                stopsContainer.insertBefore(stop, prev);
+                // Refresh controls after moving
+                setTimeout(addReorderingControls, 10);
+              }
+            });
+            
+            controls.appendChild(upBtn);
+          }
+          
+          // Add down button (if not last item)
+          if (index < stops.length - 1) {
+            const downBtn = document.createElement('button');
+            downBtn.type = 'button';
+            downBtn.className = 'down-btn';
+            downBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
+            downBtn.style.background = '#f3f4f6';
+            downBtn.style.color = '#3b82f6';
+            downBtn.style.borderRadius = '4px';
+            downBtn.style.width = '24px';
+            downBtn.style.height = '24px';
+            downBtn.style.display = 'flex';
+            downBtn.style.alignItems = 'center';
+            downBtn.style.justifyContent = 'center';
+            
+            downBtn.addEventListener('click', function() {
+              const next = stop.nextElementSibling;
+              if (next) {
+                stopsContainer.insertBefore(next, stop);
+                // Refresh controls after moving
+                setTimeout(addReorderingControls, 10);
+              }
+            });
+            
+            controls.appendChild(downBtn);
+          }
+          
+          // Add to stop item
+          const inputContainer = stop.querySelector('.relative');
+          if (inputContainer) {
+            inputContainer.appendChild(controls);
+          }
+        });
+      }
+      
+      // Initial setup
+      addReorderingControls();
+      
+      // Watch for new stops being added
+      const stopsContainer = document.getElementById('stops-container');
+      if (stopsContainer) {
+        const observer = new MutationObserver(function(mutations) {
+          addReorderingControls();
+        });
+        
+        observer.observe(stopsContainer, { childList: true });
+      }
+      
+      // Handle add stop button
+      const addStopBtn = document.getElementById('add-stop-btn');
+      if (addStopBtn) {
+        const originalClick = addStopBtn.onclick;
+        
+        addStopBtn.onclick = function(e) {
+          if (originalClick) originalClick.call(this, e);
+          setTimeout(addReorderingControls, 100);
+        };
+      }
+    });
+  </script>
 </body>
 </html>
