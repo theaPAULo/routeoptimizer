@@ -196,151 +196,220 @@
     </div>
     
    <!-- At the bottom of your index.html, update the script loading -->
+<!-- Load application JavaScript -->
 <script src="app.js"></script>
+
+<!-- Wait for everything to be loaded -->
 <script>
-    // Fallback initialization in case the Google Maps callback doesn't fire
-    setTimeout(function() {
-        if (typeof window.appInitialized === 'undefined') {
-            console.log("Fallback initialization after timeout");
-            window.appInitialized = true;
-            initializeApp();
-        }
-    }, 3000); // 3 second timeout
-</script>
-<script async defer 
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
-</script>
-<!-- Add this at the bottom of your index.html, just before closing </body> tag -->
-<script>
-    // Wait for everything to be fully loaded
-    window.addEventListener('load', function() {
-      console.log("Window fully loaded - setting up UI enhancements");
+  // Wait for everything to be fully loaded
+  window.addEventListener('load', function() {
+    console.log("Window fully loaded - setting up UI enhancements");
+    
+    // 1. Set up dark mode toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      console.log("Found theme toggle button");
       
-      // 1. Set up dark mode toggle
-      const themeToggle = document.getElementById('theme-toggle');
-      if (themeToggle) {
-        console.log("Found theme toggle button");
+      // Apply initial theme based on localStorage
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+      
+      // Add click handler
+      themeToggle.addEventListener('click', function() {
+        console.log("Theme toggle clicked");
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
         
-        // Apply initial theme based on localStorage
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-          document.documentElement.classList.add('dark');
+        // Update input styling
+        setTimeout(updateDarkModeStyles, 50);
+      });
+    }
+    
+    // Function to update dark mode styling for inputs
+    function updateDarkModeStyles() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const inputs = document.querySelectorAll('input[type="text"]');
+      
+      inputs.forEach(input => {
+        if (isDark) {
+          input.classList.add('dark:bg-gray-700', 'dark:text-white', 'dark:border-gray-600');
+          input.style.backgroundColor = '#374151';
+          input.style.color = 'white';
+          input.style.borderColor = '#4B5563';
+        } else {
+          input.style.backgroundColor = '';
+          input.style.color = '';
+          input.style.borderColor = '';
         }
+      });
+      
+      // Update reorder buttons colors for dark mode
+      const reorderBtns = document.querySelectorAll('.up-btn, .down-btn');
+      reorderBtns.forEach(btn => {
+        if (isDark) {
+          btn.style.backgroundColor = '#4B5563';
+          btn.style.color = '#60A5FA';
+        } else {
+          btn.style.backgroundColor = '#F3F4F6';
+          btn.style.color = '#3B82F6';
+        }
+      });
+    }
+    
+    // Initial dark mode styles update
+    updateDarkModeStyles();
+    
+    // Set up drag and drop
+    function setupDragAndDrop() {
+      const stopsContainer = document.getElementById('stops-container');
+      if (!stopsContainer) return;
+      
+      let draggedItem = null;
+      
+      function handleDragStart(e) {
+        draggedItem = this;
+        this.style.opacity = '0.4';
         
-        // Add click handler
-        themeToggle.addEventListener('click', function() {
-          console.log("Theme toggle clicked");
-          const isDark = document.documentElement.classList.toggle('dark');
-          localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        // Required for Firefox
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.innerHTML);
+      }
+      
+      function handleDragEnd(e) {
+        this.style.opacity = '1';
+        
+        // Remove all drag-over classes
+        document.querySelectorAll('.stop-item').forEach(item => {
+          item.classList.remove('drag-over');
         });
       }
       
-      // 2. Add reordering controls to all stops
-      function addReorderingControls() {
-        const stopsContainer = document.getElementById('stops-container');
-        if (!stopsContainer) return;
+      function handleDragOver(e) {
+        e.preventDefault();
+        return false;
+      }
+      
+      function handleDragEnter(e) {
+        this.classList.add('drag-over');
+      }
+      
+      function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+      }
+      
+      function handleDrop(e) {
+        e.stopPropagation();
         
-        const stops = stopsContainer.querySelectorAll('.stop-item');
-        stops.forEach((stop, index) => {
-          // Skip if already has controls
-          if (stop.querySelector('.reorder-controls')) return;
+        if (draggedItem !== this) {
+          // Insert the dragged item before this one
+          stopsContainer.insertBefore(draggedItem, this);
           
-          const controls = document.createElement('div');
-          controls.className = 'reorder-controls';
-          controls.style.position = 'absolute';
-          controls.style.right = '40px';
-          controls.style.top = '50%';
-          controls.style.transform = 'translateY(-50%)';
-          controls.style.zIndex = '5';
-          controls.style.display = 'flex';
-          controls.style.gap = '4px';
-          
-          // Add up button (if not first item)
-          if (index > 0) {
-            const upBtn = document.createElement('button');
-            upBtn.type = 'button';
-            upBtn.className = 'up-btn';
-            upBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
-            upBtn.style.background = '#f3f4f6';
-            upBtn.style.color = '#3b82f6';
-            upBtn.style.borderRadius = '4px';
-            upBtn.style.width = '24px';
-            upBtn.style.height = '24px';
-            upBtn.style.display = 'flex';
-            upBtn.style.alignItems = 'center';
-            upBtn.style.justifyContent = 'center';
-            
-            upBtn.addEventListener('click', function() {
-              const prev = stop.previousElementSibling;
-              if (prev) {
-                stopsContainer.insertBefore(stop, prev);
-                // Refresh controls after moving
-                setTimeout(addReorderingControls, 10);
-              }
-            });
-            
-            controls.appendChild(upBtn);
+          // Refresh autocompletes if available
+          if (typeof refreshAutocompletes === 'function') {
+            refreshAutocompletes();
           }
+        }
+        
+        return false;
+      }
+      
+      // Add event listeners to all stop items
+      function addDragListeners() {
+        document.querySelectorAll('.stop-item').forEach(item => {
+          // Skip if already set up
+          if (item.getAttribute('data-draggable') === 'true') return;
           
-          // Add down button (if not last item)
-          if (index < stops.length - 1) {
-            const downBtn = document.createElement('button');
-            downBtn.type = 'button';
-            downBtn.className = 'down-btn';
-            downBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
-            downBtn.style.background = '#f3f4f6';
-            downBtn.style.color = '#3b82f6';
-            downBtn.style.borderRadius = '4px';
-            downBtn.style.width = '24px';
-            downBtn.style.height = '24px';
-            downBtn.style.display = 'flex';
-            downBtn.style.alignItems = 'center';
-            downBtn.style.justifyContent = 'center';
-            
-            downBtn.addEventListener('click', function() {
-              const next = stop.nextElementSibling;
-              if (next) {
-                stopsContainer.insertBefore(next, stop);
-                // Refresh controls after moving
-                setTimeout(addReorderingControls, 10);
-              }
-            });
-            
-            controls.appendChild(downBtn);
-          }
+          // Mark as draggable
+          item.setAttribute('draggable', 'true');
+          item.setAttribute('data-draggable', 'true');
           
-          // Add to stop item
-          const inputContainer = stop.querySelector('.relative');
+          // Add a drag handle
+          const inputContainer = item.querySelector('.relative');
           if (inputContainer) {
-            inputContainer.appendChild(controls);
+            const dragHandle = document.createElement('span');
+            dragHandle.className = 'drag-handle';
+            dragHandle.innerHTML = '<i class="fas fa-grip-vertical text-gray-400"></i>';
+            dragHandle.style.position = 'absolute';
+            dragHandle.style.left = '0';
+            dragHandle.style.top = '50%';
+            dragHandle.style.transform = 'translateY(-50%)';
+            dragHandle.style.width = '30px';
+            dragHandle.style.height = '100%';
+            dragHandle.style.display = 'flex';
+            dragHandle.style.alignItems = 'center';
+            dragHandle.style.justifyContent = 'center';
+            dragHandle.style.cursor = 'grab';
+            dragHandle.style.zIndex = '10';
+            inputContainer.prepend(dragHandle);
+            
+            // Update input padding
+            const input = inputContainer.querySelector('input');
+            if (input) {
+              input.style.paddingLeft = '30px';
+            }
           }
+          
+          // Add event listeners
+          item.addEventListener('dragstart', handleDragStart, false);
+          item.addEventListener('dragend', handleDragEnd, false);
+          item.addEventListener('dragover', handleDragOver, false);
+          item.addEventListener('dragenter', handleDragEnter, false);
+          item.addEventListener('dragleave', handleDragLeave, false);
+          item.addEventListener('drop', handleDrop, false);
         });
       }
       
       // Initial setup
-      addReorderingControls();
+      addDragListeners();
       
-      // Watch for new stops being added
-      const stopsContainer = document.getElementById('stops-container');
-      if (stopsContainer) {
-        const observer = new MutationObserver(function(mutations) {
-          addReorderingControls();
-        });
-        
-        observer.observe(stopsContainer, { childList: true });
-      }
+      // Watch for new items
+      const observer = new MutationObserver(function(mutations) {
+        addDragListeners();
+      });
       
-      // Handle add stop button
-      const addStopBtn = document.getElementById('add-stop-btn');
-      if (addStopBtn) {
-        const originalClick = addStopBtn.onclick;
-        
-        addStopBtn.onclick = function(e) {
-          if (originalClick) originalClick.call(this, e);
-          setTimeout(addReorderingControls, 100);
-        };
+      observer.observe(stopsContainer, { childList: true });
+    }
+    
+    // Set up drag and drop
+    setupDragAndDrop();
+    
+    // Add CSS for drag and drop
+    const style = document.createElement('style');
+    style.textContent = `
+      .stop-item {
+        transition: opacity 0.2s ease;
       }
-    });
-  </script>
+      .stop-item.drag-over {
+        border: 2px dashed #3B82F6;
+        padding: 4px;
+      }
+      .drag-handle {
+        cursor: grab;
+      }
+      .drag-handle:active {
+        cursor: grabbing;
+      }
+    `;
+    document.head.appendChild(style);
+  });
+</script>
+
+<!-- Fallback initialization in case Google Maps callback doesn't fire -->
+<script>
+  setTimeout(function() {
+    if (typeof window.appInitialized === 'undefined') {
+      console.log("Fallback initialization after timeout");
+      window.appInitialized = true;
+      initializeApp();
+    }
+  }, 3000); // 3 second timeout
+</script>
+
+<!-- Load the Google Maps API -->
+<script async defer 
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCancy_vwbDbYZavxDjtpL7NW4lYl8Tkmk&libraries=places&callback=initMap">
+</script>
 </body>
 </html>
