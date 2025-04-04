@@ -468,11 +468,6 @@ async function validateAddresses(locations) {
     }
 }
 
-/**
- * Geocodes an address to coordinates
- * @param {string} address - The address to geocode
- * @returns {Promise} - Promise resolving to location object with coordinates
- */
 function geocodeAddress(address) {
     return new Promise((resolve, reject) => {
         console.log("Geocoding address:", address);
@@ -499,12 +494,25 @@ function geocodeAddress(address) {
                     placeName = address.split(',')[0].trim();
                 }
                 
+                // Check if this looks like a business name (not just a street address)
+                // Street addresses usually start with numbers
+                const isLikelyBusiness = !/^\d+\s/.test(placeName);
+                
                 const result = {
                     address: results[0].formatted_address,
                     location: results[0].geometry.location,
                     placeId: results[0].place_id,
-                    name: placeName // Store the extracted name
+                    // Only store the name if it looks like a business name
+                    name: isLikelyBusiness ? placeName : ''
                 };
+                
+                // Special case for addresses that lost their business name during geocoding
+                // Check if original address contained a business name that's not in the formatted address
+                if (isLikelyBusiness && !results[0].formatted_address.includes(placeName)) {
+                    // This is likely a business that was geocoded to its street address
+                    // Store the original business name
+                    result.name = placeName;
+                }
                 
                 // Cache the result
                 localStorage.setItem(cacheKey, JSON.stringify(result));
@@ -726,43 +734,57 @@ function displayRouteResults(route) {
     // Clear previous route list
     routeList.innerHTML = '';
     
-    // Add route points to list
-    route.waypoints.forEach((point, index) => {
-        const listItem = document.createElement('li');
-        listItem.className = 'fade-in-up';
-        listItem.style.animationDelay = `${index * 0.1}s`;
+// Inside the displayRouteResults function, modify the forEach loop:
+route.waypoints.forEach((point, index) => {
+    const listItem = document.createElement('li');
+    listItem.className = 'fade-in-up';
+    listItem.style.animationDelay = `${index * 0.1}s`;
+    
+    let typeClass = '';
+    if (point.type === 'start') typeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    else if (point.type === 'end') typeClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+    else typeClass = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+    
+    // Prepare the display name and address
+    let displayName = '';
+    let displayAddress = point.address;
+    
+    // If the point type is 'start', add "START" label
+    if (point.type === 'start') {
+        displayName = `<div class="stop-name font-medium">START</div>`;
+    } 
+    // If the point type is 'end', add "END" label
+    else if (point.type === 'end') {
+        displayName = `<div class="stop-name font-medium">END</div>`;
+    }
+    // If the point type is 'stop', add "STOP" label
+    else if (point.type === 'stop') {
+        displayName = `<div class="stop-name font-medium">STOP</div>`;
+    }
+    
+    // If the point has a business name, show that instead of the generic label
+    if (point.name && point.name !== '') {
+        displayName = `<div class="stop-name font-medium">${point.name}</div>`;
         
-        let typeClass = '';
-        if (point.type === 'start') typeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-        else if (point.type === 'end') typeClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-        else typeClass = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-        
-        // Prepare the display name and address
-        let displayName = '';
-        let displayAddress = point.address;
-        
-        // If the point has a name, display it
-        if (point.name && point.name !== '') {
-            displayName = `<div class="stop-name font-medium">${point.name}</div>`;
-            // Remove the name from the address display if it starts with the same text
-            if (displayAddress.startsWith(point.name)) {
-                const addressParts = displayAddress.split(', ');
-                addressParts.shift(); // Remove the first part (the name)
-                displayAddress = addressParts.join(', ');
-            }
+        // Remove the name from the address display if it starts with the same text
+        if (displayAddress.startsWith(point.name)) {
+            const addressParts = displayAddress.split(', ');
+            addressParts.shift(); // Remove the first part (the name)
+            displayAddress = addressParts.join(', ');
         }
-        
-        listItem.innerHTML = `
-            <div class="stop-number">${index + 1}</div>
-            <div class="stop-details">
-                ${displayName}
-                <div class="stop-address text-sm text-gray-600 dark:text-gray-400">${displayAddress}</div>
-            </div>
-            <div class="stop-type ${point.type} ${typeClass} text-xs font-medium px-2 py-1 rounded-full">${point.type}</div>
-        `;
-        
-        routeList.appendChild(listItem);
-    });
+    }
+    
+    listItem.innerHTML = `
+        <div class="stop-number">${index + 1}</div>
+        <div class="stop-details">
+            ${displayName}
+            <div class="stop-address text-sm text-gray-600 dark:text-gray-400">${displayAddress}</div>
+        </div>
+        <div class="stop-type ${point.type} ${typeClass} text-xs font-medium px-2 py-1 rounded-full">${point.type}</div>
+    `;
+    
+    routeList.appendChild(listItem);
+});
     
     // Show results section
     inputSection.classList.add('hidden');
