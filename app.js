@@ -1057,7 +1057,7 @@ function reverseGeocode(lat, lng) {
                     google.maps.event.trigger(autocompleteInstance, 'place_changed');
                 }
                 
-                showAlert("Your current location has been added!", 'success');
+                showAlert("Your location has been detected successfully!", 'success');
             } else {
                 startLocationInput.value = '';
                 showAlert("No address found for your location. Please enter it manually.", 'error');
