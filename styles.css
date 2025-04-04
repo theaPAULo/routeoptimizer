@@ -377,6 +377,36 @@ form label:hover {
     color: #bfdbfe;
 }
 
+/* Force icon visibility */
+.fa-route, .fa-clock, .fa-moon, .fa-sun, .fas {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Make sure the icons have the correct color */
+#results-section .fa-route, 
+#results-section .fa-clock {
+  color: #4caf50 !important;
+}
+
+/* Ensure theme toggle icon displays correctly */
+#theme-toggle .fa-moon {
+  display: inline-block !important;
+}
+
+#theme-toggle .fa-sun {
+  display: none !important;
+}
+
+.dark #theme-toggle .fa-moon {
+  display: none !important;
+}
+
+.dark #theme-toggle .fa-sun {
+  display: inline-block !important;
+}
+
 /* Dark mode toggle icon styles - FIXED */
 #theme-toggle .fa-moon,
 #theme-toggle .fa-sun {
