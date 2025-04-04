@@ -114,6 +114,7 @@ function initializeGoogleMaps() {
                 }
             });
             
+            
             console.log("Map initialized successfully");
         } else {
             console.error("Map container not found");
