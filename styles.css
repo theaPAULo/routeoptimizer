@@ -382,9 +382,9 @@ form label:hover {
     display: inline-block !important;
     visibility: visible !important;
     opacity: 1 !important;
-  }
+}
 
-  /* Make sure the icons have the correct color */
+/* Make sure the icons have the correct color */
 #results-section .fa-route, 
 #results-section .fa-clock {
   color: #4caf50 !important;
@@ -392,7 +392,7 @@ form label:hover {
 
 /* Ensure theme toggle icon displays correctly */
 #theme-toggle .fa-moon {
-  display: inline-block !important;
+  display: block !important;
 }
 
 #theme-toggle .fa-sun {
@@ -404,24 +404,7 @@ form label:hover {
 }
 
 .dark #theme-toggle .fa-sun {
-  display: inline-block !important;
-}
-
-/* Dark mode toggle icon styles - FIXED */
-#theme-toggle .fa-moon,
-#theme-toggle .fa-sun {
-    font-size: 1.25rem;
-    display: none !important; /* Hide both by default */
-}
-
-/* Show moon icon in light mode */
-html:not(.dark) #theme-toggle .fa-moon {
-    display: block !important;
-}
-
-/* Show sun icon in dark mode */
-html.dark #theme-toggle .fa-sun {
-    display: block !important;
+  display: block !important;
 }
 
 /* ====== RESPONSIVE STYLES ====== */
