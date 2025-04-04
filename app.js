@@ -190,6 +190,7 @@ function refreshAutocompletes() {
     });
 }
 
+
 /**
  * Adds a new stop input field to the form with Google Places autocomplete
  */
@@ -198,16 +199,16 @@ function addStopInput() {
     const stopId = `stop-${stopCounter}`;
     
     const stopDiv = document.createElement('div');
-    stopDiv.className = 'stop-item fade-in';
+    stopDiv.className = 'stop-item fade-in-up';
     stopDiv.innerHTML = `
         <div class="relative flex items-center mb-2">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <i class="fas fa-map-marker-alt text-gray-400"></i>
+                <i class="fas fa-map-marker-alt text-primary-400"></i>
             </span>
             <input 
                 type="text" 
                 id="${stopId}" 
-                class="block w-full pl-10 pr-12 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                class="block w-full pl-10 pr-12 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
                 placeholder="Enter stop address"
                 required
             >
@@ -703,13 +704,18 @@ function displayRouteResults(route) {
     // Add route points to list
     route.waypoints.forEach((point, index) => {
         const listItem = document.createElement('li');
-        listItem.className = 'slide-down';
+        listItem.className = 'fade-in-up';
         listItem.style.animationDelay = `${index * 0.1}s`;
+        
+        let typeClass = '';
+        if (point.type === 'start') typeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        else if (point.type === 'end') typeClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        else typeClass = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
         
         listItem.innerHTML = `
             <div class="stop-number">${index + 1}</div>
             <div class="stop-address">${point.address}</div>
-            <div class="stop-type ${point.type}">${point.type}</div>
+            <div class="stop-type ${point.type} ${typeClass} text-xs font-medium px-2 py-1 rounded-full">${point.type}</div>
         `;
         
         routeList.appendChild(listItem);

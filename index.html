@@ -84,6 +84,12 @@ tailwind.config = {
             </div>
             <p class="text-gray-600 dark:text-gray-400 mt-2 font-light">Drive Less, Save Time</p>
 
+            <h1 class="text-3xl font-bold text-primary-800 dark:text-primary-400 app-logo flex items-center">
+                <span class="mr-2 bg-primary-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                    <i class="fas fa-route text-sm"></i>
+                </span>
+                DriveLess
+            </h1>
         </header>
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6639027591546236"
         crossorigin="anonymous"></script>
@@ -199,18 +205,18 @@ tailwind.config = {
                 <h2 class="text-xl font-semibold mb-4 dark:text-white">Optimal Route</h2>
                 
                 <div class="grid md:grid-cols-2 gap-4 mb-6">
-                    <div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-md">
+                    <div class="bg-primary-50 dark:bg-primary-900/30 p-4 rounded-md card">
                         <div class="flex items-center">
-                            <i class="fas fa-route text-blue-600 dark:text-blue-400 text-xl mr-3"></i>
+                            <i class="fas fa-route text-primary-600 dark:text-primary-400 text-xl mr-3"></i>
                             <div>
                                 <h3 class="text-gray-500 dark:text-gray-300 text-sm">Total Distance</h3>
                                 <p id="total-distance" class="font-medium text-lg dark:text-white">0 miles</p>
                             </div>
                         </div>
                     </div>
-                    <div class="bg-blue-50 dark:bg-blue-900 p-4 rounded-md">
+                    <div class="bg-primary-50 dark:bg-primary-900/30 p-4 rounded-md card">
                         <div class="flex items-center">
-                            <i class="fas fa-clock text-blue-600 dark:text-blue-400 text-xl mr-3"></i>
+                            <i class="fas fa-clock text-primary-600 dark:text-primary-400 text-xl mr-3"></i>
                             <div>
                                 <h3 class="text-gray-500 dark:text-gray-300 text-sm">Estimated Time</h3>
                                 <p id="estimated-time" class="font-medium text-lg dark:text-white">0 min</p>
@@ -250,20 +256,20 @@ tailwind.config = {
                 <div class="flex justify-between">
                     <button 
                         id="back-btn"
-                        class="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                        class="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors btn-secondary"
                     >
                         Back to Stops
                     </button>
                     <div class="space-x-2">
                         <button 
                             id="google-maps-btn"
-                            class="py-2 px-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                            class="py-2 px-4 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors btn-primary"
                         >
                             <i class="fas fa-map mr-1"></i> Google Maps
                         </button>
                         <button 
                             id="apple-maps-btn"
-                            class="py-2 px-4 bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                            class="py-2 px-4 bg-accent hover:bg-accent-dark dark:bg-accent dark:hover:bg-accent-dark text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 transition-colors"
                         >
                             <i class="fas fa-map-marker-alt mr-1"></i> Apple Maps
                         </button>
@@ -358,45 +364,57 @@ tailwind.config = {
         }
         
         // Function to update dark mode styling for inputs
-        function updateDarkModeStyles() {
-          const isDark = document.documentElement.classList.contains('dark');
-          
-          // Update all text inputs (both in form and results section)
-          const inputs = document.querySelectorAll('input[type="text"]');
-          inputs.forEach(input => {
-            if (isDark) {
-              input.style.backgroundColor = '#374151';
-              input.style.color = 'white';
-              input.style.borderColor = '#4B5563';
-            } else {
-              input.style.backgroundColor = '';
-              input.style.color = '';
-              input.style.borderColor = '';
-            }
-          });
-          
-          // Update route list items in results section
-          const routeItems = document.querySelectorAll('#route-list li');
-          routeItems.forEach(item => {
-            if (isDark) {
-              item.style.backgroundColor = '#4B5563';
-              item.style.borderLeftColor = '#60A5FA';
-            } else {
-              item.style.backgroundColor = '';
-              item.style.borderLeftColor = '';
-            }
-          });
-          
-          // Update stop numbers in results
-          const stopNumbers = document.querySelectorAll('.stop-number');
-          stopNumbers.forEach(num => {
-            if (isDark) {
-              num.style.backgroundColor = '#3B82F6';
-            } else {
-              num.style.backgroundColor = '';
-            }
-          });
-        }
+// Function to update dark mode styling for inputs
+function updateDarkModeStyles() {
+    const isDark = document.documentElement.classList.contains('dark');
+    
+    // Update all text inputs (both in form and results section)
+    const inputs = document.querySelectorAll('input[type="text"]');
+    inputs.forEach(input => {
+      if (isDark) {
+        input.style.backgroundColor = '#374151';
+        input.style.color = 'white';
+        input.style.borderColor = '#4B5563';
+      } else {
+        input.style.backgroundColor = '';
+        input.style.color = '';
+        input.style.borderColor = '';
+      }
+    });
+    
+    // Update route list items in results section
+    const routeItems = document.querySelectorAll('#route-list li');
+    routeItems.forEach(item => {
+      if (isDark) {
+        item.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+        item.style.borderLeftColor = '#81c784';
+      } else {
+        item.style.backgroundColor = '#f1f8e9';
+        item.style.borderLeftColor = '#4caf50';
+      }
+    });
+    
+    // Update stop numbers in results
+    const stopNumbers = document.querySelectorAll('.stop-number');
+    stopNumbers.forEach(num => {
+      if (isDark) {
+        num.style.backgroundColor = '#66bb6a';
+      } else {
+        num.style.backgroundColor = '#4caf50';
+      }
+    });
+    
+    // Update cards in the UI
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+      if (isDark) {
+        card.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.2)';
+      } else {
+        card.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)';
+      }
+    });
+  }
+
         
         // Initial dark mode styles update
         updateDarkModeStyles();
