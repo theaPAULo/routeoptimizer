@@ -53,7 +53,14 @@ function initializeApp() {
         // Add event listeners for map buttons
         document.getElementById('google-maps-btn').addEventListener('click', openGoogleMaps);
         document.getElementById('apple-maps-btn').addEventListener('click', openAppleMaps);
-        
+        // Add location button event listener
+        const useLocationBtn = document.getElementById('use-location-btn');
+        if (useLocationBtn) {
+            useLocationBtn.addEventListener('click', getCurrentLocation);
+            console.log("Added event listener for location button");
+        } else {
+            console.error("Location button not found");
+}
         // Set up admin functionality
         setupAdminFunctionality();
         
@@ -942,6 +949,125 @@ function setupAdminFunctionality() {
     }
   }
 
+// Add this function to app.js after the initializeGoogleMaps function
+
+/**
+ * Gets the user's current location using the Geolocation API
+ */
+function getCurrentLocation() {
+    // Show a loading indicator
+    const startLocationInput = document.getElementById('start-location');
+    startLocationInput.value = 'Detecting your location...';
+    startLocationInput.disabled = true;
+    
+    // Check if geolocation is available in the browser
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            // Success callback
+            function(position) {
+                console.log("Geolocation successful:", position);
+                
+                // Get coordinates
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                // Use reverse geocoding to get a readable address
+                reverseGeocode(lat, lng);
+            },
+            // Error callback
+            function(error) {
+                startLocationInput.disabled = false;
+                startLocationInput.value = '';
+                
+                console.error("Geolocation error:", error);
+                
+                let errorMessage = "Unable to get your location. ";
+                
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage += "Please allow location access in your browser settings.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage += "Location information is unavailable.";
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage += "The request to get your location timed out.";
+                        break;
+                    case error.UNKNOWN_ERROR:
+                        errorMessage += "An unknown error occurred.";
+                        break;
+                }
+                
+                showAlert(errorMessage, 'error');
+            },
+            // Options
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        // Browser doesn't support Geolocation
+        startLocationInput.disabled = false;
+        startLocationInput.value = '';
+        showAlert("Geolocation is not supported by your browser. Please enter your address manually.", 'error');
+    }
+}
+
+/**
+ * Reverse geocodes coordinates to an address
+ * @param {number} lat - Latitude
+ * @param {number} lng - Longitude
+ */
+function reverseGeocode(lat, lng) {
+    console.log("Reverse geocoding coordinates:", lat, lng);
+    
+    const startLocationInput = document.getElementById('start-location');
+    
+    // Create a latlng object for the geocoder
+    const latlng = new google.maps.LatLng(lat, lng);
+    
+    // Use the geocoder to get an address
+    geocoder.geocode({ 'location': latlng }, function(results, status) {
+        startLocationInput.disabled = false;
+        
+        if (status === 'OK') {
+            if (results[0]) {
+                // Use the most accurate address (usually the first result)
+                const address = results[0].formatted_address;
+                console.log("Reverse geocoded address:", address);
+                
+                // Set the input value
+                startLocationInput.value = address;
+                
+                // Create a synthetic Place object for the autocomplete system to work with
+                const place = {
+                    address_components: results[0].address_components,
+                    formatted_address: address,
+                    geometry: {
+                        location: latlng
+                    },
+                    place_id: results[0].place_id
+                };
+                
+                // Trigger an event as if the autocomplete had selected this address
+                const autocompleteInstance = autocompletes.find(a => a.id === 'start-location')?.instance;
+                if (autocompleteInstance) {
+                    google.maps.event.trigger(autocompleteInstance, 'place_changed');
+                }
+                
+                showAlert("Your location has been detected successfully!", 'success');
+            } else {
+                startLocationInput.value = '';
+                showAlert("No address found for your location. Please enter it manually.", 'error');
+            }
+        } else {
+            startLocationInput.value = '';
+            showAlert("Could not convert your coordinates to an address. Please enter it manually. Error: " + status, 'error');
+        }
+    });
+}
 
 /**
  * Get place details for an address marker
