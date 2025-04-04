@@ -411,21 +411,16 @@ form label:hover {
 #theme-toggle .fa-moon,
 #theme-toggle .fa-sun {
     font-size: 1.25rem;
+    display: none !important; /* Hide both by default */
 }
 
-.dark #theme-toggle .fa-sun {
+/* Show moon icon in light mode */
+html:not(.dark) #theme-toggle .fa-moon {
     display: block !important;
 }
 
-.dark #theme-toggle .fa-moon {
-    display: none !important;
-}
-
-html:not(.dark) #theme-toggle .fa-sun {
-    display: none !important;
-}
-
-html:not(.dark) #theme-toggle .fa-moon {
+/* Show sun icon in dark mode */
+html.dark #theme-toggle .fa-sun {
     display: block !important;
 }
 
