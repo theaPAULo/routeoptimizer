@@ -475,11 +475,6 @@ async function validateAddresses(locations) {
     }
 }
 
-/**
- * Geocodes an address to coordinates
- * @param {string} address - The address to geocode
- * @returns {Promise} - Promise resolving to location object with coordinates
- */
 function geocodeAddress(address) {
     return new Promise((resolve, reject) => {
         console.log("Geocoding address:", address);
@@ -490,7 +485,21 @@ function geocodeAddress(address) {
         
         if (cached) {
             console.log("Using cached geocoding result");
-            resolve(JSON.parse(cached));
+            const cachedResult = JSON.parse(cached);
+            
+            // Ensure the name is set correctly (add this check)
+            if (!cachedResult.name && address) {
+                // Extract name from the original address
+                if (address.includes(',')) {
+                    cachedResult.name = address.split(',')[0].trim();
+                    cachedResult.originalAddress = address;
+                    
+                    // Update the cache with the fixed result
+                    localStorage.setItem(cacheKey, JSON.stringify(cachedResult));
+                }
+            }
+            
+            resolve(cachedResult);
             return;
         }
         
@@ -499,7 +508,7 @@ function geocodeAddress(address) {
             console.log(`Geocoding result for "${address}":`, status, results);
             
             if (status === 'OK' && results && results.length > 0) {
-                // Simply extract the part before the first comma as the name
+                // Extract name from the original address
                 let name = '';
                 if (address.includes(',')) {
                     name = address.split(',')[0].trim();
@@ -509,7 +518,8 @@ function geocodeAddress(address) {
                     address: results[0].formatted_address,
                     location: results[0].geometry.location,
                     placeId: results[0].place_id,
-                    name: name
+                    name: name,
+                    originalAddress: address
                 };
                 
                 // Cache the result
@@ -524,11 +534,6 @@ function geocodeAddress(address) {
     });
 }
 
-/**
- * Calculates an optimized route using Google Directions Service
- * @param {Object} locations - Object containing geocoded addresses
- * @returns {Promise} - Promise resolving to route data
- */
 function calculateOptimizedRoute(locations) {
     return new Promise((resolve, reject) => {
         console.log("Calculating optimized route...");
@@ -580,11 +585,18 @@ function calculateOptimizedRoute(locations) {
                     durationText = `${totalDurationMinutes} min`;
                 }
                 
+                // Extract the first part of the original address as the name
+                const extractName = (addr) => {
+                    if (!addr) return '';
+                    return addr.includes(',') ? addr.split(',')[0].trim() : addr;
+                };
+
                 // Create ordered waypoints list based on the optimization
                 const orderedWaypoints = [
                     { 
-                        address: locations.start.address, 
-                        name: locations.start.name || extractBusinessName(locations.start.address),
+                        address: locations.start.address,
+                        // Ensure we're getting the name either from the geocoded result or the original input
+                        name: locations.start.name || extractName(locations.start.originalAddress || ''),
                         type: 'start' 
                     }
                 ];
@@ -593,7 +605,7 @@ function calculateOptimizedRoute(locations) {
                 for (const index of waypointOrder) {
                     orderedWaypoints.push({
                         address: locations.stops[index].address,
-                        name: locations.stops[index].name || extractBusinessName(locations.stops[index].address),
+                        name: locations.stops[index].name || extractName(locations.stops[index].originalAddress || ''),
                         type: 'stop'
                     });
                 }
@@ -601,9 +613,12 @@ function calculateOptimizedRoute(locations) {
                 // Add destination
                 orderedWaypoints.push({
                     address: locations.end.address,
-                    name: locations.end.name || extractBusinessName(locations.end.address),
+                    name: locations.end.name || extractName(locations.end.originalAddress || ''),
                     type: 'end'
                 });
+                
+                // Add debugging to see what names are actually being passed
+                console.log("Ordered waypoints with names:", orderedWaypoints);
                 
                 // Create route object
                 const route = {
@@ -753,6 +768,7 @@ function displayRouteResults(route) {
     routeList.innerHTML = '';
     
 // Inside the displayRouteResults function, modify the forEach loop:
+// Inside the displayRouteResults function, modify the forEach loop:
 route.waypoints.forEach((point, index) => {
     const listItem = document.createElement('li');
     listItem.className = 'fade-in-up';
@@ -767,12 +783,15 @@ route.waypoints.forEach((point, index) => {
     let displayName = '';
     let displayAddress = point.address;
     
-    // Default labels based on point type if no name is available
+    // Default labels based on point type
     const defaultLabels = {
         'start': 'START',
         'stop': 'STOP',
         'end': 'END'
     };
+    
+    // Debug what point.name contains
+    console.log(`Point ${index} name:`, point.name);
     
     // Always use the name if it exists, otherwise fall back to default label
     const nameToDisplay = point.name || defaultLabels[point.type];
