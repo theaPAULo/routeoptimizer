@@ -105,7 +105,7 @@ function initializeGoogleMaps() {
             // Create directions renderer for displaying routes
             directionsRenderer = new google.maps.DirectionsRenderer({
                 map: map,
-                suppressMarkers: false,
+                suppressMarkers: true,
                 draggable: false,
                 polylineOptions: {
                     strokeColor: '#3b82f6',
@@ -767,47 +767,43 @@ function displayRouteResults(route) {
     // Clear previous route list
     routeList.innerHTML = '';
     
-// Inside the displayRouteResults function, modify the forEach loop:
-// Inside the displayRouteResults function, modify the forEach loop:
-route.waypoints.forEach((point, index) => {
-    const listItem = document.createElement('li');
-    listItem.className = 'fade-in-up';
-    listItem.style.animationDelay = `${index * 0.1}s`;
-    
-    let typeClass = '';
-    if (point.type === 'start') typeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-    else if (point.type === 'end') typeClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-    else typeClass = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-    
-    // Prepare the display name and address
-    let displayName = '';
-    let displayAddress = point.address;
-    
-    // Default labels based on point type
-    const defaultLabels = {
-        'start': 'START',
-        'stop': 'STOP',
-        'end': 'END'
-    };
-    
-    // Debug what point.name contains
-    console.log(`Point ${index} name:`, point.name);
-    
-    // Always use the name if it exists, otherwise fall back to default label
-    const nameToDisplay = point.name || defaultLabels[point.type];
-    displayName = `<div class="stop-name font-medium">${nameToDisplay}</div>`;
-    
-    listItem.innerHTML = `
-        <div class="stop-number">${index + 1}</div>
-        <div class="stop-details">
-            ${displayName}
-            <div class="stop-address text-sm text-gray-600 dark:text-gray-400">${displayAddress}</div>
-        </div>
-        <div class="stop-type ${point.type} ${typeClass} text-xs font-medium px-2 py-1 rounded-full">${point.type}</div>
-    `;
-    
-    routeList.appendChild(listItem);
-});
+    // Add route points to list
+    route.waypoints.forEach((point, index) => {
+        const listItem = document.createElement('li');
+        listItem.className = 'fade-in-up';
+        listItem.style.animationDelay = `${index * 0.1}s`;
+        
+        let typeClass = '';
+        if (point.type === 'start') typeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        else if (point.type === 'end') typeClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        else typeClass = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+        
+        // Prepare the display name and address
+        let displayName = '';
+        let displayAddress = point.address;
+        
+        // Default labels based on point type
+        const defaultLabels = {
+            'start': 'START',
+            'stop': 'STOP',
+            'end': 'END'
+        };
+        
+        // Always use the name if it exists, otherwise fall back to default label
+        const nameToDisplay = point.name || defaultLabels[point.type];
+        displayName = `<div class="stop-name font-medium">${nameToDisplay}</div>`;
+        
+        listItem.innerHTML = `
+            <div class="stop-number">${index + 1}</div>
+            <div class="stop-details">
+                ${displayName}
+                <div class="stop-address text-sm text-gray-600 dark:text-gray-400">${displayAddress}</div>
+            </div>
+            <div class="stop-type ${point.type} ${typeClass} text-xs font-medium px-2 py-1 rounded-full">${point.type}</div>
+        `;
+        
+        routeList.appendChild(listItem);
+    });
     
     // Show results section
     inputSection.classList.add('hidden');
@@ -828,7 +824,81 @@ route.waypoints.forEach((point, index) => {
             bounds.extend(leg.end_location);
         });
         map.fitBounds(bounds);
+        
+        // Add custom markers with info windows
+        addRouteMarkers(route);
     }, 100);
+}
+
+/**
+ * Adds standard Google markers for each waypoint with proper info windows
+ * @param {Object} route - The route object with waypoint data
+ */
+function addRouteMarkers(route) {
+    // Clear existing markers if any
+    if (window.routeMarkers) {
+        window.routeMarkers.forEach(marker => marker.setMap(null));
+    }
+    window.routeMarkers = [];
+    
+    // Get route legs for positions
+    const legs = route.directionsResult.routes[0].legs;
+    
+    // Add marker for each waypoint
+    route.waypoints.forEach((point, index) => {
+        let position;
+        let labelText = (index + 1).toString();
+        
+        if (index === 0) {
+            // Start location
+            position = legs[0].start_location;
+        } else if (index === route.waypoints.length - 1) {
+            // End location
+            position = legs[legs.length - 1].end_location;
+        } else {
+            // Intermediate stop - use the destination of the previous leg
+            position = legs[index - 1].end_location;
+        }
+        
+        // Create standard Google marker with number label
+        const marker = new google.maps.Marker({
+            position: position,
+            map: map,
+            label: {
+                text: labelText,
+                color: 'white',
+                fontWeight: 'bold'
+            }
+        });
+        
+        // Create info window content with business name
+        const infoContent = `
+            <div style="font-family: 'Poppins', sans-serif; padding: 8px; min-width: 200px;">
+                <div style="font-weight: 600; font-size: 14px; margin-bottom: 5px;">${point.name || point.type.toUpperCase()}</div>
+                <div style="font-size: 12px; color: #4b5563;">${point.address}</div>
+            </div>
+        `;
+        
+        // Create info window
+        const infoWindow = new google.maps.InfoWindow({
+            content: infoContent
+        });
+        
+        // Add click listener
+        marker.addListener('click', () => {
+            // Close any open info window
+            if (window.currentInfoWindow) {
+                window.currentInfoWindow.close();
+            }
+            
+            // Open this info window
+            infoWindow.open(map, marker);
+            window.currentInfoWindow = infoWindow;
+        });
+        
+        // Store marker for later reference
+        window.routeMarkers.push(marker);
+    });
 }
 
 /**
