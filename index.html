@@ -255,14 +255,8 @@ tailwind.config = {
                     </ol>
                 </div>
                 
-                <div class="flex justify-between">
-                    <button 
-                        id="back-btn"
-                        class="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors btn-secondary"
-                    >
-                        Back to Stops
-                    </button>
-                    <div class="space-x-2">
+                <div id="results-controls" class="flex justify-between">
+                    <div id="map-buttons" class="space-y-2 md:space-y-0 md:space-x-2 flex-1 flex flex-col md:flex-row justify-end">
                         <button 
                             id="google-maps-btn"
                             class="py-2 px-4 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors btn-primary"
@@ -276,6 +270,12 @@ tailwind.config = {
                             <i class="fas fa-map-marker-alt mr-1"></i> Apple Maps
                         </button>
                     </div>
+                    <button 
+                        id="back-btn"
+                        class="py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors btn-secondary mt-2 md:mt-0"
+                    >
+                        Back to Stops
+                    </button>
                 </div>
             </section>
         </main>
@@ -330,7 +330,7 @@ tailwind.config = {
         
         <!-- Footer -->
         <footer class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            <p>&copy; 2025 DriveLess | <a href="#" class="hover:text-gray-700 dark:hover:text-gray-300">Terms</a> | <a href="#" class="hover:text-gray-700 dark:hover:text-gray-300">Privacy</a></p>
+            <p>&copy; 2025 DriveLess | <a href="terms.html" class="hover:text-gray-700 dark:hover:text-gray-300">Terms</a> | <a href="terms.html#privacy" class="hover:text-gray-700 dark:hover:text-gray-300">Privacy</a> | <a href="contact.html" class="hover:text-gray-700 dark:hover:text-gray-300">Contact</a></p>
         </footer>
     </div>
     

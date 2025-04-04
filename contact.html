@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - DriveLess</title>
+    
+    <!-- Add dark mode support -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        'heading': ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    },
+                    colors: {
+                        'primary': {
+                            DEFAULT: '#2e7d32',
+                            '50': '#e8f5e9',
+                            '100': '#c8e6c9',
+                            '200': '#a5d6a7',
+                            '300': '#81c784',
+                            '400': '#66bb6a',
+                            '500': '#4caf50',
+                            '600': '#43a047',
+                            '700': '#388e3c',
+                            '800': '#2e7d32',
+                            '900': '#1b5e20'
+                        },
+                        'accent': {
+                            DEFAULT: '#ffc107',
+                            'dark': '#ff8f00'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-white min-h-screen">
+    <div class="container mx-auto p-4">
+        <header class="mb-8">
+            <div class="flex justify-between items-center">
+                <a href="index.html" class="flex items-center">
+                    <h1 class="text-3xl font-bold text-primary-800 dark:text-primary-400 app-logo">DriveLess</h1>
+                </a>
+                <div class="flex items-center">
+                    <button id="theme-toggle" class="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white">
+                        <i class="fas fa-moon"></i>
+                        <i class="fas fa-sun hidden"></i>
+                    </button>
+                </div>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 mt-2 font-light">Drive Less, Save Time</p>
+        </header>
+
+        <main>
+            <section class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6 card">
+                <h2 class="text-2xl font-semibold mb-6 text-primary-800 dark:text-primary-400">Contact Us</h2>
+                
+                <div id="contact-success" class="hidden mb-6 p-4 bg-green-100 text-green-800 rounded-md">
+                    Thank you for your message! We'll get back to you as soon as possible.
+                </div>
+                
+                <form id="contact-form" class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Your Name
+                        </label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name"
+                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                            required
+                        >
+                    </div>
+                    
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Email Address
+                        </label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email"
+                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                            required
+                        >
+                    </div>
+                    
+                    <div>
+                        <label for="subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Subject
+                        </label>
+                        <select 
+                            id="subject" 
+                            name="subject"
+                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                            required
+                        >
+                            <option value="">Select a subject</option>
+                            <option value="bug-report">Bug Report</option>
+                            <option value="feature-request">Feature Request</option>
+                            <option value="general-question">General Question</option>
+                            <option value="feedback">Feedback</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Message
+                        </label>
+                        <textarea 
+                            id="message" 
+                            name="message"
+                            rows="5"
+                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                            required
+                        ></textarea>
+                    </div>
+                    
+                    <div class="pt-2">
+                        <button 
+                            type="submit"
+                            class="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+                        >
+                            Send Message
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="text-center mt-10">
+                <a href="index.html" class="inline-block py-2 px-4 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md shadow-sm transition-colors">
+                    <i class="fas fa-arrow-left mr-1"></i> Back to App
+                </a>
+            </div>
+        </main>
+        
+        <footer class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>&copy; 2025 DriveLess | <a href="terms.html" class="hover:text-gray-700 dark:hover:text-gray-300">Terms</a> | <a href="terms.html#privacy" class="hover:text-gray-700 dark:hover:text-gray-300">Privacy</a> | <a href="contact.html" class="hover:text-gray-700 dark:hover:text-gray-300">Contact</a></p>
+        </footer>
+    </div>
+
+    <!-- Theme Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+                console.log("Found theme toggle button");
+                
+                themeToggle.addEventListener('click', function() {
+                    console.log("Theme toggle clicked");
+                    const isDark = document.documentElement.classList.toggle('dark');
+                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                    
+                    // Toggle visibility of sun/moon icons
+                    const moonIcon = themeToggle.querySelector('.fa-moon');
+                    const sunIcon = themeToggle.querySelector('.fa-sun');
+                    
+                    if (isDark) {
+                        moonIcon.style.display = 'none';
+                        sunIcon.style.display = 'block';
+                    } else {
+                        moonIcon.style.display = 'block';
+                        sunIcon.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Contact form handling
+            const contactForm = document.getElementById('contact-form');
+            const successMessage = document.getElementById('contact-success');
+            
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // In a real application, you would send this data to your server
+                    // For now, we'll just show a success message
+                    successMessage.classList.remove('hidden');
+                    contactForm.reset();
+                    
+                    // Hide success message after 5 seconds
+                    setTimeout(function() {
+                        successMessage.classList.add('hidden');
+                    }, 5000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

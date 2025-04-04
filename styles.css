@@ -546,6 +546,39 @@ form label:hover {
         button, .btn-primary, .btn-secondary {
             min-height: 44px;
         }
+
+            /* Button container styles */
+    #results-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    /* Full width buttons on mobile */
+    #results-controls button {
+        width: 100%;
+        margin: 0;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Back button specific styling */
+    #back-btn {
+        order: 3; /* Move back button to the bottom */
+        background-color: #f3f4f6;
+        border-color: #d1d5db;
+    }
+    
+    /* Map buttons styling */
+    #map-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
 }
 
 /* Add to your styles.css file */
