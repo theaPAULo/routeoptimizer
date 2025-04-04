@@ -1010,25 +1010,9 @@ function isAdminUser() {
 function setupAdminFunctionality() {
     // Check if admin already
     if (isAdminUser()) {
-      document.body.classList.add('admin-user');
-      // Add logout button to header
-      addAdminLogoutButton();
-    }
-    
-    // Add admin login link to footer
-    const footer = document.querySelector('footer');
-    if (footer) {
-      const adminLink = document.createElement('a');
-      adminLink.href = '#';
-      adminLink.textContent = 'Admin';
-      adminLink.className = 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-2';
-      adminLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('admin-login-modal').classList.remove('hidden');
-      });
-      
-      footer.appendChild(document.createTextNode(' | '));
-      footer.appendChild(adminLink);
+        document.body.classList.add('admin-user');
+        // Add logout button to header
+        addAdminLogoutButton();
     }
     
     // Set up admin login form
@@ -1037,26 +1021,26 @@ function setupAdminFunctionality() {
     const cancelBtn = document.getElementById('admin-cancel-btn');
     
     if (adminForm && adminModal && cancelBtn) {
-      adminForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const password = document.getElementById('admin-password').value;
+        adminForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('admin-password').value;
+            
+            if (authenticateAdmin(password)) {
+                // Successfully authenticated
+                document.body.classList.add('admin-user');
+                adminModal.classList.add('hidden');
+                showAlert('Admin mode activated - ads disabled and API limits removed', 'success');
+                addAdminLogoutButton(); // Add logout button after successful login
+            } else {
+                showAlert('Invalid admin password', 'error');
+            }
+        });
         
-        if (authenticateAdmin(password)) {
-          // Successfully authenticated
-          document.body.classList.add('admin-user');
-          adminModal.classList.add('hidden');
-          showAlert('Admin mode activated - ads disabled and API limits removed', 'success');
-          addAdminLogoutButton(); // Add logout button after successful login
-        } else {
-          showAlert('Invalid admin password', 'error');
-        }
-      });
-      
-      cancelBtn.addEventListener('click', function() {
-        adminModal.classList.add('hidden');
-      });
+        cancelBtn.addEventListener('click', function() {
+            adminModal.classList.add('hidden');
+        });
     }
-  }
+}
   
   /**
    * Adds a logout button to the header for admin users
@@ -1299,4 +1283,12 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
         }
     }
+    // Setup admin keyboard shortcut (Ctrl+Shift+A)
+document.addEventListener('keydown', function(event) {
+    // Check for Ctrl+Shift+A
+    if (event.ctrlKey && event.shiftKey && event.key === 'A') {
+        // Show admin login modal
+        document.getElementById('admin-login-modal').classList.remove('hidden');
+    }
+});
 });
