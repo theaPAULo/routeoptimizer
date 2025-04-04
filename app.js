@@ -691,9 +691,13 @@ function displayRouteResults(route) {
     // End loading state
     toggleLoadingState(false);
     
-    // Update stats
-    totalDistance.textContent = route.totalDistance;
-    estimatedTime.textContent = route.estimatedTime;
+// Update stats with explicit icon HTML
+document.querySelector('#results-section .fa-route').outerHTML = '<i class="fas fa-route" style="display: inline-block; visibility: visible; opacity: 1; font-size: 1.25rem; color: #4caf50; margin-right: 0.75rem;"></i>';
+document.querySelector('#results-section .fa-clock').outerHTML = '<i class="fas fa-clock" style="display: inline-block; visibility: visible; opacity: 1; font-size: 1.25rem; color: #4caf50; margin-right: 0.75rem;"></i>';
+
+// Now update the text content
+totalDistance.textContent = route.totalDistance;
+estimatedTime.textContent = route.estimatedTime;
     
     // Display route on map
     // Inside the displayRouteResults function
