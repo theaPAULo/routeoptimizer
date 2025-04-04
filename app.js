@@ -696,7 +696,22 @@ function displayRouteResults(route) {
     estimatedTime.textContent = route.estimatedTime;
     
     // Display route on map
-    directionsRenderer.setDirections(route.directionsResult);
+    // Inside the displayRouteResults function
+        directionsRenderer.setDirections(route.directionsResult);
+
+        // Set up info windows for each marker
+        setTimeout(() => {
+            // Get all markers on the map
+            const markers = directionsRenderer.getMap().markers;
+            if (markers) {
+                // Add place info to each marker
+                route.waypoints.forEach((point, index) => {
+                    if (markers[index]) {
+                        getPlaceInfo(markers[index], point.address);
+                    }
+                });
+            }
+        }, 500);
     
     // Clear previous route list
     routeList.innerHTML = '';
@@ -917,6 +932,40 @@ function setupAdminFunctionality() {
       headerControls.appendChild(logoutBtn);
     }
   }
+
+/**
+ * Get place details for an address marker
+ * @param {Object} marker - Google Maps marker
+ * @param {string} address - The address to look up
+ */
+function getPlaceInfo(marker, address) {
+    // Create a place service
+    const placesService = new google.maps.places.PlacesService(map);
+    
+    // Search for place by address
+    placesService.findPlaceFromQuery({
+        query: address,
+        fields: ['name', 'formatted_address']
+    }, function(results, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+            const place = results[0];
+            
+            // Create an info window with the place name if available
+            const infoContent = place.name && place.name !== address 
+                ? `<div><strong>${place.name}</strong><br>${address}</div>`
+                : `<div>${address}</div>`;
+                
+            const infoWindow = new google.maps.InfoWindow({
+                content: infoContent
+            });
+            
+            // Add click listener to show info window
+            marker.addListener('click', function() {
+                infoWindow.open(map, marker);
+            });
+        }
+    });
+}
 
 /**
  * Attempts to authenticate as admin

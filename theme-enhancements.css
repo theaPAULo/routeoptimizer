@@ -76,7 +76,7 @@ input:focus, select:focus, textarea:focus {
 /* Route List Enhancements - UPDATED TO FIX POSITIONING */
 #route-list li {
     position: relative;
-    padding: 0.75rem 0.75rem 0.75rem 3.5rem; /* Adjusted padding-left to make room for numbers */
+    padding: 0.75rem 0.75rem 0.75rem 3.5rem; /* Increased left padding */
     margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
@@ -111,7 +111,8 @@ input:focus, select:focus, textarea:focus {
 
 #route-list .stop-address {
     flex-grow: 1;
-    margin-right: 0.5rem;
+    margin-left: 0.5rem; /* Add this to create more space */
+    word-break: break-word; /* This helps with long addresses */
 }
 
 #route-list .stop-type {
