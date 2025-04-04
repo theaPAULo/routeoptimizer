@@ -85,74 +85,80 @@
                     Thank you for your message! We'll get back to you as soon as possible.
                 </div>
                 
-                <form id="contact-form" class="space-y-4">
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Your Name
-                        </label>
-                        <input 
-                            type="text" 
-                            id="name" 
-                            name="name"
-                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
-                            required
-                        >
-                    </div>
-                    
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Email Address
-                        </label>
-                        <input 
-                            type="email" 
-                            id="email" 
-                            name="email"
-                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
-                            required
-                        >
-                    </div>
-                    
-                    <div>
-                        <label for="subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Subject
-                        </label>
-                        <select 
-                            id="subject" 
-                            name="subject"
-                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
-                            required
-                        >
-                            <option value="">Select a subject</option>
-                            <option value="bug-report">Bug Report</option>
-                            <option value="feature-request">Feature Request</option>
-                            <option value="general-question">General Question</option>
-                            <option value="feedback">Feedback</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Message
-                        </label>
-                        <textarea 
-                            id="message" 
-                            name="message"
-                            rows="5"
-                            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
-                            required
-                        ></textarea>
-                    </div>
-                    
-                    <div class="pt-2">
-                        <button 
-                            type="submit"
-                            class="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
-                        >
-                            Send Message
-                        </button>
-                    </div>
-                </form>
+                <!-- Replace it with this form that uses Netlify's form handling -->
+<form id="contact-form" class="space-y-4" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+    <input type="hidden" name="form-name" value="contact" />
+    <input type="hidden" name="recipient" value="psoni511@gmail.com" />
+    <p class="hidden">
+        <label>Don't fill this out if you're human: <input name="bot-field" /></label>
+    </p>
+    <div>
+        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Your Name
+        </label>
+        <input 
+            type="text" 
+            id="name" 
+            name="name"
+            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
+            required
+        >
+    </div>
+    
+    <div>
+        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Email Address
+        </label>
+        <input 
+            type="email" 
+            id="email" 
+            name="email"
+            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
+            required
+        >
+    </div>
+    
+    <div>
+        <label for="subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Subject
+        </label>
+        <select 
+            id="subject" 
+            name="subject"
+            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
+            required
+        >
+            <option value="">Select a subject</option>
+            <option value="bug-report">Bug Report</option>
+            <option value="feature-request">Feature Request</option>
+            <option value="general-question">General Question</option>
+            <option value="feedback">Feedback</option>
+            <option value="other">Other</option>
+        </select>
+    </div>
+    
+    <div>
+        <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Message
+        </label>
+        <textarea 
+            id="message" 
+            name="message"
+            rows="5"
+            class="block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" 
+            required
+        ></textarea>
+    </div>
+    
+    <div class="pt-2">
+        <button 
+            type="submit"
+            class="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
+        >
+            Send Message
+        </button>
+    </div>
+</form>
             </section>
 
             <div class="text-center mt-10">
@@ -194,24 +200,25 @@
             }
             
             // Contact form handling
-            const contactForm = document.getElementById('contact-form');
-            const successMessage = document.getElementById('contact-success');
-            
-            if (contactForm) {
-                contactForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    // In a real application, you would send this data to your server
-                    // For now, we'll just show a success message
-                    successMessage.classList.remove('hidden');
-                    contactForm.reset();
-                    
-                    // Hide success message after 5 seconds
-                    setTimeout(function() {
-                        successMessage.classList.add('hidden');
-                    }, 5000);
-                });
-            }
+// Contact form handling with Netlify
+const contactForm = document.getElementById('contact-form');
+const successMessage = document.getElementById('contact-success');
+
+if (contactForm) {
+    // Check if we're returning from a form submission (Netlify adds ?success=true parameter)
+    if (window.location.search.includes('success=true')) {
+        successMessage.classList.remove('hidden');
+        contactForm.reset();
+        
+        // Update URL without the query parameters to avoid showing success message on refresh
+        history.replaceState({}, document.title, window.location.pathname);
+        
+        // Hide success message after 5 seconds
+        setTimeout(function() {
+            successMessage.classList.add('hidden');
+        }, 5000);
+    }
+}
         });
     </script>
 </body>

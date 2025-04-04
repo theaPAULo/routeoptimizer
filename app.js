@@ -104,13 +104,16 @@ function initializeGoogleMaps() {
                 mapTypeControl: true,
                 mapTypeControlOptions: {
                     style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-                    position: google.maps.ControlPosition.TOP_RIGHT
+                    position: google.maps.ControlPosition.TOP_CENTER
                 },
                 streetViewControl: false, // Disable Street View to simplify UI
                 zoomControl: true,
                 zoomControlOptions: {
-                    position: google.maps.ControlPosition.RIGHT_TOP
-                }
+                    position: window.innerWidth <= 640 ? 
+                        google.maps.ControlPosition.RIGHT_BOTTOM : 
+                        google.maps.ControlPosition.RIGHT_TOP
+                },
+                gestureHandling: 'greedy' // Makes it easier to navigate on mobile
             });
             
             // Create directions renderer for displaying routes

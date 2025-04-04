@@ -108,6 +108,36 @@ form label:hover {
     pointer-events: none;
 }
 
+.btn-back {
+    background-color: white;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-back:hover {
+    background-color: #f9fafb;
+    color: #111827;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.dark .btn-back {
+    background-color: #374151;
+    color: #e5e7eb;
+    border-color: #4b5563;
+}
+
+.dark .btn-back:hover {
+    background-color: #4b5563;
+    color: white;
+}
+
 /* Button Styling */
 .btn-primary {
     background-color: #2e7d32;
@@ -579,6 +609,42 @@ form label:hover {
         gap: 10px;
         width: 100%;
     }
+
+    .btn-back {
+        position: relative;
+        font-weight: 500;
+    }
+    
+    .btn-back:active {
+        transform: translateY(1px);
+    }
+
+        /* Improve map control visibility on mobile */
+        #map-container .gm-style-mtc,
+        #map-container .gm-svpc,
+        #map-container .gm-fullscreen-control {
+            margin: 10px !important;
+        }
+        
+        /* Fix for map type controls (Map/Satellite) */
+        #map-container .gm-style-mtc button {
+            height: 40px !important;
+            padding: 0 12px !important;
+            font-size: 14px !important;
+        }
+        
+        /* Move zoom controls to the bottom right for easier thumb access */
+        #map-container .gm-bundled-control {
+            bottom: 70px !important;
+            right: 10px !important;
+            top: auto !important;
+        }
+        
+        /* Enlarge controls for better touchability */
+        #map-container .gm-control-active {
+            width: 40px !important;
+            height: 40px !important;
+        }
 }
 
 /* Add to your styles.css file */

@@ -6,6 +6,15 @@
   # command = "npm run build"
   functions = "netlify/functions"
 
+# Form handling
+[forms]
+  [forms.contact]
+    name = "Contact Form"
+    success_url = "/contact?success=true"
+    
+[context.production.environment]
+  CONTACT_EMAIL = "psoni511@gmail.com"
+
 # Headers to set on the site
 [[headers]]
   for = "/*"
