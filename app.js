@@ -699,19 +699,24 @@ function displayRouteResults(route) {
     // Inside the displayRouteResults function
         directionsRenderer.setDirections(route.directionsResult);
 
-        // Set up info windows for each marker
-        setTimeout(() => {
-            // Get all markers on the map
-            const markers = directionsRenderer.getMap().markers;
-            if (markers) {
-                // Add place info to each marker
-                route.waypoints.forEach((point, index) => {
-                    if (markers[index]) {
-                        getPlaceInfo(markers[index], point.address);
-                    }
-                });
-            }
-        }, 500);
+// Inside the displayRouteResults function, add after directionsRenderer.setDirections(route.directionsResult);
+// Set up info windows for each marker
+setTimeout(() => {
+    // Access markers
+    try {
+        const markers = directionsRenderer.getMap().markers;
+        if (markers) {
+            // Add place info to each marker
+            route.waypoints.forEach((point, index) => {
+                if (markers[index]) {
+                    getPlaceInfo(markers[index], point.address);
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Error adding place info to markers:", error);
+    }
+}, 500);
     
     // Clear previous route list
     routeList.innerHTML = '';
@@ -932,6 +937,7 @@ function setupAdminFunctionality() {
       headerControls.appendChild(logoutBtn);
     }
   }
+
 
 /**
  * Get place details for an address marker

@@ -1,6 +1,24 @@
-/* Custom CSS for DriveLess */
+/* Combined CSS for DriveLess - Merging styles.css and theme-enhancements.css */
 
-/* Animations */
+/* ====== TYPOGRAPHY & BASE STYLES ====== */
+h1, h2, h3, h4, h5, h6, 
+.text-3xl, .text-2xl, .text-xl, .text-lg {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Logo styling */
+.app-logo {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* ====== ANIMATIONS ====== */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -9,6 +27,17 @@
 @keyframes slideDown {
     from { transform: translateY(-10px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Apply animations */
@@ -20,57 +49,219 @@
     animation: slideDown 0.3s ease-in-out;
 }
 
-/* Dark mode styles */
-.dark body {
-    background-color: #1f2937;
-    color: #f9fafb;
+.animate-pulse-slow {
+    animation: pulse 2s ease-in-out infinite;
 }
 
-.dark .fa-sun {
-    display: block;
+.fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
 }
 
-.dark .fa-moon {
-    display: none;
+/* ====== UI COMPONENTS ====== */
+/* Card Styling */
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
 }
 
-.dark input, .dark select, .dark textarea {
-    background-color: #374151;
+.card:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Form Element Styling */
+input, select, textarea {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #4caf50 !important;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Update the stop-item input to leave room for controls */
+.stop-item input {
+    padding-right: 80px !important; /* Make room for the controls and delete button */
+    border-color: #e0e7ff;
+}
+
+.stop-item:hover input {
+    border-color: #4caf50;
+}
+
+/* Form labels enhancement */
+form label {
+    font-weight: 500;
+    color: #4b5563;
+    transition: color 0.2s ease;
+}
+
+form label:hover {
+    color: #2e7d32;
+}
+
+/* Loading transitions */
+.loading-transition {
+    transition: opacity 0.3s ease-in-out;
+}
+  
+.loading-transition.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Button Styling */
+.btn-primary {
+    background-color: #2e7d32;
     color: white;
-    border-color: #4b5563;
+    box-shadow: 0 2px 4px rgba(46, 125, 50, 0.2);
+    transition: all 0.2s ease;
 }
 
-.dark #input-section, 
-.dark #results-section {
-    background-color: #374151;
+.btn-primary:hover {
+    background-color: #388e3c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(46, 125, 50, 0.3);
 }
 
-.dark #alert-box.error {
-    background-color: #7f1d1d;
-    color: #fecaca;
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(46, 125, 50, 0.2);
 }
 
-.dark #alert-box.success {
-    background-color: #064e3b;
-    color: #a7f3d0;
+.btn-secondary {
+    background-color: white;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
 }
 
-.dark #alert-box.info {
-    background-color: #1e3a8a;
-    color: #bfdbfe;
+.btn-secondary:hover {
+    background-color: #f1f8e9;
+    border-color: #a5d6a7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.dark #route-list li {
-    background-color: #4b5563;
-    border-left-color: #60a5fa;
+/* Alert Box Styling */
+#alert-box.error {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-left: 4px solid #ef4444;
 }
 
-.dark #route-list li:hover {
-    background-color: #374151;
+#alert-box.success {
+    background-color: #dcfce7;
+    color: #166534;
+    border-left: 4px solid #4caf50;
 }
 
-.dark .stop-number {
-    background-color: #3b82f6;
+#alert-box.info {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border-left: 4px solid #3b82f6;
+}
+
+/* Map Container Styling */
+#map-container {
+    height: 400px !important; /* Force height with !important */
+    width: 100%;
+    background-color: #f0f0f0;
+    margin-bottom: 1.5rem;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(76, 175, 80, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+#map-container:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Make sure map fills its container */
+#map-container > div {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+/* Loading state for map */
+#map-container:before {
+    content: 'Loading map...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #6b7280;
+    font-size: 1rem;
+    z-index: 0;
+}
+
+/* Route List Styling - CONSOLIDATED */
+#route-list li {
+    position: relative;
+    padding: 0.75rem 0.75rem 0.75rem 3.5rem; /* Increased left padding for number */
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    min-height: 3rem;
+    background-color: #f1f8e9;
+    border-left: 4px solid #4caf50;
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+#route-list li:hover {
+    background-color: #e8f5e9;
+    transform: translateX(2px);
+}
+
+#route-list .stop-number {
+    position: absolute;
+    left: 0.75rem; /* Position closer to the left edge */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #4caf50;
+    color: white;
+    border-radius: 50%;
+    font-weight: 600;
+}
+
+#route-list .stop-address {
+    flex-grow: 1;
+    margin-left: 0.5rem; /* Add space */
+    word-break: break-word; /* Handle long addresses */
+}
+
+#route-list .stop-type {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px; /* Fully rounded */
+    margin-left: auto; /* Push to the right */
+}
+
+#route-list .stop-type.start {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+#route-list .stop-type.stop {
+    background-color: #e0e7ff;
+    color: #4338ca;
+}
+
+#route-list .stop-type.end {
+    background-color: #dcfce7;
+    color: #166534;
 }
 
 /* Reordering controls */
@@ -84,52 +275,12 @@
     gap: 4px;
 }
 
-/* Improved mobile responsiveness */
-@media (max-width: 640px) {
-    /* More compact form on mobile */
-    #input-section, #results-section {
-      padding: 1rem;
-    }
-    
-    /* Stack the stats on mobile */
-    .grid.md\:grid-cols-2 {
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
-    }
-    
-    /* Make buttons more touch-friendly */
-    button, .up-btn, .down-btn {
-      min-height: 44px;
-      min-width: 44px;
-    }
-    
-    /* Adjust map height */
-    #map-container {
-      height: 250px !important;
-    }
-}
-  
-/* Add loading transitions */
-.loading-transition {
-    transition: opacity 0.3s ease-in-out;
-}
-  
-.loading-transition.loading {
-    opacity: 0.6;
-    pointer-events: none;
-}
-
-/* Update the stop-item input to leave room for controls */
-.stop-item input {
-    padding-right: 80px !important; /* Make room for the controls and delete button */
-}
-
 /* Animation for reordering */
 .stop-item {
     transition: all 0.2s ease-out;
 }
 
-/* Add to styles.css */
+/* Ad Container */
 .ad-container {
     text-align: center;
     margin: 1rem auto;
@@ -155,140 +306,174 @@
 .admin-user .ad-container {
     display: none;
 }
-  
-/* Responsive ad sizing */
-@media (max-width: 640px) {
-    .ad-container {
-        min-height: 50px;
-    }
+
+/* ====== DARK MODE STYLES ====== */
+.dark body {
+    background-color: #1f2937;
+    color: #f9fafb;
 }
 
-/* Route list styling */
-#route-list li {
-    padding: 0.75rem;
-    border-radius: 0.375rem;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    border-left: 4px solid #3b82f6;
-    background-color: #f3f4f6;
-    transition: all 0.2s ease;
-}
-
-#route-list li:hover {
-    background-color: #eff6ff;
-}
-
-#route-list .stop-number {
-    background-color: #3b82f6;
+.dark input, .dark select, .dark textarea {
+    background-color: #374151;
     color: white;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin-right: 1rem;
+    border-color: #4b5563;
 }
 
-#route-list .stop-address {
-    flex-grow: 1;
+.dark input:focus, .dark select:focus, .dark textarea:focus {
+    border-color: #66bb6a !important;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3) !important;
 }
 
-#route-list .stop-type {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    margin-left: 0.5rem;
+.dark #input-section, 
+.dark #results-section {
+    background-color: #374151;
 }
 
-#route-list .stop-type.start {
-    background-color: #dbeafe;
-    color: #1e40af;
+.dark #route-list li {
+    background-color: rgba(76, 175, 80, 0.1);
+    border-left-color: #81c784;
 }
 
-#route-list .stop-type.stop {
-    background-color: #e0e7ff;
-    color: #4338ca;
+.dark #route-list li:hover {
+    background-color: rgba(76, 175, 80, 0.2);
 }
 
-#route-list .stop-type.end {
-    background-color: #dcfce7;
-    color: #166534;
+.dark #route-list .stop-number {
+    background-color: #66bb6a;
 }
 
-/* Alert box styling */
-#alert-box.error {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border-left: 4px solid #ef4444;
+.dark .btn-primary {
+    background-color: #4caf50;
 }
 
-#alert-box.success {
-    background-color: #dcfce7;
-    color: #166534;
-    border-left: 4px solid #22c55e;
+.dark .btn-primary:hover {
+    background-color: #66bb6a;
 }
 
-#alert-box.info {
-    background-color: #dbeafe;
-    color: #1e40af;
-    border-left: 4px solid #3b82f6;
+.dark #map-container {
+    border-color: rgba(76, 175, 80, 0.3);
 }
 
-/* Map container styling - essential for Google Maps to display properly */
-#map-container {
-    height: 400px !important; /* Force height with !important */
-    width: 100%;
-    background-color: #f0f0f0;
-    margin-bottom: 1.5rem;
-    border-radius: 0.375rem;
-    overflow: hidden;
-    position: relative;
+.dark form label {
+    color: #d1d5db;
 }
 
-/* Make sure map fills its container */
-#map-container > div {
-    height: 100% !important;
-    width: 100% !important;
+.dark form label:hover {
+    color: #a5d6a7;
 }
 
-/* Loading state for map */
-#map-container:before {
-    content: 'Loading map...';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #6b7280;
-    font-size: 1rem;
-    z-index: 0;
+.dark #alert-box.error {
+    background-color: #7f1d1d;
+    color: #fecaca;
 }
 
-/* Responsive adjustments */
+.dark #alert-box.success {
+    background-color: #064e3b;
+    color: #a7f3d0;
+}
+
+.dark #alert-box.info {
+    background-color: #1e3a8a;
+    color: #bfdbfe;
+}
+
+/* Dark mode toggle icon styles - FIXED */
+#theme-toggle .fa-moon,
+#theme-toggle .fa-sun {
+    font-size: 1.25rem;
+}
+
+.dark #theme-toggle .fa-sun {
+    display: block !important;
+}
+
+.dark #theme-toggle .fa-moon {
+    display: none !important;
+}
+
+html:not(.dark) #theme-toggle .fa-sun {
+    display: none !important;
+}
+
+html:not(.dark) #theme-toggle .fa-moon {
+    display: block !important;
+}
+
+/* ====== RESPONSIVE STYLES ====== */
 @media (max-width: 640px) {
-    .container {
-        padding-left: 1rem;
-        padding-right: 1rem;
+    /* More compact form on mobile */
+    #input-section, #results-section {
+      padding: 1rem;
+    }
+    
+    /* Stack the stats on mobile */
+    .grid.md\:grid-cols-2 {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    
+    /* Make buttons more touch-friendly */
+    button, .up-btn, .down-btn {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Adjust map height */
+    #map-container {
+      height: 300px !important; /* Smaller height on mobile */
     }
 
+    /* Route list adjustments for mobile */
     #route-list li {
         flex-direction: column;
         align-items: flex-start;
+        padding-bottom: 1rem;
     }
-
+    
     #route-list .stop-number {
         margin-bottom: 0.5rem;
     }
-
+    
+    #route-list .stop-address {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
     #route-list .stop-type {
         margin-left: 0;
         margin-top: 0.5rem;
     }
     
-    #map-container {
-        height: 300px !important; /* Smaller height on mobile */
+    /* Responsive ad sizing */
+    .ad-container {
+        min-height: 50px;
     }
+    
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* ====== ACCENT HIGHLIGHTS ====== */
+.highlight-accent {
+    position: relative;
+}
+
+.highlight-accent::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #ffc107;
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease;
+}
+
+.highlight-accent:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
 }
