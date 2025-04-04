@@ -14,6 +14,11 @@ body {
     font-family: 'Montserrat', sans-serif;
     font-weight: 700;
     letter-spacing: -0.5px;
+    text-decoration: none; /* Prevent underline on logo links */
+}
+
+a.app-logo {
+    text-decoration: none;
 }
 
 /* ====== ANIMATIONS ====== */
@@ -108,6 +113,7 @@ form label:hover {
     pointer-events: none;
 }
 
+/* Back button styling - consolidated and improved */
 .btn-back {
     background-color: white;
     color: #4b5563;
@@ -118,6 +124,8 @@ form label:hover {
     justify-content: center;
     gap: 8px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    position: relative;
+    font-weight: 500;
 }
 
 .btn-back:hover {
@@ -127,18 +135,22 @@ form label:hover {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
+.btn-back:active {
+    transform: translateY(1px);
+}
+
 .dark .btn-back {
     background-color: #374151;
-    color: #e5e7eb; /* Lighter color for better visibility */
+    color: white; /* Full white for better visibility */
     border-color: #4b5563;
+    border-width: 2px; /* Make border more visible */
 }
 
 .dark .btn-back:hover {
     background-color: #4b5563;
-    color: white; /* Full white on hover */
 }
 
-/* Button Styling */
+/* Button Styling - consolidated */
 .btn-primary {
     background-color: #2e7d32;
     color: white;
@@ -427,34 +439,17 @@ form label:hover {
     color: #bfdbfe;
 }
 
-/* Force icon visibility */
+/* Force icon visibility - consolidated */
 .fa-route, .fa-clock, .fa-moon, .fa-sun, .fas {
     display: inline-block !important;
     visibility: visible !important;
     opacity: 1 !important;
 }
 
-/* Make sure the icons have the correct color */
+/* Make sure result icons have the correct color */
 #results-section .fa-route, 
 #results-section .fa-clock {
   color: #4caf50 !important;
-}
-
-/* Ensure theme toggle icon displays correctly */
-#theme-toggle .fa-moon {
-  display: block !important;
-}
-
-#theme-toggle .fa-sun {
-  display: none !important;
-}
-
-.dark #theme-toggle .fa-moon {
-  display: none !important;
-}
-
-.dark #theme-toggle .fa-sun {
-  display: block !important;
 }
 
 /* ====== ACCENT HIGHLIGHTS ====== */
@@ -478,6 +473,44 @@ form label:hover {
 .highlight-accent:hover::after {
     transform: scaleX(1);
     transform-origin: bottom left;
+}
+
+/* Clickable address styling */
+.stop-address {
+    position: relative;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.stop-address:hover {
+    text-decoration: underline;
+}
+
+.stop-address:after {
+    content: '\f35d';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 0.7em;
+    margin-left: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    display: inline-block;
+}
+
+.stop-address:hover:after {
+    opacity: 0.7;
+}
+
+/* Google Maps InfoWindow styling fix */
+.gm-style-iw {
+    padding: 0 !important;
+}
+.gm-style-iw-d {
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+.gm-style-iw-c {
+    padding: 8px !important;
 }
 
 /* ====== RESPONSIVE STYLES ====== */
@@ -508,13 +541,16 @@ form label:hover {
     #route-list li {
         flex-direction: column;
         align-items: flex-start;
-        padding-bottom: 1rem;
+        padding: 0.5rem 0.5rem 0.5rem 3rem;
     }
     
     #route-list .stop-number {
         position: absolute;
         top: 1rem;
+        left: 0.5rem;
         margin-bottom: 0.5rem;
+        width: 1.75rem;
+        height: 1.75rem;
     }
     
     #route-list .stop-details {
@@ -554,30 +590,18 @@ form label:hover {
     #use-location-btn {
         right: 8px;
     }
-        /* Improve map controls on mobile */
-        .gm-bundled-control {
-            top: 10px !important;
-            right: 10px !important;
-        }
-        
-        /* Make route list more compact on mobile */
-        #route-list li {
-            padding: 0.5rem 0.5rem 0.5rem 3rem;
-        }
-        
-        /* Adjust stop number position on mobile */
-        #route-list .stop-number {
-            left: 0.5rem;
-            width: 1.75rem;
-            height: 1.75rem;
-        }
-        
-        /* Make buttons more touch-friendly */
-        button, .btn-primary, .btn-secondary {
-            min-height: 44px;
-        }
+    
+    /* Make route list more compact on mobile */
+    #route-list li {
+        padding: 0.5rem 0.5rem 0.5rem 3rem;
+    }
+    
+    /* Make buttons more touch-friendly */
+    button, .btn-primary, .btn-secondary {
+        min-height: 44px;
+    }
 
-            /* Button container styles */
+    /* Button container styles */
     #results-controls {
         display: flex;
         flex-direction: column;
@@ -610,79 +634,28 @@ form label:hover {
         width: 100%;
     }
 
-    .btn-back {
-        position: relative;
-        font-weight: 500;
+    /* Improve map control visibility on mobile */
+    #map-container .gm-style-mtc,
+    #map-container .gm-svpc,
+    #map-container .gm-fullscreen-control {
+        margin: 10px !important;
     }
     
-    .btn-back:active {
-        transform: translateY(1px);
+    /* Hide map type controls (Map/Satellite) on mobile */
+    #map-container .gm-style-mtc {
+        display: none !important;
     }
-
-        /* Improve map control visibility on mobile */
-        #map-container .gm-style-mtc,
-        #map-container .gm-svpc,
-        #map-container .gm-fullscreen-control {
-            margin: 10px !important;
-        }
-        
-        /* Fix for map type controls (Map/Satellite) */
-        #map-container .gm-style-mtc {
-            display: none !important;
-        }
-        
-        /* Move zoom controls to the bottom right for easier thumb access */
-        #map-container .gm-bundled-control {
-            bottom: 70px !important;
-            right: 10px !important;
-            top: auto !important;
-        }
-        
-        /* Enlarge controls for better touchability */
-        #map-container .gm-control-active {
-            width: 40px !important;
-            height: 40px !important;
-        }
+    
+    /* Move zoom controls to the bottom right for easier thumb access */
+    #map-container .gm-bundled-control {
+        bottom: 70px !important;
+        right: 10px !important;
+        top: auto !important;
+    }
+    
+    /* Enlarge controls for better touchability */
+    #map-container .gm-control-active {
+        width: 40px !important;
+        height: 40px !important;
+    }
 }
-
-/* Add to your styles.css file */
-/* Clickable address styling */
-.stop-address {
-    position: relative;
-    transition: all 0.2s ease;
-    display: inline-block;
-}
-
-.stop-address:hover {
-    text-decoration: underline;
-}
-
-.stop-address:after {
-    content: '\f35d';
-    font-family: 'Font Awesome 5 Free';
-    font-weight: 900;
-    font-size: 0.7em;
-    margin-left: 4px;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    display: inline-block;
-}
-
-.stop-address:hover:after {
-    opacity: 0.7;
-}
-
-
-/* Add this to your styles.css file, at the end of the file */
-/* Google Maps InfoWindow styling fix */
-.gm-style-iw {
-    padding: 0 !important;
-}
-.gm-style-iw-d {
-    overflow: hidden !important;
-    padding: 0 !important;
-}
-.gm-style-iw-c {
-    padding: 8px !important;
-}
-
