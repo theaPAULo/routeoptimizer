@@ -107,17 +107,17 @@
     #map-container {
       height: 250px !important;
     }
-  }
+}
   
-  /* Add loading transitions */
-  .loading-transition {
+/* Add loading transitions */
+.loading-transition {
     transition: opacity 0.3s ease-in-out;
-  }
+}
   
-  .loading-transition.loading {
+.loading-transition.loading {
     opacity: 0.6;
     pointer-events: none;
-  }
+}
 
 /* Update the stop-item input to leave room for controls */
 .stop-item input {
@@ -138,9 +138,9 @@
     border-radius: 0.375rem;
     overflow: hidden;
     position: relative;
-  }
+}
   
-  .ad-container::before {
+.ad-container::before {
     content: 'Advertisement';
     position: absolute;
     top: 0;
@@ -149,20 +149,19 @@
     color: #999;
     padding: 2px 5px;
     background-color: rgba(249, 249, 249, 0.8);
-  }
+}
   
-  /* Admin user shouldn't see ads */
-  .admin-user .ad-container {
+/* Admin user shouldn't see ads */
+.admin-user .ad-container {
     display: none;
-  }
+}
   
-  /* Responsive ad sizing */
-  @media (max-width: 640px) {
+/* Responsive ad sizing */
+@media (max-width: 640px) {
     .ad-container {
-      min-height: 50px;
+        min-height: 50px;
     }
-  }
-
+}
 
 /* Route list styling */
 #route-list li {
