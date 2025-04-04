@@ -451,6 +451,36 @@ form label:hover {
         margin-left: 0;
         margin-top: 0.5rem;
     }
+
+    /* Add this to your styles.css file */
+
+/* Updated Route List Styling for place names */
+#route-list .stop-details {
+    flex-grow: 1;
+    margin-left: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+#route-list .stop-name {
+    color: #111827;
+    font-weight: 600;
+}
+
+#route-list .stop-address {
+    color: #4b5563;
+    font-size: 0.875rem;
+    word-break: break-word;
+}
+
+.dark #route-list .stop-name {
+    color: #f9fafb;
+}
+
+.dark #route-list .stop-address {
+    color: #9ca3af;
+}
     
     /* Responsive ad sizing */
     .ad-container {

@@ -492,10 +492,18 @@ function geocodeAddress(address) {
             console.log(`Geocoding result for "${address}":`, status, results);
             
             if (status === 'OK' && results && results.length > 0) {
+                // Try to extract place name from address if it contains a comma
+                let placeName = '';
+                if (address.includes(',')) {
+                    // The place name is likely before the first comma
+                    placeName = address.split(',')[0].trim();
+                }
+                
                 const result = {
                     address: results[0].formatted_address,
                     location: results[0].geometry.location,
-                    placeId: results[0].place_id
+                    placeId: results[0].place_id,
+                    name: placeName // Store the extracted name
                 };
                 
                 // Cache the result
@@ -568,13 +576,18 @@ function calculateOptimizedRoute(locations) {
                 
                 // Create ordered waypoints list based on the optimization
                 const orderedWaypoints = [
-                    { address: locations.start.address, type: 'start' }
+                    { 
+                        address: locations.start.address, 
+                        name: locations.start.name || '',
+                        type: 'start' 
+                    }
                 ];
                 
                 // Add stops in optimized order
                 for (const index of waypointOrder) {
                     orderedWaypoints.push({
                         address: locations.stops[index].address,
+                        name: locations.stops[index].name || '',
                         type: 'stop'
                     });
                 }
@@ -582,6 +595,7 @@ function calculateOptimizedRoute(locations) {
                 // Add destination
                 orderedWaypoints.push({
                     address: locations.end.address,
+                    name: locations.end.name || '',
                     type: 'end'
                 });
                 
@@ -698,36 +712,16 @@ function displayRouteResults(route) {
     // End loading state
     toggleLoadingState(false);
     
-// Update stats with explicit icon HTML
-document.querySelector('#results-section .fa-route').outerHTML = '<i class="fas fa-route" style="display: inline-block; visibility: visible; opacity: 1; font-size: 1.25rem; color: #4caf50; margin-right: 0.75rem;"></i>';
-document.querySelector('#results-section .fa-clock').outerHTML = '<i class="fas fa-clock" style="display: inline-block; visibility: visible; opacity: 1; font-size: 1.25rem; color: #4caf50; margin-right: 0.75rem;"></i>';
+    // Update stats with explicit icon HTML
+    document.querySelector('#results-section .fa-route').outerHTML = '<i class="fas fa-route" style="display: inline-block; visibility: visible; opacity: 1; font-size: 1.25rem; color: #4caf50; margin-right: 0.75rem;"></i>';
+    document.querySelector('#results-section .fa-clock').outerHTML = '<i class="fas fa-clock" style="display: inline-block; visibility: visible; opacity: 1; font-size: 1.25rem; color: #4caf50; margin-right: 0.75rem;"></i>';
 
-// Now update the text content
-totalDistance.textContent = route.totalDistance;
-estimatedTime.textContent = route.estimatedTime;
+    // Now update the text content
+    totalDistance.textContent = route.totalDistance;
+    estimatedTime.textContent = route.estimatedTime;
     
     // Display route on map
-    // Inside the displayRouteResults function
-        directionsRenderer.setDirections(route.directionsResult);
-
-// Inside the displayRouteResults function, add after directionsRenderer.setDirections(route.directionsResult);
-// Set up info windows for each marker
-setTimeout(() => {
-    // Access markers
-    try {
-        const markers = directionsRenderer.getMap().markers;
-        if (markers) {
-            // Add place info to each marker
-            route.waypoints.forEach((point, index) => {
-                if (markers[index]) {
-                    getPlaceInfo(markers[index], point.address);
-                }
-            });
-        }
-    } catch (error) {
-        console.error("Error adding place info to markers:", error);
-    }
-}, 500);
+    directionsRenderer.setDirections(route.directionsResult);
     
     // Clear previous route list
     routeList.innerHTML = '';
@@ -743,9 +737,27 @@ setTimeout(() => {
         else if (point.type === 'end') typeClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
         else typeClass = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
         
+        // Prepare the display name and address
+        let displayName = '';
+        let displayAddress = point.address;
+        
+        // If the point has a name, display it
+        if (point.name && point.name !== '') {
+            displayName = `<div class="stop-name font-medium">${point.name}</div>`;
+            // Remove the name from the address display if it starts with the same text
+            if (displayAddress.startsWith(point.name)) {
+                const addressParts = displayAddress.split(', ');
+                addressParts.shift(); // Remove the first part (the name)
+                displayAddress = addressParts.join(', ');
+            }
+        }
+        
         listItem.innerHTML = `
             <div class="stop-number">${index + 1}</div>
-            <div class="stop-address">${point.address}</div>
+            <div class="stop-details">
+                ${displayName}
+                <div class="stop-address text-sm text-gray-600 dark:text-gray-400">${displayAddress}</div>
+            </div>
             <div class="stop-type ${point.type} ${typeClass} text-xs font-medium px-2 py-1 rounded-full">${point.type}</div>
         `;
         
