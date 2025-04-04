@@ -19,28 +19,49 @@
     <!-- Add Tailwind CSS via CDN for quick styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'sans': ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-                        'heading': ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif']
-                    }
+tailwind.config = {
+    darkMode: 'class',
+    theme: {
+        extend: {
+            fontFamily: {
+                'sans': ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                'heading': ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif']
+            },
+            colors: {
+                'primary': {
+                    DEFAULT: '#2e7d32', // Forest green
+                    '50': '#e8f5e9',
+                    '100': '#c8e6c9',
+                    '200': '#a5d6a7',
+                    '300': '#81c784',
+                    '400': '#66bb6a',
+                    '500': '#4caf50',
+                    '600': '#43a047',
+                    '700': '#388e3c',
+                    '800': '#2e7d32',
+                    '900': '#1b5e20'
+                },
+                'accent': {
+                    DEFAULT: '#ffc107', // Amber accent
+                    'dark': '#ff8f00'
                 }
             }
         }
+    }
+}
     </script>
 
-    <!-- Add Google Fonts -->
+ <!-- Add Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Add Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
+     <!-- Custom Theme Enhancements -->
+    <link rel="stylesheet" href="theme-enhancements.css">
     <link rel="stylesheet" href="styles.css">
 
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6639027591546236"
@@ -51,8 +72,7 @@
     <div class="container mx-auto p-4">
         <header class="mb-8">
             <div class="flex justify-between items-center">
-                <h1 class="text-3xl font-bold text-blue-700 dark:text-blue-500">DriveLess</h1>
-                <div class="flex items-center">
+                <h1 class="text-3xl font-bold text-primary-800 dark:text-primary-400 app-logo">DriveLess</h1>                <div class="flex items-center">
                     <button id="theme-toggle" class="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white">
                         <i class="fas fa-moon text-xl dark:hidden"></i>
                         <i class="fas fa-sun text-xl hidden dark:block"></i>
@@ -62,7 +82,8 @@
                     </div>
                 </div>
             </div>
-            <p class="text-gray-600 dark:text-gray-400 mt-2">Drive Less, Save Time</p>
+            <p class="text-gray-600 dark:text-gray-400 mt-2 font-light">Drive Less, Save Time</p>
+
         </header>
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6639027591546236"
         crossorigin="anonymous"></script>
@@ -82,7 +103,8 @@
             <div id="alert-box" class="hidden mb-4 p-4 rounded-md"></div>
 
             <!-- Input Form Section -->
-            <section id="input-section" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+            <section id="input-section" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6 card">
+
                 <h2 class="text-xl font-semibold mb-4 dark:text-white">Enter Your Locations</h2>
                 
                 <form id="route-form" class="space-y-4">
@@ -114,10 +136,10 @@
                             <!-- Initial stop field will be added by JavaScript -->
                         </div>
                         <button 
-                            type="button" 
-                            id="add-stop-btn" 
-                            class="mt-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium flex items-center"
-                        >
+                        type="button" 
+                        id="add-stop-btn" 
+                        class="mt-2 text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 text-sm font-medium flex items-center"
+                    >
                             <i class="fas fa-plus-circle mr-1"></i> Add another stop
                         </button>
                     </div>
@@ -144,10 +166,10 @@
                     <!-- Submit Button -->
                     <div class="pt-2">
                         <button 
-                            type="submit" 
-                            id="optimize-btn"
-                            class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                        >
+                        type="submit" 
+                        id="optimize-btn"
+                        class="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors btn-primary"
+                    >
                             <span id="optimize-btn-text">Optimize Route</span>
                             <span id="loading-spinner" class="hidden">
                                 <i class="fas fa-spinner fa-spin ml-2"></i>
@@ -172,7 +194,8 @@
 
 
             <!-- Results Section (Hidden by default) -->
-            <section id="results-section" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hidden">
+            <section id="results-section" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hidden card">
+
                 <h2 class="text-xl font-semibold mb-4 dark:text-white">Optimal Route</h2>
                 
                 <div class="grid md:grid-cols-2 gap-4 mb-6">

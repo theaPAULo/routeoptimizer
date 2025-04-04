@@ -1,0 +1,117 @@
+/* theme-enhancements.css - UI Improvements for DriveLess */
+
+/* Typography Enhancements */
+h1, h2, h3, h4, h5, h6, 
+.text-3xl, .text-2xl, .text-xl, .text-lg {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Logo styling */
+.app-logo {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* Enhanced UI Elements */
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Form Field Enhancements */
+input, select, textarea {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #4caf50 !important;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Button Enhancements */
+.btn-primary {
+    background-color: #2e7d32;
+    color: white;
+    box-shadow: 0 2px 4px rgba(46, 125, 50, 0.2);
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #388e3c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(46, 125, 50, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(46, 125, 50, 0.2);
+}
+
+.btn-secondary {
+    background-color: white;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #f1f8e9;
+    border-color: #a5d6a7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Route List Enhancements */
+#route-list li {
+    border-left: 4px solid #4caf50;
+    background-color: #f1f8e9;
+    transition: all 0.2s ease;
+}
+
+#route-list li:hover {
+    background-color: #e8f5e9;
+    transform: translateX(2px);
+}
+
+#route-list .stop-number {
+    background-color: #4caf50;
+}
+
+/* Dark Mode Enhancements */
+.dark .btn-primary {
+    background-color: #4caf50;
+}
+
+.dark .btn-primary:hover {
+    background-color: #66bb6a;
+}
+
+.dark #route-list li {
+    background-color: rgba(76, 175, 80, 0.1);
+    border-left-color: #81c784;
+}
+
+.dark #route-list li:hover {
+    background-color: rgba(76, 175, 80, 0.2);
+}
+
+.dark #route-list .stop-number {
+    background-color: #66bb6a;
+}
+
+.dark input:focus, .dark select:focus, .dark textarea:focus {
+    border-color: #66bb6a !important;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3) !important;
+}
