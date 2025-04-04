@@ -406,6 +406,13 @@ async function handleFormSubmit(event) {
             stops: stops
         });
         
+        // Add original address strings to preserve business names
+        locations.start.originalAddress = startLocation;
+        locations.end.originalAddress = endLocation;
+        locations.stops.forEach((stop, index) => {
+            stop.originalAddress = stops[index];
+        });
+        
         console.log("Geocoded locations:", locations);
         
         // Step 2: Calculate the optimized route
@@ -586,7 +593,7 @@ function calculateOptimizedRoute(locations) {
                 const orderedWaypoints = [
                     { 
                         address: locations.start.address, 
-                        name: locations.start.name || '',
+                        name: locations.start.name || extractBusinessName(locations.start.address),
                         type: 'start' 
                     }
                 ];
@@ -595,7 +602,7 @@ function calculateOptimizedRoute(locations) {
                 for (const index of waypointOrder) {
                     orderedWaypoints.push({
                         address: locations.stops[index].address,
-                        name: locations.stops[index].name || '',
+                        name: locations.stops[index].name || extractBusinessName(locations.stops[index].address),
                         type: 'stop'
                     });
                 }
@@ -603,7 +610,7 @@ function calculateOptimizedRoute(locations) {
                 // Add destination
                 orderedWaypoints.push({
                     address: locations.end.address,
-                    name: locations.end.name || '',
+                    name: locations.end.name || extractBusinessName(locations.end.address),
                     type: 'end'
                 });
                 
@@ -622,6 +629,26 @@ function calculateOptimizedRoute(locations) {
             }
         });
     });
+}
+
+/**
+ * Extracts a business name from an address string
+ * @param {string} address - The address string
+ * @returns {string} - The extracted business name or empty string
+ */
+function extractBusinessName(address) {
+    if (!address || !address.includes(',')) {
+        return '';
+    }
+    
+    // Get the part before the first comma
+    const firstPart = address.split(',')[0].trim();
+    
+    // Check if it looks like a business name (not just a street address)
+    // Street addresses usually start with numbers
+    const isLikelyBusiness = !/^\d+\s/.test(firstPart);
+    
+    return isLikelyBusiness ? firstPart : '';
 }
 
 /**
