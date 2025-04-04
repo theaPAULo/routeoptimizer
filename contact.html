@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+    <!-- Add this at the very top of your contact.html, right after the opening <body> tag -->
+<!-- This is a hidden form that Netlify will detect during build -->
+<form name="contact" netlify netlify-honeypot="bot-field" hidden>
+    <input type="text" name="name" />
+    <input type="email" name="email" />
+    <select name="subject"></select>
+    <textarea name="message"></textarea>
+  </form>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Us - DriveLess</title>
