@@ -508,4 +508,84 @@ form label:hover {
         padding-left: 1rem;
         padding-right: 1rem;
     }
+
+    /* Make input fields more readable on mobile */
+    input[type="text"]::placeholder {
+        font-size: 0.875rem; /* Smaller font for placeholders */
+        opacity: 0.8;
+    }
+    
+    /* More space for location inputs */
+    #start-location, #end-location, .stop-item input {
+        padding-right: 40px !important; /* Adjust padding for the location icon button */
+    }
+    
+    /* Adjust icon positioning */
+    #use-location-btn {
+        right: 8px;
+    }
+        /* Improve map controls on mobile */
+        .gm-bundled-control {
+            top: 10px !important;
+            right: 10px !important;
+        }
+        
+        /* Make route list more compact on mobile */
+        #route-list li {
+            padding: 0.5rem 0.5rem 0.5rem 3rem;
+        }
+        
+        /* Adjust stop number position on mobile */
+        #route-list .stop-number {
+            left: 0.5rem;
+            width: 1.75rem;
+            height: 1.75rem;
+        }
+        
+        /* Make buttons more touch-friendly */
+        button, .btn-primary, .btn-secondary {
+            min-height: 44px;
+        }
 }
+
+/* Add to your styles.css file */
+/* Clickable address styling */
+.stop-address {
+    position: relative;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.stop-address:hover {
+    text-decoration: underline;
+}
+
+.stop-address:after {
+    content: '\f35d';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 0.7em;
+    margin-left: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    display: inline-block;
+}
+
+.stop-address:hover:after {
+    opacity: 0.7;
+}
+
+
+/* Add this to your styles.css file, at the end of the file */
+/* Google Maps InfoWindow styling fix */
+.gm-style-iw {
+    padding: 0 !important;
+}
+.gm-style-iw-d {
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+.gm-style-iw-c {
+    padding: 8px !important;
+}
+
