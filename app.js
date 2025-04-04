@@ -499,31 +499,17 @@ function geocodeAddress(address) {
             console.log(`Geocoding result for "${address}":`, status, results);
             
             if (status === 'OK' && results && results.length > 0) {
-                // Extract potential business name (part before first comma)
-                let potentialBusinessName = '';
+                // Simply extract the part before the first comma as the name
+                let name = '';
                 if (address.includes(',')) {
-                    potentialBusinessName = address.split(',')[0].trim();
+                    name = address.split(',')[0].trim();
                 }
                 
-                // Check if this looks like a business name (not just a street address)
-                // Business names typically don't start with numbers
-                const isLikelyBusiness = !/^\d+\s/.test(potentialBusinessName);
-                
-                // If Google's geocoded result is significantly different from user input,
-                // it likely recognized a business and standardized the address
-                const formattedAddress = results[0].formatted_address;
-                const addressSignificantlyChanged = !formattedAddress.startsWith(potentialBusinessName);
-                
-                // Only use as business name if it both looks like a business and Google's result differs
-                const businessName = (isLikelyBusiness && addressSignificantlyChanged) ? 
-                                    potentialBusinessName : '';
-                
                 const result = {
-                    address: formattedAddress,
+                    address: results[0].formatted_address,
                     location: results[0].geometry.location,
                     placeId: results[0].place_id,
-                    name: businessName,
-                    originalAddress: address // Store original address for reference
+                    name: name
                 };
                 
                 // Cache the result
@@ -766,7 +752,7 @@ function displayRouteResults(route) {
     // Clear previous route list
     routeList.innerHTML = '';
     
-/// Inside the displayRouteResults function, modify the forEach loop:
+// Inside the displayRouteResults function, modify the forEach loop:
 route.waypoints.forEach((point, index) => {
     const listItem = document.createElement('li');
     listItem.className = 'fade-in-up';
@@ -781,32 +767,16 @@ route.waypoints.forEach((point, index) => {
     let displayName = '';
     let displayAddress = point.address;
     
-    // Default labels based on point type
+    // Default labels based on point type if no name is available
     const defaultLabels = {
         'start': 'START',
         'stop': 'STOP',
         'end': 'END'
     };
     
-    // Use the business name if available, otherwise use default type label
+    // Always use the name if it exists, otherwise fall back to default label
     const nameToDisplay = point.name || defaultLabels[point.type];
     displayName = `<div class="stop-name font-medium">${nameToDisplay}</div>`;
-    
-    // If using a business name, avoid duplicating it in the address
-    if (point.name && point.name !== '') {
-        // Try different approaches to remove business name from address
-        if (displayAddress.includes(point.name)) {
-            // If address contains the exact business name, remove it
-            const parts = displayAddress.split(', ');
-            if (parts[0].includes(point.name)) {
-                displayAddress = parts.slice(1).join(', ');
-            }
-        } else if (point.originalAddress && point.originalAddress.startsWith(point.name)) {
-            // If original address started with business name, just use geocoded address
-            // which likely won't have the business name
-            displayAddress = displayAddress;
-        }
-    }
     
     listItem.innerHTML = `
         <div class="stop-number">${index + 1}</div>
