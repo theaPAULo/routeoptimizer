@@ -660,6 +660,50 @@ form label:hover {
     }
 }
 
+/* Add these at the end of your styles.css file */
+
+/* Performance optimizations */
+.transform-gpu {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Apply to heavy animation elements */
+.card, #map-container, .fade-in, .slide-down, .fade-in-up {
+    contain: content;
+}
+
+/* Add a global transition layout class to reduce layout thrashing */
+.layout-transition, .layout-transition * {
+    transition: none !important;
+}
+
+/* Optimize paint operations */
+.optimize-paint {
+    will-change: opacity, transform;
+}
+
+/* Apply to frequently changing elements */
+.stop-item, #route-list li, .card:hover {
+    will-change: transform;
+}
+
+/* Optimize for reduced motion if user prefers it */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .fade-in, .slide-down, .fade-in-up, .animate-pulse-slow {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
 .hidden {
     display: none !important;
 }

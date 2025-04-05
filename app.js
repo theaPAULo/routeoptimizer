@@ -66,7 +66,13 @@ function initializeApp() {
         
         // Update usage indicator
         updateUsageIndicator();
-        
+
+        // Add this line to the initializeApp function, near the end
+        cleanupGeocodeCache();
+
+        // Add this line to the initializeApp function
+        enhanceAccessibility();
+                
         console.log("Initialization complete");
     } catch (error) {
         console.error("Error during initialization:", error);
@@ -269,20 +275,135 @@ function removeStop(button) {
     }, 300);
 }
 
+// Find the showAlert function (around line 354) and update it
+
 /**
- * Shows an alert message to the user
+ * Shows an alert message to the user with improved styling and auto-dismissal
  * @param {string} message - The message to display
  * @param {string} type - The type of alert (error, success, info)
+ * @param {number} duration - How long to show the alert in ms (default: 5000, 0 for no auto-dismiss)
  */
-function showAlert(message, type = 'error') {
-    alertBox.textContent = message;
-    alertBox.className = `${type} mb-4 p-4 rounded-md fade-in`;
+function showAlert(message, type = 'error', duration = 5000) {
+    // Clear any existing timeout
+    if (window.alertTimeout) {
+        clearTimeout(window.alertTimeout);
+    }
+    
+    const alertBox = document.getElementById('alert-box');
+    
+    // Add alert icon based on type
+    let iconHTML = '';
+    switch (type) {
+        case 'error':
+            iconHTML = '<i class="fas fa-exclamation-circle mr-2"></i>';
+            break;
+        case 'success':
+            iconHTML = '<i class="fas fa-check-circle mr-2"></i>';
+            break;
+        case 'info':
+            iconHTML = '<i class="fas fa-info-circle mr-2"></i>';
+            break;
+    }
+    
+    // Set alert content with icon
+    alertBox.innerHTML = `
+        <div class="flex items-center">
+            ${iconHTML}
+            <span>${sanitizeInput(message)}</span>
+        </div>
+        ${duration > 0 ? '<button class="ml-auto text-sm opacity-70 hover:opacity-100" onclick="dismissAlert()"><i class="fas fa-times"></i></button>' : ''}
+    `;
+    
+    alertBox.className = `${type} mb-4 p-4 rounded-md fade-in flex items-center`;
     alertBox.classList.remove('hidden');
     
-    // Automatically hide after 5 seconds
+    // Add accessibility attribute
+    alertBox.setAttribute('role', 'alert');
+    
+    // Automatically hide after specified duration (if not 0)
+    if (duration > 0) {
+        window.alertTimeout = setTimeout(() => {
+            dismissAlert();
+        }, duration);
+    }
+}
+
+// Add this function after the initializeApp function:
+
+/**
+ * Enhances accessibility features throughout the app
+ */
+function enhanceAccessibility() {
+    console.log("Enhancing accessibility features...");
+    
+    // Add ARIA labels to interactive elements
+    document.querySelectorAll('button:not([aria-label])').forEach(button => {
+        // Try to infer label from inner text or icon
+        const text = button.textContent.trim();
+        if (text) {
+            button.setAttribute('aria-label', text);
+        } else if (button.querySelector('i.fas, i.fa')) {
+            const icon = button.querySelector('i.fas, i.fa');
+            const iconClass = Array.from(icon.classList)
+                .find(cls => cls.startsWith('fa-'));
+            
+            if (iconClass) {
+                const label = iconClass.replace('fa-', '').replace(/-/g, ' ');
+                button.setAttribute('aria-label', label);
+            }
+        }
+    });
+    
+    // Make sure form fields have associated labels
+    document.querySelectorAll('input, select, textarea').forEach(field => {
+        // Skip fields that already have explicit labels
+        if (document.querySelector(`label[for="${field.id}"]`)) {
+            return;
+        }
+        
+        // Check for parent label
+        const parentLabel = field.closest('label');
+        if (!parentLabel && field.id) {
+            // Try to find a label-like element nearby
+            const container = field.closest('div');
+            if (container) {
+                const labelText = container.querySelector('.text-sm, .font-medium');
+                if (labelText) {
+                    // Create a proper label and associate it
+                    const newLabel = document.createElement('label');
+                    newLabel.setAttribute('for', field.id);
+                    newLabel.className = labelText.className;
+                    newLabel.innerHTML = labelText.innerHTML;
+                    container.insertBefore(newLabel, labelText);
+                    labelText.remove();
+                }
+            }
+        }
+    });
+    
+    // Add keyboard navigation to interactive components
+    const stopItems = document.querySelectorAll('.stop-item');
+    stopItems.forEach((item, index) => {
+        const inputs = item.querySelectorAll('input, button');
+        inputs.forEach(input => {
+            input.setAttribute('tabindex', '0');
+        });
+    });
+}
+
+
+
+/**
+ * Dismisses the alert box with animation
+ */
+function dismissAlert() {
+    const alertBox = document.getElementById('alert-box');
+    alertBox.style.opacity = '0';
+    
     setTimeout(() => {
         alertBox.classList.add('hidden');
-    }, 5000);
+        alertBox.style.opacity = '1';
+    }, 300);
 }
 
 /**
@@ -490,6 +611,9 @@ async function validateAddresses(locations) {
     }
 }
 
+// In app.js, find the geocodeAddress function (around line 405)
+// Update the caching mechanism to include expiration
+
 function geocodeAddress(address) {
     return new Promise((resolve, reject) => {
         console.log("Geocoding address:", address);
@@ -499,26 +623,23 @@ function geocodeAddress(address) {
         const cached = localStorage.getItem(cacheKey);
         
         if (cached) {
-            console.log("Using cached geocoding result");
-            const cachedResult = JSON.parse(cached);
+            const cachedData = JSON.parse(cached);
+            // Add cache expiration check (1 week)
+            const now = new Date().getTime();
+            const cacheTime = cachedData.timestamp || 0;
+            const oneWeek = 7 * 24 * 60 * 60 * 1000;
             
-            // Ensure the name is set correctly (add this check)
-            if (!cachedResult.name && address) {
-                // Extract name from the original address
-                if (address.includes(',')) {
-                    cachedResult.name = address.split(',')[0].trim();
-                    cachedResult.originalAddress = address;
-                    
-                    // Update the cache with the fixed result
-                    localStorage.setItem(cacheKey, JSON.stringify(cachedResult));
-                }
+            if (now - cacheTime < oneWeek) {
+                console.log("Using cached geocoding result");
+                resolve(cachedData.result);
+                return;
+            } else {
+                console.log("Cached geocoding result expired");
+                // Continue to fetch fresh data
             }
-            
-            resolve(cachedResult);
-            return;
         }
         
-        // Not in cache, use Google API
+        // Not in cache or expired, use Google API
         geocoder.geocode({ address }, (results, status) => {
             console.log(`Geocoding result for "${address}":`, status, results);
             
@@ -537,8 +658,11 @@ function geocodeAddress(address) {
                     originalAddress: address
                 };
                 
-                // Cache the result
-                localStorage.setItem(cacheKey, JSON.stringify(result));
+                // Cache the result with timestamp
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    result: result,
+                    timestamp: new Date().getTime()
+                }));
                 
                 resolve(result);
             } else {
@@ -548,6 +672,42 @@ function geocodeAddress(address) {
         });
     });
 }
+
+// Add this function after the geocodeAddress function
+
+/**
+ * Cleans up old geocoding cache entries
+ * @param {number} maxAge - Maximum age in milliseconds (default: 30 days)
+ */
+function cleanupGeocodeCache(maxAge = 30 * 24 * 60 * 60 * 1000) {
+    console.log("Cleaning up geocode cache...");
+    const now = new Date().getTime();
+    
+    // Get all localStorage keys
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        
+        // Only process geocode cache entries
+        if (key && key.startsWith('geocode_')) {
+            try {
+                const cached = JSON.parse(localStorage.getItem(key));
+                const cacheTime = cached.timestamp || 0;
+                
+                // Remove if older than maxAge
+                if (now - cacheTime > maxAge) {
+                    console.log(`Removing expired cache entry: ${key}`);
+                    localStorage.removeItem(key);
+                }
+            } catch (error) {
+                // If entry is corrupted, remove it
+                console.error(`Error processing cache entry ${key}:`, error);
+                localStorage.removeItem(key);
+            }
+        }
+    }
+}
+
+
 
 function calculateOptimizedRoute(locations) {
     return new Promise((resolve, reject) => {
@@ -652,25 +812,6 @@ function calculateOptimizedRoute(locations) {
     });
 }
 
-/**
- * Extracts a business name from an address string
- * @param {string} address - The address string
- * @returns {string} - The extracted business name or empty string
- */
-function extractBusinessName(address) {
-    if (!address || !address.includes(',')) {
-        return '';
-    }
-    
-    // Get the part before the first comma
-    const firstPart = address.split(',')[0].trim();
-    
-    // Check if it looks like a business name (not just a street address)
-    // Street addresses usually start with numbers
-    const isLikelyBusiness = !/^\d+\s/.test(firstPart);
-    
-    return isLikelyBusiness ? firstPart : '';
-}
 
 /**
  * Toggles the loading state of the form
@@ -989,15 +1130,6 @@ function openAppleMaps() {
     }
 }
 
-/**
- * Function to sanitize user input to prevent XSS attacks
- * @param {string} input - User provided input
- * @returns {string} - Sanitized input
- */
-function sanitizeInput(input) {
-  // Basic sanitization - removes HTML tags and script
-  return input.replace(/<\/?[^>]+(>|$)/g, "");
-}
 
 /**
  * Checks if the current user is an admin
