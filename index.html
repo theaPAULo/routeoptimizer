@@ -362,16 +362,16 @@ tailwind.config = {
     const isDark = document.documentElement.classList.toggle('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     
-    // Toggle visibility of sun/moon icons
+    // Toggle visibility of sun/moon icons using classes
     const moonIcon = themeToggle.querySelector('.fa-moon');
     const sunIcon = themeToggle.querySelector('.fa-sun');
     
     if (isDark) {
-        moonIcon.style.display = 'none';
-        sunIcon.style.display = 'block';
+        moonIcon.classList.add('hidden');
+        sunIcon.classList.remove('hidden');
     } else {
-        moonIcon.style.display = 'block';
-        sunIcon.style.display = 'none';
+        moonIcon.classList.remove('hidden');
+        sunIcon.classList.add('hidden');
     }
     
     // Update input styling
