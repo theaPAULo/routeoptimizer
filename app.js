@@ -63,6 +63,12 @@ function initializeApp() {
 }
         // Set up admin functionality
         setupAdminFunctionality();
+
+        // Add this line to initializeApp():
+        setupRoundTripFeature();
+
+        // Add this line to initializeApp():
+        setupLocationButtons();
         
         // Update usage indicator
         updateUsageIndicator();
@@ -1218,16 +1224,21 @@ function setupAdminFunctionality() {
     }
   }
 
-// Add this function to app.js after the initializeGoogleMaps function
-
 /**
  * Gets the user's current location using the Geolocation API
+ * @param {string} targetInputId - ID of the input to populate (default: 'start-location')
  */
-function getCurrentLocation() {
+function getCurrentLocation(targetInputId = 'start-location') {
+    // Determine which input we're targeting
+    const targetInput = document.getElementById(targetInputId);
+    if (!targetInput) {
+        console.error(`Target input with ID ${targetInputId} not found`);
+        return;
+    }
+    
     // Show a loading indicator
-    const startLocationInput = document.getElementById('start-location');
-    startLocationInput.value = 'Detecting your location...';
-    startLocationInput.disabled = true;
+    targetInput.value = 'Detecting your location...';
+    targetInput.disabled = true;
     
     // Check if geolocation is available in the browser
     if (navigator.geolocation) {
@@ -1241,12 +1252,12 @@ function getCurrentLocation() {
                 const lng = position.coords.longitude;
                 
                 // Use reverse geocoding to get a readable address
-                reverseGeocode(lat, lng);
+                reverseGeocode(lat, lng, targetInputId);
             },
             // Error callback
             function(error) {
-                startLocationInput.disabled = false;
-                startLocationInput.value = '';
+                targetInput.disabled = false;
+                targetInput.value = '';
                 
                 console.error("Geolocation error:", error);
                 
@@ -1278,8 +1289,8 @@ function getCurrentLocation() {
         );
     } else {
         // Browser doesn't support Geolocation
-        startLocationInput.disabled = false;
-        startLocationInput.value = '';
+        targetInput.disabled = false;
+        targetInput.value = '';
         showAlert("Geolocation is not supported by your browser. Please enter your address manually.", 'error');
     }
 }
@@ -1288,18 +1299,19 @@ function getCurrentLocation() {
  * Reverse geocodes coordinates to an address
  * @param {number} lat - Latitude
  * @param {number} lng - Longitude
+ * @param {string} targetInputId - ID of the input to populate
  */
-function reverseGeocode(lat, lng) {
-    console.log("Reverse geocoding coordinates:", lat, lng);
+function reverseGeocode(lat, lng, targetInputId = 'start-location') {
+    console.log("Reverse geocoding coordinates:", lat, lng, "for input:", targetInputId);
     
-    const startLocationInput = document.getElementById('start-location');
+    const targetInput = document.getElementById(targetInputId);
     
     // Create a latlng object for the geocoder
     const latlng = new google.maps.LatLng(lat, lng);
     
     // Use the geocoder to get an address
     geocoder.geocode({ 'location': latlng }, function(results, status) {
-        startLocationInput.disabled = false;
+        targetInput.disabled = false;
         
         if (status === 'OK') {
             if (results[0]) {
@@ -1308,7 +1320,7 @@ function reverseGeocode(lat, lng) {
                 console.log("Reverse geocoded address:", address);
                 
                 // Set the input value
-                startLocationInput.value = address;
+                targetInput.value = address;
                 
                 // Create a synthetic Place object for the autocomplete system to work with
                 const place = {
@@ -1321,20 +1333,111 @@ function reverseGeocode(lat, lng) {
                 };
                 
                 // Trigger an event as if the autocomplete had selected this address
-                const autocompleteInstance = autocompletes.find(a => a.id === 'start-location')?.instance;
+                const autocompleteInstance = autocompletes.find(a => a.id === targetInputId)?.instance;
                 if (autocompleteInstance) {
                     google.maps.event.trigger(autocompleteInstance, 'place_changed');
                 }
                 
+                // If this is the start location and round trip is checked, update end location too
+                if (targetInputId === 'start-location') {
+                    const roundTripCheckbox = document.getElementById('round-trip-checkbox');
+                    if (roundTripCheckbox && roundTripCheckbox.checked) {
+                        const endLocationInput = document.getElementById('end-location');
+                        if (endLocationInput) {
+                            endLocationInput.value = address;
+                        }
+                    }
+                }
+                
                 showAlert("Your location has been detected successfully!", 'success');
             } else {
-                startLocationInput.value = '';
+                targetInput.value = '';
                 showAlert("No address found for your location. Please enter it manually.", 'error');
             }
         } else {
-            startLocationInput.value = '';
+            targetInput.value = '';
             showAlert("Could not convert your coordinates to an address. Please enter it manually. Error: " + status, 'error');
         }
+    });
+}
+
+/**
+ * Sets up the "Use My Location" buttons
+ */
+function setupLocationButtons() {
+    // Start location button
+    const useLocationBtn = document.getElementById('use-location-btn');
+    if (useLocationBtn) {
+        useLocationBtn.addEventListener('click', function() {
+            getCurrentLocation('start-location');
+        });
+    }
+    
+    // End location button
+    const useLocationBtnEnd = document.getElementById('use-location-btn-end');
+    if (useLocationBtnEnd) {
+        useLocationBtnEnd.addEventListener('click', function() {
+            getCurrentLocation('end-location');
+        });
+    }
+}
+
+// Replace your existing location button setup code with a call to this function
+// in your initializeApp function
+
+
+
+/**
+ * Handles the round trip checkbox functionality
+ */
+function setupRoundTripFeature() {
+    const roundTripCheckbox = document.getElementById('round-trip-checkbox');
+    const startLocationInput = document.getElementById('start-location');
+    const endLocationInput = document.getElementById('end-location');
+    
+    if (!roundTripCheckbox || !startLocationInput || !endLocationInput) {
+        console.error("Could not find required elements for round trip feature");
+        return;
+    }
+    
+    // Store the original end location value when toggling
+    let savedEndLocation = '';
+    
+    roundTripCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            // Save current end location before overwriting it
+            savedEndLocation = endLocationInput.value;
+            
+            // Set end location to match start location
+            endLocationInput.value = startLocationInput.value;
+            
+            // Disable end location input
+            endLocationInput.disabled = true;
+            endLocationInput.classList.add('bg-gray-100', 'dark:bg-gray-600');
+        } else {
+            // Restore previous end location
+            endLocationInput.value = savedEndLocation;
+            
+            // Re-enable end location input
+            endLocationInput.disabled = false;
+            endLocationInput.classList.remove('bg-gray-100', 'dark:bg-gray-600');
+        }
+    });
+    
+    // Update end location when start location changes (if round trip is checked)
+    startLocationInput.addEventListener('change', function() {
+        if (roundTripCheckbox.checked) {
+            endLocationInput.value = this.value;
+        }
+    });
+    
+    // Also listen for input from autocomplete selections
+    startLocationInput.addEventListener('blur', function() {
+        setTimeout(() => {
+            if (roundTripCheckbox.checked && startLocationInput.value !== endLocationInput.value) {
+                endLocationInput.value = startLocationInput.value;
+            }
+        }, 300); // Small delay to allow autocomplete to finish
     });
 }
 
