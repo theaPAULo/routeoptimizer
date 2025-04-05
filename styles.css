@@ -659,3 +659,7 @@ form label:hover {
         height: 40px !important;
     }
 }
+
+.hidden {
+    display: none !important;
+}
