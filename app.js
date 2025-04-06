@@ -1038,22 +1038,16 @@ function addRouteMarkers(route) {
     route.waypoints.forEach((point, index) => {
         let position;
         let labelText = (index + 1).toString();
-        let leg = null;
         
         if (index === 0) {
             // Start location
             position = legs[0].start_location;
-            // For start point, use the first leg
-            if (legs.length > 0) leg = legs[0];
         } else if (index === route.waypoints.length - 1) {
             // End location
             position = legs[legs.length - 1].end_location;
-            // For end point, no leg (it's the destination)
         } else {
             // Intermediate stop - use the destination of the previous leg
             position = legs[index - 1].end_location;
-            // For intermediate points, use the next leg
-            if (index < legs.length) leg = legs[index];
         }
         
         // Create custom marker
@@ -1065,8 +1059,8 @@ function addRouteMarkers(route) {
             zIndex: 999 - index // Higher z-index for start and lower for subsequent points
         });
         
-        // Create enhanced info window
-        const infoContent = createEnhancedInfoWindow(point, index, leg);
+        // Create enhanced info window - pass all legs
+        const infoContent = createEnhancedInfoWindow(point, index, legs);
         
         // Create info window
         const infoWindow = new google.maps.InfoWindow({
@@ -1203,45 +1197,11 @@ function enhanceRouteDisplay(result) {
  * Creates an enhanced info window for markers
  * @param {Object} point - Waypoint data
  * @param {number} index - Index in the route
- * @param {Object} leg - Route leg data (if available)
+ * @param {Object} legs - All route leg data
  * @returns {string} - HTML content for the info window
  */
-function createEnhancedInfoWindow(point, index, leg) {
-    // Determine if this is an intermediate stop (has both a previous and next leg)
-    const isStop = point.type === 'stop';
-    // ETA calculation - if leg is available
-    let etaText = '';
-    if (leg && leg.duration) {
-        // Create a date object for calculating ETA
-        const now = new Date();
-        const eta = new Date(now.getTime() + leg.duration.value * 1000);
-        etaText = `
-            <div class="eta">
-                <i class="fas fa-clock text-primary-600 mr-1"></i> 
-                Est. Arrival: ${eta.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-            </div>
-        `;
-    }
-    
-    // Get leg details if available
-    let legDetails = '';
-    if (leg) {
-        legDetails = `
-            <div class="leg-details mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                <div class="text-sm">
-                    <i class="fas fa-route text-primary-600 mr-1"></i> 
-                    <span class="font-medium">Distance: </span>${leg.distance.text}
-                </div>
-                <div class="text-sm">
-                    <i class="fas fa-hourglass-half text-primary-600 mr-1"></i> 
-                    <span class="font-medium">Time: </span>${leg.duration.text}
-                </div>
-                ${etaText}
-            </div>
-        `;
-    }
-    
-    // Define marker type label and color
+function createEnhancedInfoWindow(point, index, legs) {
+    // Determine marker type label and color
     let typeLabel, typeColorClass;
     switch (point.type) {
         case 'start':
@@ -1255,6 +1215,30 @@ function createEnhancedInfoWindow(point, index, leg) {
         default:
             typeLabel = 'Stop';
             typeColorClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+    }
+    
+    // Add leg details - similar to the route list logic:
+    // For the first point (index 0), don't show leg details
+    // For all other points, show leg details from previous to current point
+    let legDetails = '';
+    
+    if (index > 0 && index - 1 < legs.length) {
+        // For all points except the first, show leg details from previous point
+        const leg = legs[index - 1];
+        legDetails = `
+            <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center text-sm mt-1">
+                    <i class="fas fa-route text-primary-600 mr-2"></i>
+                    <span class="font-medium">Distance:</span>
+                    <span class="ml-1">${leg.distance.text}</span>
+                </div>
+                <div class="flex items-center text-sm mt-1">
+                    <i class="fas fa-clock text-primary-600 mr-2"></i>
+                    <span class="font-medium">Time:</span>
+                    <span class="ml-1">${leg.duration.text}</span>
+                </div>
+            </div>
+        `;
     }
     
     // Create the info window content
