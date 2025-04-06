@@ -107,24 +107,15 @@ function initializeGoogleMaps() {
                 mapContainer.style.height = '400px';
             }
             
-            // Initialize the map
+            // Initialize the map with minimal controls
             map = new google.maps.Map(mapContainer, {
                 center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
                 zoom: 12,
                 mapTypeId: google.maps.MapTypeId.ROADMAP,
-                fullscreenControl: true,
-                mapTypeControl: true,
-                mapTypeControlOptions: {
-                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-                    position: google.maps.ControlPosition.TOP_CENTER
-                },
-                streetViewControl: false, // Disable Street View to simplify UI
-                zoomControl: true,
-                zoomControlOptions: {
-                    position: window.innerWidth <= 640 ? 
-                        google.maps.ControlPosition.RIGHT_BOTTOM : 
-                        google.maps.ControlPosition.RIGHT_TOP
-                },
+                fullscreenControl: false,
+                mapTypeControl: false,
+                streetViewControl: false,
+                zoomControl: false, // Remove zoom controls (+/-)
                 gestureHandling: 'greedy' // Makes it easier to navigate on mobile
             });
             
@@ -932,10 +923,6 @@ function displayRouteResults(route) {
     // Clear previous route list
     routeList.innerHTML = '';
     
-    // Add route points to list with enhanced information
-// Find the part in displayRouteResults function where the listItems are created
-// Replace the code that creates each list item with this:
-
 // Add route points to list
 route.waypoints.forEach((point, index) => {
     const listItem = document.createElement('li');
@@ -965,10 +952,17 @@ route.waypoints.forEach((point, index) => {
     // Create Google Maps link for the address
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(point.address)}`;
     
-    // Add leg details (if not the last point)
+    // Add leg details - we'll adjust this logic:
+    // For the first point (index 0), don't show leg details
+    // For points in between, show leg details from previous to current point
+    // For the last point, show leg details from second-last to last point
     let legDetails = '';
-    if (index < route.directionsResult.routes[0].legs.length) {
-        const leg = route.directionsResult.routes[0].legs[index];
+    
+    const legs = route.directionsResult.routes[0].legs;
+    
+    if (index > 0 && index - 1 < legs.length) {
+        // For all points except the first, show leg details from previous point
+        const leg = legs[index - 1];
         legDetails = `
             <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
                 <span class="flex items-center mr-2">
@@ -1163,9 +1157,11 @@ function enhanceRouteDisplay(result) {
         animatedLine.set('icons', icons);
     }, 30);
     
-    // Add direction arrows
-    // We'll add an arrow every 5 points
-    for (let i = 0; i < path.length - 1; i += 5) {
+    // Add direction arrows - but much fewer of them (every 20 points instead of 5)
+    // We'll also add a minimum distance check to avoid cluttering
+    const arrowSpacing = Math.max(20, Math.floor(path.length / 5)); // Maximum of 5 arrows on the path
+    
+    for (let i = 0; i < path.length - 1; i += arrowSpacing) {
         // Skip if i+1 would be out of bounds
         if (i + 1 >= path.length) continue;
         
