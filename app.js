@@ -903,11 +903,11 @@ function getApiUsage() {
 }
 
 /**
- * Displays the route results in the UI and on the map
+ * Modifies the displayRouteResults function to include our enhancements
  * @param {Object} route - The optimized route data
  */
 function displayRouteResults(route) {
-    console.log("Displaying route results:", route);
+    console.log("Displaying enhanced route results:", route);
     
     // Store current route
     currentRoute = route;
@@ -915,20 +915,24 @@ function displayRouteResults(route) {
     // End loading state
     toggleLoadingState(false);
     
-    // Update stats with explicit icon HTML
-    document.querySelector('#results-section .fa-route').outerHTML = '<i class="fas fa-route" style="display: inline-block; visibility: visible; opacity: 1; font-size: 1.25rem; color: #4caf50; margin-right: 0.75rem;"></i>';
-    document.querySelector('#results-section .fa-clock').outerHTML = '<i class="fas fa-clock" style="display: inline-block; visibility: visible; opacity: 1; font-size: 1.25rem; color: #4caf50; margin-right: 0.75rem;"></i>';
-
-    // Now update the text content
+    // Update stats
     totalDistance.textContent = route.totalDistance;
     estimatedTime.textContent = route.estimatedTime;
     
-    // Display route on map
+    // Display route on map with custom styling
+    directionsRenderer.setOptions({
+        polylineOptions: {
+            strokeColor: '#4f46e5', // Indigo color
+            strokeWeight: 5,
+            strokeOpacity: 0.7
+        }
+    });
     directionsRenderer.setDirections(route.directionsResult);
     
     // Clear previous route list
     routeList.innerHTML = '';
     
+    // Add route points to list with enhanced information
 // Find the part in displayRouteResults function where the listItems are created
 // Replace the code that creates each list item with this:
 
@@ -939,9 +943,9 @@ route.waypoints.forEach((point, index) => {
     listItem.style.animationDelay = `${index * 0.1}s`;
     
     let typeClass = '';
-    if (point.type === 'start') typeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-    else if (point.type === 'end') typeClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-    else typeClass = 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+    if (point.type === 'start') typeClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+    else if (point.type === 'end') typeClass = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    else typeClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
     
     // Prepare the display name and address
     let displayName = '';
@@ -961,13 +965,32 @@ route.waypoints.forEach((point, index) => {
     // Create Google Maps link for the address
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(point.address)}`;
     
+    // Add leg details (if not the last point)
+    let legDetails = '';
+    if (index < route.directionsResult.routes[0].legs.length) {
+        const leg = route.directionsResult.routes[0].legs[index];
+        legDetails = `
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
+                <span class="flex items-center mr-2">
+                    <i class="fas fa-route text-primary-600 dark:text-primary-400 mr-1"></i>
+                    ${leg.distance.text}
+                </span>
+                <span class="flex items-center">
+                    <i class="fas fa-clock text-primary-600 dark:text-primary-400 mr-1"></i>
+                    ${leg.duration.text}
+                </span>
+            </div>
+        `;
+    }
+    
     listItem.innerHTML = `
         <div class="stop-number">${index + 1}</div>
         <div class="stop-details">
             ${displayName}
             <a href="${googleMapsUrl}" target="_blank" class="stop-address text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">${displayAddress}</a>
+            ${legDetails}
         </div>
-        <div class="stop-type ${point.type} ${typeClass} text-xs font-medium px-2 py-1 rounded-full">${point.type}</div>
+        <div class="stop-type ${point.type} ${typeClass} text-xs font-medium px-2 py-1 rounded-full">${point.type.toUpperCase()}</div>
     `;
     
     routeList.appendChild(listItem);
@@ -978,8 +1001,8 @@ route.waypoints.forEach((point, index) => {
     resultsSection.classList.remove('hidden');
     resultsSection.classList.add('fade-in');
     
-    // Refresh ads
-    refreshAds();
+    // Add map controls
+    addMapControls();
     
     // Trigger a resize event to ensure map displays correctly
     setTimeout(() => {
@@ -993,22 +1016,26 @@ route.waypoints.forEach((point, index) => {
         });
         map.fitBounds(bounds);
         
-        // Add custom markers with info windows
+        // Add custom markers with enhanced info windows
         addRouteMarkers(route);
     }, 100);
 }
 
 /**
- * Adds standard Google markers for each waypoint with proper info windows
+ * Adds custom markers for each waypoint with enhanced info windows
  * @param {Object} route - The route object with waypoint data
  */
-// Find the addRouteMarkers function in app.js and replace it with this updated version:
 function addRouteMarkers(route) {
     // Clear existing markers if any
     if (window.routeMarkers) {
         window.routeMarkers.forEach(marker => marker.setMap(null));
     }
     window.routeMarkers = [];
+    
+    // Clear any open info window
+    if (window.currentInfoWindow) {
+        window.currentInfoWindow.close();
+    }
     
     // Get route legs for positions
     const legs = route.directionsResult.routes[0].legs;
@@ -1017,41 +1044,40 @@ function addRouteMarkers(route) {
     route.waypoints.forEach((point, index) => {
         let position;
         let labelText = (index + 1).toString();
+        let leg = null;
         
         if (index === 0) {
             // Start location
             position = legs[0].start_location;
+            // For start point, use the first leg
+            if (legs.length > 0) leg = legs[0];
         } else if (index === route.waypoints.length - 1) {
             // End location
             position = legs[legs.length - 1].end_location;
+            // For end point, no leg (it's the destination)
         } else {
             // Intermediate stop - use the destination of the previous leg
             position = legs[index - 1].end_location;
+            // For intermediate points, use the next leg
+            if (index < legs.length) leg = legs[index];
         }
         
-        // Create standard Google marker with number label
+        // Create custom marker
         const marker = new google.maps.Marker({
             position: position,
             map: map,
-            label: {
-                text: labelText,
-                color: 'white',
-                fontWeight: 'bold'
-            }
+            icon: createCustomMarkerIcon(labelText, point.type),
+            title: point.name || point.address.split(',')[0],
+            zIndex: 999 - index // Higher z-index for start and lower for subsequent points
         });
         
-        // Create info window content with business name
-        const infoContent = `
-            <div style="font-family: 'Poppins', sans-serif; padding: 8px; min-width: 200px; margin: 0;">
-                <div style="font-weight: 600; font-size: 14px; margin-bottom: 5px; margin-top: 0;">${point.name || point.type.toUpperCase()}</div>
-                <div style="font-size: 12px; color: #4b5563;">${point.address}</div>
-            </div>
-        `;
+        // Create enhanced info window
+        const infoContent = createEnhancedInfoWindow(point, index, leg);
         
         // Create info window
         const infoWindow = new google.maps.InfoWindow({
             content: infoContent,
-            disableAutoPan: false // Ensure the map pans to show the info window
+            disableAutoPan: false
         });
         
         // Add click listener
@@ -1072,7 +1098,280 @@ function addRouteMarkers(route) {
         // Store marker for later reference
         window.routeMarkers.push(marker);
     });
+    
+    // Add route animation and direction arrows
+    const cleanupAnimation = enhanceRouteDisplay(route.directionsResult);
+    
+    // Store cleanup function
+    window.cleanupRouteAnimation = cleanupAnimation;
 }
+
+/**
+ * Applies animation and direction arrows to the route
+ * @param {Object} result - The directions result
+ */
+function enhanceRouteDisplay(result) {
+    // Clear any existing animation polylines
+    if (window.animatedPolylines) {
+        window.animatedPolylines.forEach(poly => poly.setMap(null));
+    }
+    window.animatedPolylines = [];
+    
+    // Clear any existing direction arrows
+    if (window.directionArrows) {
+        window.directionArrows.forEach(arrow => arrow.setMap(null));
+    }
+    window.directionArrows = [];
+    
+    // Get the routes and path points
+    const routes = result.routes[0];
+    const path = routes.overview_path;
+    
+    // Create an animated polyline
+    const animatedLine = new google.maps.Polyline({
+        path: [],
+        geodesic: true,
+        strokeColor: '#4f46e5', // Indigo color
+        strokeOpacity: 0.8,
+        strokeWeight: 5,
+        map: map,
+        icons: [{
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: '#ffffff',
+                fillOpacity: 1,
+                scale: 3,
+                strokeColor: '#ffffff',
+                strokeWeight: 1
+            },
+            repeat: '80px',
+            offset: '0'
+        }]
+    });
+    
+    // Animate the line
+    animatedLine.setPath(path);
+    window.animatedPolylines.push(animatedLine);
+    
+    // Animate dash
+    let count = 0;
+    window.routeAnimation = window.setInterval(() => {
+        count = (count + 1) % 200;
+        
+        const icons = animatedLine.get('icons');
+        icons[0].offset = (count / 2) + 'px';
+        animatedLine.set('icons', icons);
+    }, 30);
+    
+    // Add direction arrows
+    // We'll add an arrow every 5 points
+    for (let i = 0; i < path.length - 1; i += 5) {
+        // Skip if i+1 would be out of bounds
+        if (i + 1 >= path.length) continue;
+        
+        // Calculate position for arrow (midpoint between two path points)
+        const p1 = path[i];
+        const p2 = path[i + 1];
+        
+        // Calculate heading/bearing
+        const heading = google.maps.geometry.spherical.computeHeading(p1, p2);
+        
+        // Create the arrow marker
+        const arrowMarker = new google.maps.Marker({
+            position: google.maps.geometry.spherical.interpolate(p1, p2, 0.5),
+            map: map,
+            icon: {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                scale: 3,
+                fillColor: '#ffffff',
+                fillOpacity: 1,
+                strokeColor: '#4f46e5',
+                strokeWeight: 2,
+                rotation: heading
+            },
+            clickable: false
+        });
+        
+        window.directionArrows.push(arrowMarker);
+    }
+    
+    // Make sure we clean up the animation when changing routes
+    return () => {
+        if (window.routeAnimation) {
+            window.clearInterval(window.routeAnimation);
+        }
+    };
+}
+
+/**
+ * Creates an enhanced info window for markers
+ * @param {Object} point - Waypoint data
+ * @param {number} index - Index in the route
+ * @param {Object} leg - Route leg data (if available)
+ * @returns {string} - HTML content for the info window
+ */
+function createEnhancedInfoWindow(point, index, leg) {
+    // Determine if this is an intermediate stop (has both a previous and next leg)
+    const isStop = point.type === 'stop';
+    // ETA calculation - if leg is available
+    let etaText = '';
+    if (leg && leg.duration) {
+        // Create a date object for calculating ETA
+        const now = new Date();
+        const eta = new Date(now.getTime() + leg.duration.value * 1000);
+        etaText = `
+            <div class="eta">
+                <i class="fas fa-clock text-primary-600 mr-1"></i> 
+                Est. Arrival: ${eta.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            </div>
+        `;
+    }
+    
+    // Get leg details if available
+    let legDetails = '';
+    if (leg) {
+        legDetails = `
+            <div class="leg-details mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <div class="text-sm">
+                    <i class="fas fa-route text-primary-600 mr-1"></i> 
+                    <span class="font-medium">Distance: </span>${leg.distance.text}
+                </div>
+                <div class="text-sm">
+                    <i class="fas fa-hourglass-half text-primary-600 mr-1"></i> 
+                    <span class="font-medium">Time: </span>${leg.duration.text}
+                </div>
+                ${etaText}
+            </div>
+        `;
+    }
+    
+    // Define marker type label and color
+    let typeLabel, typeColorClass;
+    switch (point.type) {
+        case 'start':
+            typeLabel = 'Starting Point';
+            typeColorClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+            break;
+        case 'end':
+            typeLabel = 'Destination';
+            typeColorClass = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+            break;
+        default:
+            typeLabel = 'Stop';
+            typeColorClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+    }
+    
+    // Create the info window content
+    return `
+        <div class="info-window p-3 min-w-[250px] max-w-[300px]" style="font-family: 'Poppins', sans-serif;">
+            <div class="flex justify-between items-start">
+                <div class="font-semibold text-lg">${point.name || point.address.split(',')[0]}</div>
+                <div class="text-xs px-2 py-1 rounded-full ${typeColorClass}">
+                    ${typeLabel}
+                </div>
+            </div>
+            
+            <div class="address text-sm text-gray-600 dark:text-gray-400 mt-1">
+                ${point.address}
+            </div>
+            
+            ${legDetails}
+            
+            <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between">
+                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(point.address)}" 
+                   target="_blank" 
+                   class="text-sm text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+                   <i class="fas fa-map-marked-alt mr-1"></i> View in Google Maps
+                </a>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Adds custom controls to the map
+ */
+function addMapControls() {
+    // Wait for the map to be fully initialized
+    setTimeout(() => {
+        const mapContainer = document.getElementById('map-container');
+        if (!mapContainer) return;
+        
+        const mapElement = mapContainer.querySelector('div[role="region"]');
+        if (!mapElement) return;
+        
+        // Create control container
+        const controlContainer = document.createElement('div');
+        controlContainer.className = 'map-custom-controls';
+        controlContainer.style.position = 'absolute';
+        controlContainer.style.top = '10px';
+        controlContainer.style.right = '10px';
+        controlContainer.style.zIndex = '1';
+        controlContainer.style.display = 'flex';
+        controlContainer.style.flexDirection = 'column';
+        controlContainer.style.gap = '5px';
+        
+        // Traffic toggle button
+        const trafficBtn = document.createElement('div');
+        trafficBtn.className = 'bg-white dark:bg-gray-800 rounded-md shadow-md p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700';
+        trafficBtn.innerHTML = '<i class="fas fa-car"></i>';
+        trafficBtn.setAttribute('title', 'Toggle traffic');
+        
+        trafficBtn.addEventListener('click', toggleTrafficLayer);
+        
+        // Reset view button
+        const resetViewBtn = document.createElement('div');
+        resetViewBtn.className = 'bg-white dark:bg-gray-800 rounded-md shadow-md p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700';
+        resetViewBtn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i>';
+        resetViewBtn.setAttribute('title', 'Reset view');
+        
+        resetViewBtn.addEventListener('click', resetMapView);
+        
+        // Add buttons to container
+        controlContainer.appendChild(trafficBtn);
+        controlContainer.appendChild(resetViewBtn);
+        
+        // Add container to map
+        mapElement.appendChild(controlContainer);
+    }, 1000);
+}
+
+/**
+ * Toggles traffic layer on the map
+ */
+function toggleTrafficLayer() {
+    if (!map) return;
+    
+    if (!window.trafficLayer) {
+        window.trafficLayer = new google.maps.TrafficLayer();
+        window.trafficLayer.setMap(map);
+        showAlert('Traffic information enabled', 'info', 2000);
+    } else {
+        const isVisible = window.trafficLayer.getMap() !== null;
+        window.trafficLayer.setMap(isVisible ? null : map);
+        showAlert(isVisible ? 'Traffic information disabled' : 'Traffic information enabled', 'info', 2000);
+    }
+}
+
+/**
+ * Resets the map view to show the entire route
+ */
+function resetMapView() {
+    if (!map || !currentRoute) return;
+    
+    const bounds = new google.maps.LatLngBounds();
+    
+    // Add all waypoints to bounds
+    currentRoute.directionsResult.routes[0].legs.forEach(leg => {
+        bounds.extend(leg.start_location);
+        bounds.extend(leg.end_location);
+    });
+    
+    // Fit map to bounds with some padding
+    map.fitBounds(bounds, { padding: 50 });
+    showAlert('Map view reset', 'info', 2000);
+}
+
 
 /**
  * Generates a Google Maps URL for the current route
@@ -1093,6 +1392,68 @@ function generateGoogleMapsUrl() {
     
     // Build Google Maps URL
     return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${stops}&travelmode=driving`;
+}
+
+/**
+ * Creates a custom marker icon for route stops
+ * @param {string} label - Text to display on marker
+ * @param {string} type - Type of marker (start, stop, end)
+ * @returns {Object} - Google Maps Icon configuration
+ */
+function createCustomMarkerIcon(label, type) {
+    // Define colors based on type
+    let backgroundColor, borderColor, textColor;
+    
+    switch (type) {
+        case 'start':
+            backgroundColor = '#4ade80'; // Green
+            borderColor = '#16a34a';
+            textColor = '#ffffff';
+            break;
+        case 'end':
+            backgroundColor = '#f87171'; // Red
+            borderColor = '#dc2626';
+            textColor = '#ffffff';
+            break;
+        default:
+            backgroundColor = '#60a5fa'; // Blue
+            borderColor = '#2563eb';
+            textColor = '#ffffff';
+            break;
+    }
+    
+    // Create a canvas element to draw the marker
+    const canvas = document.createElement('canvas');
+    const size = 36; // Increased size for better visibility
+    canvas.width = size;
+    canvas.height = size;
+    const context = canvas.getContext('2d');
+    
+    // Draw circle background
+    context.beginPath();
+    context.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
+    context.fillStyle = backgroundColor;
+    context.fill();
+    
+    // Draw border
+    context.lineWidth = 2;
+    context.strokeStyle = borderColor;
+    context.stroke();
+    
+    // Draw text
+    context.font = 'bold 16px Arial';
+    context.fillStyle = textColor;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(label, size/2, size/2);
+    
+    return {
+        url: canvas.toDataURL(),
+        size: new google.maps.Size(size, size),
+        origin: new google.maps.Point(0, 0),
+        anchor: new google.maps.Point(size/2, size/2),
+        scaledSize: new google.maps.Size(size, size)
+    };
 }
 
 /**
