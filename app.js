@@ -1194,7 +1194,7 @@ function enhanceRouteDisplay(result) {
 }
 
 /**
- * Creates an enhanced info window for markers
+ * Creates an enhanced info window for markers with scrolling capability
  * @param {Object} point - Waypoint data
  * @param {number} index - Index in the route
  * @param {Object} legs - All route leg data
@@ -1241,28 +1241,30 @@ function createEnhancedInfoWindow(point, index, legs) {
         `;
     }
     
-    // Create the info window content
+    // Create the info window content with a scrollable container
     return `
-        <div class="info-window p-3 min-w-[250px] max-w-[300px]" style="font-family: 'Poppins', sans-serif;">
-            <div class="flex justify-between items-start">
-                <div class="font-semibold text-lg">${point.name || point.address.split(',')[0]}</div>
-                <div class="text-xs px-2 py-1 rounded-full ${typeColorClass}">
-                    ${typeLabel}
+        <div class="info-window" style="font-family: 'Poppins', sans-serif; max-height: 250px; min-width: 250px; max-width: 300px; overflow-y: auto; overflow-x: hidden; padding: 0;">
+            <div class="p-3">
+                <div class="flex justify-between items-start">
+                    <div class="font-semibold text-lg">${point.name || point.address.split(',')[0]}</div>
+                    <div class="text-xs px-2 py-1 rounded-full ${typeColorClass}">
+                        ${typeLabel}
+                    </div>
                 </div>
-            </div>
-            
-            <div class="address text-sm text-gray-600 dark:text-gray-400 mt-1">
-                ${point.address}
-            </div>
-            
-            ${legDetails}
-            
-            <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 flex justify-between">
-                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(point.address)}" 
-                   target="_blank" 
-                   class="text-sm text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
-                   <i class="fas fa-map-marked-alt mr-1"></i> View in Google Maps
-                </a>
+                
+                <div class="address text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    ${point.address}
+                </div>
+                
+                ${legDetails}
+                
+                <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(point.address)}" 
+                       target="_blank" 
+                       class="text-sm text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+                       <i class="fas fa-map-marked-alt mr-1"></i> View in Google Maps
+                    </a>
+                </div>
             </div>
         </div>
     `;
