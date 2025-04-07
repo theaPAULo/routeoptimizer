@@ -959,7 +959,7 @@ function displayRouteResults(route) {
         polylineOptions: {
             strokeColor: '#4f46e5', // Indigo color
             strokeWeight: 5,
-            strokeOpacity: 0.7
+            strokeOpacity: 0.6
         }
     });
     
