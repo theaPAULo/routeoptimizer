@@ -551,31 +551,29 @@ async function handleFormSubmit(event) {
         
         console.log("Geocoded locations:", locations);
         
-// In the handleFormSubmit function, replace the calculateOptimizedRoute call with:
-// In the handleFormSubmit function - correcting the try/catch syntax
-try {
-    // Check if traffic consideration is enabled
-    const considerTraffic = document.getElementById('consider-traffic-checkbox')?.checked;
-    
-    // Choose the appropriate route calculation method
-    let routeResult;
-    if (considerTraffic) {
-        routeResult = await calculateTrafficAwareOptimizedRoute(locations);
-    } else {
-        routeResult = await calculateOptimizedRoute(locations);
+        // Check if traffic consideration is enabled
+        const considerTraffic = document.getElementById('consider-traffic-checkbox')?.checked;
+        
+        // Choose the appropriate route calculation method
+        let routeResult;
+        if (considerTraffic) {
+            routeResult = await calculateTrafficAwareOptimizedRoute(locations);
+        } else {
+            routeResult = await calculateOptimizedRoute(locations);
+        }
+        
+        console.log("Route calculation result:", routeResult);
+        
+        // Update UI with results
+        displayRouteResults(routeResult);
+        
+        // Increment API usage counter
+        incrementApiUsage();
+    } catch (error) {
+        console.error("Route calculation error:", error);
+        showAlert(error.message || 'Error calculating route. Please try again.');
+        toggleLoadingState(false);
     }
-    
-    console.log("Route calculation result:", routeResult);
-    
-    // Update UI with results
-    displayRouteResults(routeResult);
-    
-    // Increment API usage counter
-    incrementApiUsage();
-} catch (error) {
-    console.error("Route calculation error:", error);
-    showAlert(error.message || 'Error calculating route. Please try again.');
-    toggleLoadingState(false);
 }
 
 /**
