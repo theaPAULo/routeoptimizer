@@ -962,7 +962,60 @@ function displayRouteResults(route) {
             strokeOpacity: 0.7
         }
     });
+    
+    // Check if this is a traffic route with our synthetic result structure
+if (route.trafficConsidered) {
+    // For traffic routes with synthetic result, we need to ensure the path is properly created
+    // Set up polyline manually if needed
+    if (!route.directionsResult.routes[0].overview_path || 
+        route.directionsResult.routes[0].overview_path.length === 0) {
+        
+        console.log("Creating manual polyline for traffic route");
+        
+        // Get all the points from the legs
+        const path = [];
+        route.directionsResult.routes[0].legs.forEach(leg => {
+            path.push(leg.start_location);
+            path.push(leg.end_location);
+        });
+        
+        // Clear existing polyline if any
+        if (window.trafficPolyline) {
+            window.trafficPolyline.setMap(null);
+        }
+        
+        // Create a new polyline
+        window.trafficPolyline = new google.maps.Polyline({
+            path: path,
+            geodesic: true,
+            strokeColor: '#4f46e5',
+            strokeOpacity: 0.7,
+            strokeWeight: 5,
+            map: map
+        });
+        
+        // Set empty directions to prevent conflicts
+        directionsRenderer.setDirections({routes: []});
+    } else {
+        // Use directions renderer normally
+        directionsRenderer.setDirections(route.directionsResult);
+        
+        // Clear any manual polyline
+        if (window.trafficPolyline) {
+            window.trafficPolyline.setMap(null);
+            window.trafficPolyline = null;
+        }
+    }
+} else {
+    // Standard route display
     directionsRenderer.setDirections(route.directionsResult);
+    
+    // Clear any manual polyline
+    if (window.trafficPolyline) {
+        window.trafficPolyline.setMap(null);
+        window.trafficPolyline = null;
+    }
+}
     
     // Clear previous route list
     routeList.innerHTML = '';
@@ -1217,14 +1270,12 @@ function formatResultFromLegs(legs, waypointOrder, locations, totalDistanceMeter
         durationText = `${Math.round(totalDurationSeconds / 60)} min`;
     }
     
-    // Create ordered waypoints list with traffic information
+    // Create ordered waypoints list
     const orderedWaypoints = [
         { 
             address: locations.start.address,
             name: locations.start.name || extractBusinessName(locations.start.originalAddress || ''),
-            type: 'start',
-            // Add flag to indicate traffic
-            hasTrafficData: true
+            type: 'start' 
         }
     ];
     
@@ -1233,8 +1284,7 @@ function formatResultFromLegs(legs, waypointOrder, locations, totalDistanceMeter
         orderedWaypoints.push({
             address: locations.stops[index].address,
             name: locations.stops[index].name || extractBusinessName(locations.stops[index].originalAddress || ''),
-            type: 'stop',
-            hasTrafficData: true
+            type: 'stop'
         });
     }
     
@@ -1242,15 +1292,17 @@ function formatResultFromLegs(legs, waypointOrder, locations, totalDistanceMeter
     orderedWaypoints.push({
         address: locations.end.address,
         name: locations.end.name || extractBusinessName(locations.end.originalAddress || ''),
-        type: 'end',
-        hasTrafficData: true
+        type: 'end'
     });
     
-    // Create a synthetic directions result for compatibility
+    // Create a proper synthetic directions result for compatibility with DirectionsRenderer
+    // This is key to making the route display on the map
     const syntheticResult = {
         routes: [{
             legs: legs,
-            waypoint_order: waypointOrder
+            waypoint_order: waypointOrder,
+            overview_path: createOverviewPath(legs), // Add this to create a path for the renderer
+            bounds: calculateBounds(legs) // Add this to properly set the map bounds
         }]
     };
     
@@ -1261,6 +1313,64 @@ function formatResultFromLegs(legs, waypointOrder, locations, totalDistanceMeter
         directionsResult: syntheticResult,
         trafficConsidered: true
     };
+}
+
+/**
+ * Creates an overview path from leg steps for route drawing
+ * @param {Array} legs - Route legs
+ * @returns {Array} - Combined path
+ */
+function createOverviewPath(legs) {
+    const path = [];
+    
+    legs.forEach(leg => {
+        // Each leg has steps, each step has a path
+        if (leg.steps) {
+            leg.steps.forEach(step => {
+                if (step.path) {
+                    // Add all path points
+                    path.push(...step.path);
+                } else if (step.start_location && step.end_location) {
+                    // Fallback to just start and end points if no path
+                    path.push(step.start_location);
+                    path.push(step.end_location);
+                }
+            });
+        } else {
+            // Fallback if no steps, just use leg start and end
+            path.push(leg.start_location);
+            path.push(leg.end_location);
+        }
+    });
+    
+    return path;
+}
+
+/**
+ * Calculates bounds for the entire route
+ * @param {Array} legs - Route legs
+ * @returns {Object} - Google Maps bounds object
+ */
+function calculateBounds(legs) {
+    const bounds = new google.maps.LatLngBounds();
+    
+    legs.forEach(leg => {
+        bounds.extend(leg.start_location);
+        bounds.extend(leg.end_location);
+        
+        // Include all step points for more accurate bounds
+        if (leg.steps) {
+            leg.steps.forEach(step => {
+                if (step.path) {
+                    step.path.forEach(point => {
+                        bounds.extend(point);
+                    });
+                }
+            });
+        }
+    });
+    
+    return bounds;
 }
 
 /**
