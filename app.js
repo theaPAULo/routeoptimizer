@@ -1104,11 +1104,7 @@ route.waypoints.forEach((point, index) => {
     }, 100);
 }
 
-/**
- * Calculates traffic-aware route by breaking it into individual legs
- * @param {Object} locations - Object containing geocoded locations
- * @returns {Promise} - Promise resolving to calculated route
- */
+// Modify calculateTrafficAwareOptimizedRoute to properly handle traffic data
 function calculateTrafficAwareOptimizedRoute(locations) {
     return new Promise(async (resolve, reject) => {
         try {
@@ -1118,7 +1114,7 @@ function calculateTrafficAwareOptimizedRoute(locations) {
             const optimizedRoute = await getOptimizedWaypointOrder(locations);
             console.log("Optimized waypoint order:", optimizedRoute.waypointOrder);
             
-            // Now use that order to calculate each leg with traffic
+            // Now use that order to calculate each leg with traffic 
             const orderedStops = optimizedRoute.waypointOrder.map(index => locations.stops[index]);
             
             // Create the full sequence: start -> all stops in order -> end
@@ -1135,13 +1131,20 @@ function calculateTrafficAwareOptimizedRoute(locations) {
                 
                 console.log(`Calculating leg ${i + 1} with traffic: ${origin.address} to ${destination.address}`);
                 
+                // This is the key part - calculate each leg WITHOUT stopovers to get traffic data
                 const legResult = await calculateSingleLeg(origin, destination, true);
+                
+                // Important debug info - check if duration_in_traffic was returned
+                if (legResult.duration_in_traffic) {
+                    console.log(`Leg ${i + 1} has traffic data: ${legResult.duration_in_traffic.text} vs regular ${legResult.duration.text}`);
+                    totalDurationSeconds += legResult.duration_in_traffic.value;
+                } else {
+                    console.log(`Leg ${i + 1} has NO traffic data, using regular duration: ${legResult.duration.text}`);
+                    totalDurationSeconds += legResult.duration.value;
+                }
+                
                 legs.push(legResult);
-                
                 totalDistanceMeters += legResult.distance.value;
-                totalDurationSeconds += legResult.duration.value;
-                
-                console.log(`Leg ${i + 1} calculated: ${legResult.duration.text}, ${legResult.distance.text}`);
             }
             
             // Format the result to match the expected format
@@ -1152,6 +1155,44 @@ function calculateTrafficAwareOptimizedRoute(locations) {
             console.error("Error calculating traffic-aware route:", error);
             reject(error);
         }
+    });
+}
+
+// Ensure the calculateSingleLeg function properly sets the departureTime
+function calculateSingleLeg(origin, destination, considerTraffic) {
+    return new Promise((resolve, reject) => {
+        const request = {
+            origin: origin.location,
+            destination: destination.location,
+            travelMode: google.maps.TravelMode.DRIVING
+        };
+        
+        if (considerTraffic) {
+            // MUST use the current time as departure time to get real-time traffic
+            request.drivingOptions = {
+                departureTime: new Date(), // Current time
+                trafficModel: google.maps.TrafficModel.BEST_GUESS
+            };
+        }
+        
+        directionsService.route(request, (result, status) => {
+            if (status === 'OK') {
+                const leg = result.routes[0].legs[0];
+                
+                // Debug - check if traffic data is returned
+                if (considerTraffic) {
+                    console.log("Traffic data returned:", !!leg.duration_in_traffic);
+                    if (leg.duration_in_traffic) {
+                        console.log(`Regular time: ${leg.duration.text}, With traffic: ${leg.duration_in_traffic.text}`);
+                    }
+                }
+                
+                resolve(leg);
+            } else {
+                console.error(`Failed to calculate leg: ${status}`);
+                reject(new Error(`Failed to calculate leg: ${status}`));
+            }
+        });
     });
 }
 
@@ -1186,37 +1227,6 @@ function getOptimizedWaypointOrder(locations) {
     });
 }
 
-/**
- * Calculates a single leg with or without traffic consideration
- */
-function calculateSingleLeg(origin, destination, considerTraffic) {
-    return new Promise((resolve, reject) => {
-        const request = {
-            origin: origin.location,
-            destination: destination.location,
-            travelMode: google.maps.TravelMode.DRIVING
-        };
-        
-        if (considerTraffic) {
-            request.drivingOptions = {
-                departureTime: new Date(),
-                trafficModel: google.maps.TrafficModel.BEST_GUESS
-            };
-        }
-        
-        directionsService.route(request, (result, status) => {
-            if (status === 'OK') {
-                resolve(result.routes[0].legs[0]);
-            } else {
-                reject(new Error(`Failed to calculate leg: ${status}`));
-            }
-        });
-    });
-}
-
-/**
- * Formats the legs into the expected result format
- */
 function formatResultFromLegs(legs, waypointOrder, locations, totalDistanceMeters, totalDurationSeconds) {
     // Format distance and duration
     const totalDistanceMiles = (totalDistanceMeters / 1609.34).toFixed(1);
@@ -1230,12 +1240,14 @@ function formatResultFromLegs(legs, waypointOrder, locations, totalDistanceMeter
         durationText = `${Math.round(totalDurationSeconds / 60)} min`;
     }
     
-    // Create ordered waypoints list
+    // Create ordered waypoints list with traffic information
     const orderedWaypoints = [
         { 
             address: locations.start.address,
             name: locations.start.name || extractBusinessName(locations.start.originalAddress || ''),
-            type: 'start' 
+            type: 'start',
+            // Add flag to indicate traffic
+            hasTrafficData: true
         }
     ];
     
@@ -1244,7 +1256,8 @@ function formatResultFromLegs(legs, waypointOrder, locations, totalDistanceMeter
         orderedWaypoints.push({
             address: locations.stops[index].address,
             name: locations.stops[index].name || extractBusinessName(locations.stops[index].originalAddress || ''),
-            type: 'stop'
+            type: 'stop',
+            hasTrafficData: true
         });
     }
     
@@ -1252,7 +1265,8 @@ function formatResultFromLegs(legs, waypointOrder, locations, totalDistanceMeter
     orderedWaypoints.push({
         address: locations.end.address,
         name: locations.end.name || extractBusinessName(locations.end.originalAddress || ''),
-        type: 'end'
+        type: 'end',
+        hasTrafficData: true
     });
     
     // Create a synthetic directions result for compatibility
