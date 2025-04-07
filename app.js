@@ -169,26 +169,6 @@ function setupAutocomplete(inputId) {
         console.error(`Error setting up autocomplete for ${inputId}:`, error);
     }
 }
-
-/**
- * Refreshes ads when changing views
- */
-function refreshAds() {
-    // Only attempt to refresh ads if not in admin mode
-    if (!isAdminUser()) {
-      if (window.adsbygoogle) {
-        try {
-          // Push a new ad request
-          (adsbygoogle = window.adsbygoogle || []).push({});
-          console.log("AdSense refresh requested");
-        } catch (e) {
-          console.error("Error refreshing ads:", e);
-        }
-      } else {
-        console.log("AdSense not available for refresh");
-      }
-    }
-  }
   
   /**
    * Modifies the showInputSection function to refresh ads
@@ -196,9 +176,6 @@ function refreshAds() {
   function showInputSection() {
     inputSection.classList.remove('hidden');
     resultsSection.classList.add('hidden');
-    
-    // Refresh ads when changing view
-    refreshAds();
   }
   
 
@@ -1823,9 +1800,6 @@ function setupAdminFunctionality() {
       
       // Show confirmation
       showAlert('Admin mode deactivated', 'info');
-      
-      // Refresh ads
-      refreshAds();
       
       // Update usage indicator
       updateUsageIndicator();
