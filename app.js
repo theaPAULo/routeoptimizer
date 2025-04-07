@@ -1601,25 +1601,25 @@ function createEnhancedInfoWindow(point, index, legs) {
     
     // Create the info window content with a scrollable container
     return `
-        <div class="info-window" style="font-family: 'Poppins', sans-serif; max-height: 250px; min-width: 250px; max-width: 300px; overflow-y: auto; overflow-x: hidden; padding: 0;">
-            <div class="p-3">
+        <div class="info-window mobile-info-window" style="font-family: 'Poppins', sans-serif; max-height: 250px; min-width: 250px; max-width: 300px; overflow-y: auto; overflow-x: hidden; padding: 0;">
+            <div class="p-3 info-content">
                 <div class="flex justify-between items-start">
-                    <div class="font-semibold text-lg">${point.name || point.address.split(',')[0]}</div>
-                    <div class="text-xs px-2 py-1 rounded-full ${typeColorClass}">
+                    <div class="font-semibold text-lg info-title">${point.name || point.address.split(',')[0]}</div>
+                    <div class="text-xs px-2 py-1 rounded-full info-badge ${typeColorClass}">
                         ${typeLabel}
                     </div>
                 </div>
                 
-                <div class="address text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <div class="address text-sm text-gray-600 dark:text-gray-400 mt-1 info-address">
                     ${point.address}
                 </div>
                 
                 ${legDetails}
                 
-                <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 info-actions">
                     <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(point.address)}" 
                        target="_blank" 
-                       class="text-sm text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 flex items-center">
+                       class="text-sm text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 flex items-center info-link">
                        <i class="fas fa-map-marked-alt mr-1"></i> View in Google Maps
                     </a>
                 </div>

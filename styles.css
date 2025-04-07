@@ -139,6 +139,7 @@ form label:hover {
     transform: translateY(1px);
 }
 
+/* Look for this section in styles.css around line 190-210 */
 .dark .btn-back {
     background-color: #374151;
     color: white; /* Full white for better visibility */
@@ -148,6 +149,27 @@ form label:hover {
 
 .dark .btn-back:hover {
     background-color: #4b5563;
+}
+
+/* Add this after the existing .dark .btn-back section */
+@media (max-width: 640px) {
+    .dark .btn-back {
+        background-color: #4B5563; /* Lighter background */
+        color: #FFFFFF; /* Brighter white text */
+        border-color: #6B7280; /* Lighter border */
+        border-width: 2px;
+        font-weight: 600; /* Make text bolder */
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5); /* Add text shadow for better contrast */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add box shadow for depth */
+    }
+    
+    .dark .btn-back i {
+        color: #4CAF50; /* Green icon for better visibility */
+    }
+    
+    .dark .btn-back:hover {
+        background-color: #6B7280; /* Even lighter on hover */
+    }
 }
 
 /* Button Styling - consolidated */
@@ -605,6 +627,8 @@ form label:hover {
         order: 3; /* Move back button to the bottom */
         background-color: #f3f4f6;
         border-color: #d1d5db;
+        padding: 10px 16px; /* Increase padding for bigger touch target */
+        font-weight: 500; /* Slightly bolder text */
     }
     
     /* Map buttons styling */
@@ -737,4 +761,63 @@ form label:hover {
     display: inline-block !important;
     visibility: visible !important;
     opacity: 1 !important;
+}
+
+/* Add this to the end of your styles.css file */
+/* Enhanced styling for Google Maps InfoWindow - mobile improvements */
+.gm-style .gm-style-iw-c {
+    padding: 12px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+    max-width: 300px !important;
+}
+
+.gm-style .gm-style-iw-d {
+    overflow: hidden !important;
+    max-height: none !important;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+    .gm-style .gm-style-iw-c {
+        min-width: 260px !important;
+        max-width: 280px !important; /* Better fit for mobile screens */
+    }
+    
+    .info-window {
+        font-size: 14px !important; /* Larger text on mobile */
+    }
+    
+    .info-window .font-semibold {
+        font-size: 16px !important; /* Larger heading */
+        margin-bottom: 6px !important;
+    }
+    
+    .info-window .text-xs {
+        font-size: 12px !important; /* Slightly larger badges */
+    }
+    
+    .info-window .address {
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+    }
+    
+    /* Better contrast for dark mode */
+    .dark .gm-style .gm-style-iw-c {
+        background-color: #374151 !important;
+        color: white !important;
+    }
+    
+    .dark .gm-style .gm-style-iw-d {
+        background-color: #374151 !important;
+        color: white !important;
+    }
+    
+    .dark .info-window .address {
+        color: #D1D5DB !important; /* Lighter text for better contrast */
+    }
+    
+    .dark .info-window a {
+        color: #4ADE80 !important; /* Brighter links */
+    }
 }
