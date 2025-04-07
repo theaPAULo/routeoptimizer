@@ -1479,7 +1479,7 @@ function enhanceRouteDisplay(result) {
         geodesic: true,
         strokeColor: '#4f46e5', // Indigo color
         strokeOpacity: 0.8,
-        strokeWeight: 5,
+        strokeWeight: 4,
         map: map,
         icons: [{
             icon: {
