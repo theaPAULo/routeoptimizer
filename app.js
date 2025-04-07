@@ -718,7 +718,6 @@ function cleanupGeocodeCache(maxAge = 30 * 24 * 60 * 60 * 1000) {
 }
 
 
-// Update the calculateOptimizedRoute function with the correct implementation
 function calculateOptimizedRoute(locations) {
     return new Promise((resolve, reject) => {
         console.log("Calculating optimized route...");
@@ -738,11 +737,11 @@ function calculateOptimizedRoute(locations) {
             origin: locations.start.location,
             destination: locations.end.location,
             waypoints: waypoints,
-            optimizeWaypoints: true,
+            optimizeWaypoints: true, // This is key for route optimization
             travelMode: google.maps.TravelMode.DRIVING
         };
         
-        // Add traffic options if enabled - proper implementation
+        // Add traffic options if enabled
         if (considerTraffic) {
             // Set departure time to now (required for traffic consideration)
             request.drivingOptions = {
@@ -755,42 +754,37 @@ function calculateOptimizedRoute(locations) {
         
         console.log("Direction request:", request);
         
-// Add this to the calculateOptimizedRoute function after the directionsService.route call
-directionsService.route(request, (result, status) => {
-    console.log("Directions service response:", status);
-    
-    if (status === 'OK') {
-        // Log detailed information about the result to debug traffic issues
-        console.log("Route details:", {
-            legs: result.routes[0].legs,
-            duration: result.routes[0].legs.reduce((total, leg) => total + leg.duration.value, 0),
-            // Check if we have duration_in_traffic available
-            hasDurationInTraffic: result.routes[0].legs.some(leg => leg.duration_in_traffic),
-            durationInTraffic: result.routes[0].legs.reduce((total, leg) => 
-                total + (leg.duration_in_traffic ? leg.duration_in_traffic.value : 0), 0)
-        });
-        
-        // Process route data
-        const legs = result.routes[0].legs;
-        const waypointOrder = result.routes[0].waypoint_order;
-        
-        // Calculate total distance and time
-        let totalDistanceMeters = 0;
-        let totalDurationSeconds = 0;
-        
-        for (const leg of legs) {
-            totalDistanceMeters += leg.distance.value;
+        directionsService.route(request, (result, status) => {
+            console.log("Directions service response:", status);
             
-            // Use duration_in_traffic if available and traffic consideration is enabled
-            if (considerTraffic && leg.duration_in_traffic) {
-                totalDurationSeconds += leg.duration_in_traffic.value;
-                console.log(`Using traffic duration for leg: ${leg.duration_in_traffic.text} instead of ${leg.duration.text}`);
-            } else {
-                totalDurationSeconds += leg.duration.value;
-                console.log(`Using regular duration for leg: ${leg.duration.text}`);
-            }
-        }
+            if (status === 'OK') {
+                // Check if traffic data is included in the response
+                const hasTrafficData = result.routes[0].legs.some(leg => leg.duration_in_traffic);
+                console.log("Response includes traffic data:", hasTrafficData);
                 
+                if (considerTraffic && !hasTrafficData) {
+                    console.warn("Traffic consideration was requested but no traffic data was returned by Google API");
+                }
+                
+                // Process route data
+                const legs = result.routes[0].legs;
+                const waypointOrder = result.routes[0].waypoint_order;
+                
+                // Calculate total distance and time
+                let totalDistanceMeters = 0;
+                let totalDurationSeconds = 0;
+                
+                for (const leg of legs) {
+                    totalDistanceMeters += leg.distance.value;
+                    
+                    // Use duration_in_traffic if available and traffic consideration is enabled
+                    if (considerTraffic && leg.duration_in_traffic) {
+                        totalDurationSeconds += leg.duration_in_traffic.value;
+                        console.log(`Using traffic duration for leg: ${leg.duration_in_traffic.text} instead of ${leg.duration.text}`);
+                    } else {
+                        totalDurationSeconds += leg.duration.value;
+                    }
+                }
                 // Convert to miles and minutes
                 const totalDistanceMiles = (totalDistanceMeters / 1609.34).toFixed(1);
                 const totalDurationMinutes = Math.round(totalDurationSeconds / 60);
@@ -971,13 +965,12 @@ function getApiUsage() {
  * Modifies the displayRouteResults function to include our enhancements
  * @param {Object} route - The optimized route data
  */
+// Update displayRouteResults function to fix duplicate indicators
 function displayRouteResults(route) {
-    console.log("Displaying enhanced route results:", route);
+    console.log("Displaying route results:", route);
     
     // Store current route
     currentRoute = route;
-
-    const trafficConsidered = document.getElementById('consider-traffic-checkbox')?.checked;
     
     // End loading state
     toggleLoadingState(false);
@@ -985,21 +978,6 @@ function displayRouteResults(route) {
     // Update stats
     totalDistance.textContent = route.totalDistance;
     estimatedTime.textContent = route.estimatedTime;
-
-
-    const existingIndicators = document.querySelectorAll('.traffic-indicator');
-    existingIndicators.forEach(indicator => indicator.remove());
-    
-    if (trafficConsidered) {
-        // Add a traffic indicator that's very visible
-        const trafficIndicator = document.createElement('div');
-        trafficIndicator.className = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-2 rounded text-sm mb-4 fade-in traffic-indicator';
-        trafficIndicator.innerHTML = '<i class="fas fa-traffic-light mr-2"></i> Route optimized with current traffic conditions';
-        
-        // Insert it before the map container
-        const mapContainer = document.getElementById('map-container');
-        mapContainer.parentNode.insertBefore(trafficIndicator, mapContainer);
-    }
     
     // Display route on map with custom styling
     directionsRenderer.setOptions({
@@ -1009,6 +987,28 @@ function displayRouteResults(route) {
             strokeOpacity: 0.7
         }
     });
+    directionsRenderer.setDirections(route.directionsResult);
+    
+    // Clear previous route list
+    routeList.innerHTML = '';
+    
+    // Remove any existing traffic indicators
+    const existingIndicators = document.querySelectorAll('.traffic-indicator');
+    existingIndicators.forEach(indicator => indicator.remove());
+    
+    // Check if traffic was considered
+    const trafficConsidered = document.getElementById('consider-traffic-checkbox')?.checked;
+    
+    if (trafficConsidered) {
+        // Add a traffic indicator
+        const trafficIndicator = document.createElement('div');
+        trafficIndicator.className = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-2 rounded text-sm mb-4 traffic-indicator';
+        trafficIndicator.innerHTML = '<i class="fas fa-traffic-light mr-2"></i> Route optimized with current traffic conditions';
+        
+        // Insert it before the map container
+        const mapContainer = document.getElementById('map-container');
+        mapContainer.parentNode.insertBefore(trafficIndicator, mapContainer);
+    }
     directionsRenderer.setDirections(route.directionsResult);
     
     // Clear previous route list
