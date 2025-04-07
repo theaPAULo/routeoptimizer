@@ -720,3 +720,21 @@ form label:hover {
 #route-list li:not(:first-child):not(:last-child) .stop-number {
     background-color: #2196f3 !important; /* Blue for stops */
 }
+
+/* Add this to styles.css - Specifically target the stat icons */
+.stat-icon {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 1.25rem !important;
+    width: auto !important;
+    height: auto !important;
+    color: #4caf50 !important;
+}
+
+/* Force style the Font Awesome elements */
+.stat-icon:before {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}

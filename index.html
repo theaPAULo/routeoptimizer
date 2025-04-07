@@ -212,13 +212,14 @@ tailwind.config = {
 
                 <h2 class="text-xl font-semibold mb-4 dark:text-white relative">
                     <i class="fas fa-route text-primary-600 dark:text-primary-400 mr-2"></i>
-                    <span class="highlight-accent">Your Journey Optimized</span>
+                    <span class="highlight-accent">Quickest Route</span>
                     <span class="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 py-1 px-2 rounded-full ml-2 align-middle">Fastest Path</span>
                 </h2>                
                 <div class="grid md:grid-cols-2 gap-4 mb-6">
                     <div class="bg-primary-50 dark:bg-primary-900/30 p-4 rounded-md card">
                         <div class="flex items-center">
-                            <i class="fas fa-route text-primary-600 dark:text-primary-400 text-xl mr-3"></i>
+                            <!-- Added stat-icon class for targeted styling -->
+                            <i class="fas fa-route text-primary-600 dark:text-primary-400 text-xl mr-3 stat-icon"></i>
                             <div>
                                 <h3 class="text-gray-500 dark:text-gray-300 text-sm">Total Distance</h3>
                                 <p id="total-distance" class="font-medium text-lg dark:text-white">0 miles</p>
@@ -227,7 +228,8 @@ tailwind.config = {
                     </div>
                     <div class="bg-primary-50 dark:bg-primary-900/30 p-4 rounded-md card">
                         <div class="flex items-center">
-                            <i class="fas fa-clock text-primary-600 dark:text-primary-400 text-xl mr-3"></i>
+                            <!-- Added stat-icon class for targeted styling -->
+                            <i class="fas fa-clock text-primary-600 dark:text-primary-400 text-xl mr-3 stat-icon"></i>
                             <div>
                                 <h3 class="text-gray-500 dark:text-gray-300 text-sm">Estimated Time</h3>
                                 <p id="estimated-time" class="font-medium text-lg dark:text-white">0 min</p>
@@ -260,7 +262,7 @@ tailwind.config = {
                 <div class="mb-6">
                     <h3 class="text-lg font-medium mb-3 dark:text-white flex items-center">
                         <i class="fas fa-map-signs text-primary-600 dark:text-primary-400 mr-2"></i>
-                        <span class="highlight-accent">Your Smart Stop Sequence</span>
+                        <span class="highlight-accent">Route Order</span>
                     </h3>                    <ol id="route-list" class="space-y-2 pl-0">
                         <!-- Route points will be added by JavaScript -->
                     </ol>
