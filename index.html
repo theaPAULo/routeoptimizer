@@ -149,6 +149,19 @@ tailwind.config = {
                         </label>
                     </div>
 
+                    <!-- Add this right after the round-trip checkbox div -->
+                    <div class="flex items-center mt-2 ml-2">
+                        <input 
+                            type="checkbox" 
+                            id="consider-traffic-checkbox" 
+                            class="form-checkbox h-4 w-4 text-primary-600 dark:text-primary-400 border-gray-300 dark:border-gray-700 rounded"
+                            checked
+                        >
+                        <label for="consider-traffic-checkbox" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                            Consider current traffic
+                        </label>
+                    </div>
+
                     <!-- Stops Container -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

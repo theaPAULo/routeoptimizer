@@ -70,6 +70,9 @@ function initializeApp() {
         // Add this line to initializeApp():
         setupLocationButtons();
         
+    
+        setupTrafficConsideration();
+
         // Update usage indicator
         updateUsageIndicator();
 
@@ -716,6 +719,7 @@ function calculateOptimizedRoute(locations) {
             stopover: true
         }));
         
+        // Create the base request
         const request = {
             origin: locations.start.location,
             destination: locations.end.location,
@@ -723,6 +727,18 @@ function calculateOptimizedRoute(locations) {
             optimizeWaypoints: true, // This is key for route optimization
             travelMode: google.maps.TravelMode.DRIVING
         };
+        
+        // Check if traffic consideration is enabled
+        const considerTraffic = document.getElementById('consider-traffic-checkbox')?.checked;
+        console.log("Consider traffic:", considerTraffic);
+        
+        // Add traffic options if enabled
+        if (considerTraffic) {
+            request.drivingOptions = {
+                departureTime: new Date(), // Current time
+                trafficModel: google.maps.TrafficModel.BEST_GUESS
+            };
+        }
         
         console.log("Direction request:", request);
         
@@ -827,6 +843,32 @@ function toggleLoadingState(isLoading) {
 }
 
 /**
+ * Sets up the traffic consideration checkbox functionality
+ */
+function setupTrafficConsideration() {
+    const trafficCheckbox = document.getElementById('consider-traffic-checkbox');
+    
+    if (!trafficCheckbox) {
+        console.error("Could not find traffic consideration checkbox");
+        return;
+    }
+    
+    // Set default to checked (use traffic data)
+    if (localStorage.getItem('driveless_use_traffic') !== null) {
+        // Use saved preference
+        trafficCheckbox.checked = localStorage.getItem('driveless_use_traffic') === 'true';
+    } else {
+        // Default to true if no preference saved
+        trafficCheckbox.checked = true;
+    }
+    
+    // Save preference when changed
+    trafficCheckbox.addEventListener('change', function() {
+        localStorage.setItem('driveless_use_traffic', this.checked);
+    });
+}
+
+/**
  * API usage monitoring and rate limiting
  */
 const API_LIMITS = {
@@ -909,6 +951,17 @@ function displayRouteResults(route) {
     // Update stats
     totalDistance.textContent = route.totalDistance;
     estimatedTime.textContent = route.estimatedTime;
+
+    const trafficConsidered = document.getElementById('consider-traffic-checkbox')?.checked;
+if (trafficConsidered) {
+    // Add a traffic indicator
+    const trafficIndicator = document.createElement('div');
+    trafficIndicator.className = 'text-xs font-medium text-gray-500 dark:text-gray-400 mt-1';
+    trafficIndicator.innerHTML = '<i class="fas fa-traffic-light text-primary-600 dark:text-primary-400 mr-1"></i> Current traffic conditions applied';
+    
+    // Append to the stats section
+    document.querySelector('#results-section .grid').appendChild(trafficIndicator);
+}
     
     // Display route on map with custom styling
     directionsRenderer.setOptions({
