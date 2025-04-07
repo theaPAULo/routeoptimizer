@@ -413,16 +413,24 @@ form label:hover {
 }
 
 /* Force icon visibility - consolidated */
-.fa-route, .fa-clock, .fa-moon, .fa-sun, .fas {
+.fa-route, .fa-clock, .fa-moon, .fa-sun, .fas, .fa {
     display: inline-block !important;
     visibility: visible !important;
     opacity: 1 !important;
 }
 
-/* Make sure result icons have the correct color */
+/* Add specific styling for the result icons */
 #results-section .fa-route, 
 #results-section .fa-clock {
-  color: #4caf50 !important;
+    color: #4caf50 !important;
+    margin-right: 0.5rem !important;
+    font-size: 1.25rem !important;
+}
+
+/* Ensure flex alignment for icon containers */
+#results-section .flex.items-center {
+    display: flex !important;
+    align-items: center !important;
 }
 
 /* ====== ACCENT HIGHLIGHTS ====== */
