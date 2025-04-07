@@ -551,13 +551,23 @@ async function handleFormSubmit(event) {
         
         console.log("Geocoded locations:", locations);
         
-        // Step 2: Calculate the optimized route
-        const routeResult = await calculateOptimizedRoute(locations);
-        
-        console.log("Route calculation result:", routeResult);
-        
-        // Update UI with results
-        displayRouteResults(routeResult);
+// In the handleFormSubmit function, replace the calculateOptimizedRoute call with:
+try {
+    // Check if traffic consideration is enabled
+    const considerTraffic = document.getElementById('consider-traffic-checkbox')?.checked;
+    
+    // Choose the appropriate route calculation method
+    let routeResult;
+    if (considerTraffic) {
+        routeResult = await calculateTrafficAwareOptimizedRoute(locations);
+    } else {
+        routeResult = await calculateOptimizedRoute(locations);
+    }
+    
+    console.log("Route calculation result:", routeResult);
+    
+    // Update UI with results
+    displayRouteResults(routeResult);
         
         // Increment API usage counter
         incrementApiUsage();
@@ -976,17 +986,20 @@ function displayRouteResults(route) {
     totalDistance.textContent = route.totalDistance;
     estimatedTime.textContent = route.estimatedTime;
 
-    // Then after updating totalDistance and estimatedTime:
-if (trafficConsidered) {
-    // Add a traffic indicator that's very visible
-    const trafficIndicator = document.createElement('div');
-    trafficIndicator.className = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-2 rounded text-sm mb-4 fade-in';
-    trafficIndicator.innerHTML = '<i class="fas fa-traffic-light mr-2"></i> Route optimized with current traffic conditions';
+
+    const existingIndicators = document.querySelectorAll('.traffic-indicator');
+    existingIndicators.forEach(indicator => indicator.remove());
     
-    // Insert it before the map container
-    const mapContainer = document.getElementById('map-container');
-    mapContainer.parentNode.insertBefore(trafficIndicator, mapContainer);
-}
+    if (trafficConsidered) {
+        // Add a traffic indicator that's very visible
+        const trafficIndicator = document.createElement('div');
+        trafficIndicator.className = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-2 rounded text-sm mb-4 fade-in traffic-indicator';
+        trafficIndicator.innerHTML = '<i class="fas fa-traffic-light mr-2"></i> Route optimized with current traffic conditions';
+        
+        // Insert it before the map container
+        const mapContainer = document.getElementById('map-container');
+        mapContainer.parentNode.insertBefore(trafficIndicator, mapContainer);
+    }
     
     // Display route on map with custom styling
     directionsRenderer.setOptions({
@@ -1091,6 +1104,174 @@ route.waypoints.forEach((point, index) => {
         // Add custom markers with enhanced info windows
         addRouteMarkers(route);
     }, 100);
+}
+
+/**
+ * Calculates traffic-aware route by breaking it into individual legs
+ * @param {Object} locations - Object containing geocoded locations
+ * @returns {Promise} - Promise resolving to calculated route
+ */
+function calculateTrafficAwareOptimizedRoute(locations) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            console.log("Calculating traffic-aware optimized route...");
+            
+            // First get the optimized waypoint order without traffic consideration
+            const optimizedRoute = await getOptimizedWaypointOrder(locations);
+            console.log("Optimized waypoint order:", optimizedRoute.waypointOrder);
+            
+            // Now use that order to calculate each leg with traffic
+            const orderedStops = optimizedRoute.waypointOrder.map(index => locations.stops[index]);
+            
+            // Create the full sequence: start -> all stops in order -> end
+            const fullSequence = [locations.start, ...orderedStops, locations.end];
+            
+            // Calculate each leg separately with traffic consideration
+            const legs = [];
+            let totalDistanceMeters = 0;
+            let totalDurationSeconds = 0;
+            
+            for (let i = 0; i < fullSequence.length - 1; i++) {
+                const origin = fullSequence[i];
+                const destination = fullSequence[i + 1];
+                
+                console.log(`Calculating leg ${i + 1} with traffic: ${origin.address} to ${destination.address}`);
+                
+                const legResult = await calculateSingleLeg(origin, destination, true);
+                legs.push(legResult);
+                
+                totalDistanceMeters += legResult.distance.value;
+                totalDurationSeconds += legResult.duration.value;
+                
+                console.log(`Leg ${i + 1} calculated: ${legResult.duration.text}, ${legResult.distance.text}`);
+            }
+            
+            // Format the result to match the expected format
+            const route = formatResultFromLegs(legs, optimizedRoute.waypointOrder, locations, totalDistanceMeters, totalDurationSeconds);
+            
+            resolve(route);
+        } catch (error) {
+            console.error("Error calculating traffic-aware route:", error);
+            reject(error);
+        }
+    });
+}
+
+/**
+ * Gets the optimized waypoint order without traffic consideration
+ */
+function getOptimizedWaypointOrder(locations) {
+    return new Promise((resolve, reject) => {
+        const waypoints = locations.stops.map(stop => ({
+            location: stop.location,
+            stopover: true
+        }));
+        
+        const request = {
+            origin: locations.start.location,
+            destination: locations.end.location,
+            waypoints: waypoints,
+            optimizeWaypoints: true,
+            travelMode: google.maps.TravelMode.DRIVING
+        };
+        
+        directionsService.route(request, (result, status) => {
+            if (status === 'OK') {
+                resolve({
+                    waypointOrder: result.routes[0].waypoint_order,
+                    result: result
+                });
+            } else {
+                reject(new Error(`Failed to get optimized order: ${status}`));
+            }
+        });
+    });
+}
+
+/**
+ * Calculates a single leg with or without traffic consideration
+ */
+function calculateSingleLeg(origin, destination, considerTraffic) {
+    return new Promise((resolve, reject) => {
+        const request = {
+            origin: origin.location,
+            destination: destination.location,
+            travelMode: google.maps.TravelMode.DRIVING
+        };
+        
+        if (considerTraffic) {
+            request.drivingOptions = {
+                departureTime: new Date(),
+                trafficModel: google.maps.TrafficModel.BEST_GUESS
+            };
+        }
+        
+        directionsService.route(request, (result, status) => {
+            if (status === 'OK') {
+                resolve(result.routes[0].legs[0]);
+            } else {
+                reject(new Error(`Failed to calculate leg: ${status}`));
+            }
+        });
+    });
+}
+
+/**
+ * Formats the legs into the expected result format
+ */
+function formatResultFromLegs(legs, waypointOrder, locations, totalDistanceMeters, totalDurationSeconds) {
+    // Format distance and duration
+    const totalDistanceMiles = (totalDistanceMeters / 1609.34).toFixed(1);
+    let durationText;
+    
+    if (totalDurationSeconds >= 3600) {
+        const hours = Math.floor(totalDurationSeconds / 3600);
+        const minutes = Math.round((totalDurationSeconds % 3600) / 60);
+        durationText = `${hours} hr ${minutes} min`;
+    } else {
+        durationText = `${Math.round(totalDurationSeconds / 60)} min`;
+    }
+    
+    // Create ordered waypoints list
+    const orderedWaypoints = [
+        { 
+            address: locations.start.address,
+            name: locations.start.name || extractBusinessName(locations.start.originalAddress || ''),
+            type: 'start' 
+        }
+    ];
+    
+    // Add stops in optimized order
+    for (const index of waypointOrder) {
+        orderedWaypoints.push({
+            address: locations.stops[index].address,
+            name: locations.stops[index].name || extractBusinessName(locations.stops[index].originalAddress || ''),
+            type: 'stop'
+        });
+    }
+    
+    // Add destination
+    orderedWaypoints.push({
+        address: locations.end.address,
+        name: locations.end.name || extractBusinessName(locations.end.originalAddress || ''),
+        type: 'end'
+    });
+    
+    // Create a synthetic directions result for compatibility
+    const syntheticResult = {
+        routes: [{
+            legs: legs,
+            waypoint_order: waypointOrder
+        }]
+    };
+    
+    return {
+        totalDistance: `${totalDistanceMiles} miles`,
+        estimatedTime: durationText,
+        waypoints: orderedWaypoints,
+        directionsResult: syntheticResult,
+        trafficConsidered: true
+    };
 }
 
 /**
