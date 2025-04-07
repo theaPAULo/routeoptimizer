@@ -218,8 +218,14 @@ tailwind.config = {
                 <div class="grid md:grid-cols-2 gap-4 mb-6">
                     <div class="bg-primary-50 dark:bg-primary-900/30 p-4 rounded-md card">
                         <div class="flex items-center">
-                            <!-- Added stat-icon class for targeted styling -->
-                            <i class="fas fa-route text-primary-600 dark:text-primary-400 text-xl mr-3 stat-icon"></i>
+                            <!-- Replace the i tag with a span containing an SVG -->
+                            <span class="inline-block mr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map">
+                                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                                    <line x1="16" y1="6" x2="16" y2="22"></line>
+                                </svg>
+                            </span>
                             <div>
                                 <h3 class="text-gray-500 dark:text-gray-300 text-sm">Total Distance</h3>
                                 <p id="total-distance" class="font-medium text-lg dark:text-white">0 miles</p>
@@ -228,8 +234,13 @@ tailwind.config = {
                     </div>
                     <div class="bg-primary-50 dark:bg-primary-900/30 p-4 rounded-md card">
                         <div class="flex items-center">
-                            <!-- Added stat-icon class for targeted styling -->
-                            <i class="fas fa-clock text-primary-600 dark:text-primary-400 text-xl mr-3 stat-icon"></i>
+                            <!-- Replace the i tag with a span containing an SVG -->
+                            <span class="inline-block mr-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </span>
                             <div>
                                 <h3 class="text-gray-500 dark:text-gray-300 text-sm">Estimated Time</h3>
                                 <p id="estimated-time" class="font-medium text-lg dark:text-white">0 min</p>
