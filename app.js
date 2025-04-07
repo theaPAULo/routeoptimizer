@@ -708,6 +708,7 @@ function cleanupGeocodeCache(maxAge = 30 * 24 * 60 * 60 * 1000) {
 }
 
 
+// Update the calculateOptimizedRoute function with the correct implementation
 function calculateOptimizedRoute(locations) {
     return new Promise((resolve, reject) => {
         console.log("Calculating optimized route...");
@@ -727,26 +728,19 @@ function calculateOptimizedRoute(locations) {
             origin: locations.start.location,
             destination: locations.end.location,
             waypoints: waypoints,
-            optimizeWaypoints: true, // This is key for route optimization
+            optimizeWaypoints: true,
             travelMode: google.maps.TravelMode.DRIVING
         };
         
-        // Add traffic options if enabled - make sure departure time is set correctly
+        // Add traffic options if enabled - proper implementation
         if (considerTraffic) {
-            // Create a departure time that's 2 minutes in the future
-            // This ensures we're looking at current/future traffic conditions
-            const departureTime = new Date();
-            departureTime.setMinutes(departureTime.getMinutes() + 2);
-            
+            // Set departure time to now (required for traffic consideration)
             request.drivingOptions = {
-                departureTime: departureTime,
-                trafficModel: google.maps.TrafficModel.BEST_GUESS // Other options: OPTIMISTIC, PESSIMISTIC
+                departureTime: new Date(),
+                trafficModel: google.maps.TrafficModel.BEST_GUESS
             };
             
-            // Very important: Google Maps requires this for traffic consideration
-            request.provideRouteAlternatives = false;
-            
-            console.log("Traffic settings applied with departure time:", departureTime);
+            console.log("Traffic options applied with departure time:", request.drivingOptions.departureTime);
         }
         
         console.log("Direction request:", request);
@@ -953,6 +947,8 @@ function displayRouteResults(route) {
     
     // Store current route
     currentRoute = route;
+
+    const trafficConsidered = document.getElementById('consider-traffic-checkbox')?.checked;
     
     // End loading state
     toggleLoadingState(false);
@@ -961,15 +957,11 @@ function displayRouteResults(route) {
     totalDistance.textContent = route.totalDistance;
     estimatedTime.textContent = route.estimatedTime;
 
-// Near the beginning of the displayRouteResults function, add:
-// Check if traffic was considered
-const considerTraffic = document.getElementById('consider-traffic-checkbox')?.checked;
-
-// And then after updating totalDistance and estimatedTime, add:
-if (considerTraffic) {
-    // Add a traffic indicator
+    // Then after updating totalDistance and estimatedTime:
+if (trafficConsidered) {
+    // Add a traffic indicator that's very visible
     const trafficIndicator = document.createElement('div');
-    trafficIndicator.className = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-2 rounded text-sm mb-4';
+    trafficIndicator.className = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-2 rounded text-sm mb-4 fade-in';
     trafficIndicator.innerHTML = '<i class="fas fa-traffic-light mr-2"></i> Route optimized with current traffic conditions';
     
     // Insert it before the map container
