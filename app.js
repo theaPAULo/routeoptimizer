@@ -745,22 +745,41 @@ function calculateOptimizedRoute(locations) {
         
         console.log("Direction request:", request);
         
-        directionsService.route(request, (result, status) => {
-            console.log("Directions service response:", status, result);
+// Add this to the calculateOptimizedRoute function after the directionsService.route call
+directionsService.route(request, (result, status) => {
+    console.log("Directions service response:", status);
+    
+    if (status === 'OK') {
+        // Log detailed information about the result to debug traffic issues
+        console.log("Route details:", {
+            legs: result.routes[0].legs,
+            duration: result.routes[0].legs.reduce((total, leg) => total + leg.duration.value, 0),
+            // Check if we have duration_in_traffic available
+            hasDurationInTraffic: result.routes[0].legs.some(leg => leg.duration_in_traffic),
+            durationInTraffic: result.routes[0].legs.reduce((total, leg) => 
+                total + (leg.duration_in_traffic ? leg.duration_in_traffic.value : 0), 0)
+        });
+        
+        // Process route data
+        const legs = result.routes[0].legs;
+        const waypointOrder = result.routes[0].waypoint_order;
+        
+        // Calculate total distance and time
+        let totalDistanceMeters = 0;
+        let totalDurationSeconds = 0;
+        
+        for (const leg of legs) {
+            totalDistanceMeters += leg.distance.value;
             
-            if (status === 'OK') {
-                // Process route data
-                const legs = result.routes[0].legs;
-                const waypointOrder = result.routes[0].waypoint_order;
-                
-                // Calculate total distance and time
-                let totalDistanceMeters = 0;
-                let totalDurationSeconds = 0;
-                
-                for (const leg of legs) {
-                    totalDistanceMeters += leg.distance.value;
-                    totalDurationSeconds += leg.duration.value;
-                }
+            // Use duration_in_traffic if available and traffic consideration is enabled
+            if (considerTraffic && leg.duration_in_traffic) {
+                totalDurationSeconds += leg.duration_in_traffic.value;
+                console.log(`Using traffic duration for leg: ${leg.duration_in_traffic.text} instead of ${leg.duration.text}`);
+            } else {
+                totalDurationSeconds += leg.duration.value;
+                console.log(`Using regular duration for leg: ${leg.duration.text}`);
+            }
+        }
                 
                 // Convert to miles and minutes
                 const totalDistanceMiles = (totalDistanceMeters / 1609.34).toFixed(1);
