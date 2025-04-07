@@ -552,6 +552,7 @@ async function handleFormSubmit(event) {
         console.log("Geocoded locations:", locations);
         
 // In the handleFormSubmit function, replace the calculateOptimizedRoute call with:
+// In the handleFormSubmit function - correcting the try/catch syntax
 try {
     // Check if traffic consideration is enabled
     const considerTraffic = document.getElementById('consider-traffic-checkbox')?.checked;
@@ -568,14 +569,13 @@ try {
     
     // Update UI with results
     displayRouteResults(routeResult);
-        
-        // Increment API usage counter
-        incrementApiUsage();
-    } catch (error) {
-        console.error("Route calculation error:", error);
-        showAlert(error.message || 'Error calculating route. Please try again.');
-        toggleLoadingState(false);
-    }
+    
+    // Increment API usage counter
+    incrementApiUsage();
+} catch (error) {
+    console.error("Route calculation error:", error);
+    showAlert(error.message || 'Error calculating route. Please try again.');
+    toggleLoadingState(false);
 }
 
 /**
