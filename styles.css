@@ -688,3 +688,35 @@ form label:hover {
 .hidden {
     display: none !important;
 }
+
+/* Add to styles.css - Route item type styling */
+#route-list .stop-type.start {
+    background-color: #e8f5e9 !important; /* Light green background */
+    color: #2e7d32 !important; /* Dark green text */
+    border: 1px solid #4caf50;
+}
+
+#route-list .stop-type.stop {
+    background-color: #e3f2fd !important; /* Light blue background */
+    color: #1565c0 !important; /* Dark blue text */
+    border: 1px solid #2196f3;
+}
+
+#route-list .stop-type.end {
+    background-color: #ffebee !important; /* Light red background */
+    color: #c62828 !important; /* Dark red text */
+    border: 1px solid #f44336;
+}
+
+/* Update the stop number background colors */
+#route-list li:first-child .stop-number {
+    background-color: #4caf50 !important; /* Green for start */
+}
+
+#route-list li:last-child .stop-number {
+    background-color: #f44336 !important; /* Red for end */
+}
+
+#route-list li:not(:first-child):not(:last-child) .stop-number {
+    background-color: #2196f3 !important; /* Blue for stops */
+}
