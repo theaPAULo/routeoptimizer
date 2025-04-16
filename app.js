@@ -85,6 +85,10 @@ function initializeApp() {
         console.log("Initialization complete");
     } catch (error) {
         console.error("Error during initialization:", error);
+        gtag('event', 'route_calculation_error', {
+            'event_category': 'system_error',
+            'event_label': error.message || 'Unknown error',
+        });
     }
 }
 
@@ -146,6 +150,10 @@ function initializeGoogleMaps() {
         
     } catch (error) {
         console.error("Error setting up Google Maps components:", error);
+        gtag('event', 'route_calculation_error', {
+            'event_category': 'system_error',
+            'event_label': error.message || 'Unknown error',
+        });
     }
 }
 
@@ -167,6 +175,10 @@ function setupAutocomplete(inputId) {
         autocompletes.push({ id: inputId, instance: autocomplete });
     } catch (error) {
         console.error(`Error setting up autocomplete for ${inputId}:`, error);
+        gtag('event', 'route_calculation_error', {
+            'event_category': 'system_error',
+            'event_label': error.message || 'Unknown error',
+        });
     }
 }
   
@@ -261,6 +273,14 @@ function removeStop(button) {
  * @param {number} duration - How long to show the alert in ms (default: 5000, 0 for no auto-dismiss)
  */
 function showAlert(message, type = 'error', duration = 5000) {
+
+        // Only track errors
+        if (type === 'error') {
+            gtag('event', 'error', {
+                'event_category': 'user_experience',
+                'event_label': message
+            });
+        }
     // Clear any existing timeout
     if (window.alertTimeout) {
         clearTimeout(window.alertTimeout);
@@ -465,6 +485,13 @@ function updateUsageIndicator() {
 async function handleFormSubmit(event) {
     event.preventDefault();
     
+        // Track route search event in Google Analytics
+        gtag('event', 'route_search', {
+            'event_category': 'engagement',
+            'event_label': 'Route Optimization',
+            'value': 1
+        });
+
     // Check API usage limit (skip for admin users)
     if (!isAdminUser() && hasExceededApiLimit()) {
       showAlert('You have reached your daily limit of route calculations. Please try again tomorrow.', 'error');
@@ -531,6 +558,15 @@ async function handleFormSubmit(event) {
         // Check if traffic consideration is enabled
         const considerTraffic = document.getElementById('consider-traffic-checkbox')?.checked;
         
+        // Track route search event in Google Analytics with additional details
+        gtag('event', 'route_search', {
+            'event_category': 'engagement',
+            'event_label': 'Route Optimization',
+            'value': 1,
+            'num_stops': stops.length,
+            'traffic_considered': considerTraffic ? 'Yes' : 'No'
+        });
+
         // Choose the appropriate route calculation method
         let routeResult;
         if (considerTraffic) {
@@ -548,6 +584,10 @@ async function handleFormSubmit(event) {
         incrementApiUsage();
     } catch (error) {
         console.error("Route calculation error:", error);
+        gtag('event', 'route_calculation_error', {
+            'event_category': 'system_error',
+            'event_label': error.message || 'Unknown error',
+        });
         showAlert(error.message || 'Error calculating route. Please try again.');
         toggleLoadingState(false);
     }
@@ -592,6 +632,10 @@ async function validateAddresses(locations) {
         };
     } catch (error) {
         console.error('Address validation error:', error);
+        gtag('event', 'route_calculation_error', {
+            'event_category': 'system_error',
+            'event_label': error.message || 'Unknown error',
+        });
         throw error;
     }
 }
@@ -686,6 +730,10 @@ function cleanupGeocodeCache(maxAge = 30 * 24 * 60 * 60 * 1000) {
             } catch (error) {
                 // If entry is corrupted, remove it
                 console.error(`Error processing cache entry ${key}:`, error);
+                gtag('event', 'route_calculation_error', {
+                    'event_category': 'system_error',
+                    'event_label': error.message || 'Unknown error',
+                });
                 localStorage.removeItem(key);
             }
         }
@@ -865,6 +913,10 @@ function setupTrafficConsideration() {
     
     // Save preference when changed
     trafficCheckbox.addEventListener('change', function() {
+        gtag('event', 'toggle_traffic_consideration', {
+            'event_category': 'feature_usage',
+            'event_label': this.checked ? 'Enabled' : 'Disabled'
+        });
         localStorage.setItem('driveless_use_traffic', this.checked);
     });
 }
@@ -1117,6 +1169,27 @@ route.waypoints.forEach((point, index) => {
     // Add map controls
     addMapControls();
     
+    // Track successful route generation in Google Analytics
+    gtag('event', 'route_generated', {
+        'event_category': 'success',
+        'event_label': 'Route Generated Successfully',
+        'value': 1,
+        'distance_miles': parseFloat(route.totalDistance),
+        'duration_minutes': parseDurationToMinutes(route.estimatedTime)
+    });
+    
+    // Add this helper function to convert duration string to minutes
+    function parseDurationToMinutes(durationStr) {
+        if (durationStr.includes('hr')) {
+            const parts = durationStr.split('hr');
+            const hours = parseInt(parts[0].trim(), 10);
+            const minutes = parseInt(parts[1].replace('min', '').trim(), 10) || 0;
+            return hours * 60 + minutes;
+        } else {
+            return parseInt(durationStr.replace('min', '').trim(), 10);
+        }
+    }
+
     // Trigger a resize event to ensure map displays correctly
     setTimeout(() => {
         google.maps.event.trigger(map, 'resize');
@@ -1183,6 +1256,10 @@ function calculateTrafficAwareOptimizedRoute(locations) {
             resolve(route);
         } catch (error) {
             console.error("Error calculating traffic-aware route:", error);
+            gtag('event', 'route_calculation_error', {
+                'event_category': 'system_error',
+                'event_label': error.message || 'Unknown error',
+            });
             reject(error);
         }
     });
@@ -1819,6 +1896,12 @@ function generateAppleMapsUrl() {
 function openGoogleMaps() {
     const url = generateGoogleMapsUrl();
     if (url) {
+        gtag('event', 'open_external_map', {
+            'event_category': 'navigation',
+            'event_label': 'Google Maps',
+            'route_distance': currentRoute.totalDistance,
+            'num_stops': currentRoute.waypoints.length - 2 // Excluding start and end
+        });
         window.open(url, '_blank');
     } else {
         showAlert('Please calculate a route first');
@@ -1831,6 +1914,12 @@ function openGoogleMaps() {
 function openAppleMaps() {
     const url = generateAppleMapsUrl();
     if (url) {
+        gtag('event', 'open_external_map', {
+            'event_category': 'navigation',
+            'event_label': 'Apple Maps',
+            'route_distance': currentRoute.totalDistance,
+            'num_stops': currentRoute.waypoints.length - 2
+        });
         window.open(url, '_blank');
     } else {
         showAlert('Please calculate a route first');
@@ -2102,6 +2191,11 @@ function setupRoundTripFeature() {
     let savedEndLocation = '';
     
     roundTripCheckbox.addEventListener('change', function() {
+        gtag('event', 'toggle_round_trip', {
+            'event_category': 'feature_usage',
+            'event_label': this.checked ? 'Enabled' : 'Disabled'
+        });
+
         if (this.checked) {
             // Save current end location before overwriting it
             savedEndLocation = endLocationInput.value;
